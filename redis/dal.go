@@ -50,7 +50,7 @@ func (dal *DAL) SetUserToken(user, device, token string) error {
 	conn := dal.pool.Get()
 	defer conn.Close()
 
-	// set user's token
+	// set user's token which will be expired in 1 year
 	key := "users:" + user + ":token:" + device
 	_, err := conn.Do("SET", key, token, "EX", "31536000")
 
