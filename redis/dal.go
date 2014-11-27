@@ -52,7 +52,7 @@ func (dal *DAL) SetUserToken(user, device, token string) error {
 
 	// set user's token
 	key := "users:" + user + ":token:" + device
-	_, err := conn.Do("SET", key, token)
+	_, err := conn.Do("SET", key, token, "EX", "31536000")
 
 	return err
 }
