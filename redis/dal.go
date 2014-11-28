@@ -51,7 +51,7 @@ func (dal *DAL) SetUserToken(user, device, token string) error {
 	defer conn.Close()
 
 	// set user's token which will be expired in 1 year
-	key := "users:" + user + ":token:" + device
+	key := userTokenKey(user, device)
 	_, err := conn.Do("SET", key, token, "EX", "31536000")
 
 	return err
@@ -64,12 +64,67 @@ func (dal *DAL) IsUserTokenCorrect(user, device, token string) (bool, error) {
 	defer conn.Close()
 
 	// get user's token
-	key := "users:" + user + ":token:" + device
-	t, err := redis.String(conn.Do("GET", key))
-	if err != nil {
-		return false, err
-	}
+	key := userTokenKey(user, device)
+	return redis.Bool(isUserTokenCorrect.Do(conn, key, token))
+}
 
-	// compare
-	return t == token, err
+// Set user follow device with privilege.
+func (dal *DAL) SetUserFollowDevice(user, device string, privilege int) error {
+	// connection from pool
+	conn := dal.pool.Get()
+	defer conn.Close()
+
+	// set user follow device
+	key1 := userFollowingDevicesKey(user)
+	key2 := deviceFollowerUsersKey(device)
+	_, err := setUserFollowDevice.Do(conn, key1, key2, user, device, privilege)
+
+	return err
+}
+
+// Set user un-follow device with privilege.
+func (dal *DAL) SetUserUnFollowDevice(user, device string) error {
+	// connection from pool
+	conn := dal.pool.Get()
+	defer conn.Close()
+
+	// set user un-follow device
+	key1 := userFollowingDevicesKey(user)
+	key2 := deviceFollowerUsersKey(device)
+	_, err := setUserUnFollowDevice.Do(conn, key1, key2, user, device)
+
+	return err
+}
+
+// Is user follow device with at least privilege.
+func (dal *DAL) IsUserFollowDevice(user, device string, privilege int) (bool, error) {
+	// connection from pool
+	conn := dal.pool.Get()
+	defer conn.Close()
+
+	// is user follow device
+	key := deviceFollowerUsersKey(device)
+	return redis.Bool(isUserFollowDevice.Do(conn, key, user, privilege))
+}
+
+// Get user's following devices.
+func (dal *DAL) GetUserFollowingDevices(user string, privilegeMin, privilegeMax int) ([]string, error) {
+	// connection from pool
+	conn := dal.pool.Get()
+	defer conn.Close()
+
+	// get user's following devices
+	key := userFollowingDevicesKey(user)
+	return redis.Strings(conn.Do("ZRANGEBYSCORE", key, privilegeMin, privilegeMax))
+}
+
+// Get device's follower users.
+func (dal *DAL) GetDeviceFollowerUsers(device string, privilegeMin, privilegeMax int) ([]string, error) {
+	// connection from pool
+	conn := dal.pool.Get()
+	defer conn.Close()
+
+	// get user's following devices
+	key := deviceFollowerUsersKey(device)
+	return redis.Strings(conn.Do("ZRANGEBYSCORE", key, privilegeMin, privilegeMax))
 }
