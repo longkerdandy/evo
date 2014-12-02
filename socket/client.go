@@ -14,10 +14,11 @@ const (
 // client represents a device's connection
 type client struct {
 	mu  sync.Mutex
-	nc  net.Conn
 	did string // deivice id
 	uid string // user id
+	nc  net.Conn
 	bw  *bufio.Writer
+	srv *Server
 }
 
 // Lock should be held
