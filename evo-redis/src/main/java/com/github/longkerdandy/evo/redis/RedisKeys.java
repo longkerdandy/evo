@@ -6,19 +6,19 @@ package com.github.longkerdandy.evo.redis;
 @SuppressWarnings("unused")
 public class RedisKeys {
 
-    // Device Server Mapping --- Hashes
-    public static String deviceServerMappingKey() {
-        return "mapping:device:server";
+    // Device Server(Node) Mapping --- Hashes
+    public static String deviceNodeMappingKey() {
+        return "mapping:device:node";
     }
 
     // Device User Mapping --- Sets
     public static String deviceUserMappingKey(final String device) {
-        return "mapping:device:" + device + ":user";
+        return "mapping:device:" + device + ":users";
     }
 
     // User Device Mapping --- Sets
     public static String userDeviceMappingKey(final String user) {
-        return "mapping:user:" + user + ":device";
+        return "mapping:user:" + user + ":devices";
     }
 
     // User Token (per Device) --- String

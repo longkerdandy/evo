@@ -61,6 +61,71 @@ public class RedisStorage {
     }
 
     /**
+     * Set device as connected
+     *
+     * @param device Device ID
+     * @param node   Node ID
+     */
+    public void setDeviceConnected(final String device, final String node) {
+        try (final Jedis jedis = this.jedisPool.getResource()) {
+            jedis.hset(RedisKeys.deviceNodeMappingKey(), device, node);
+        } catch (JedisException e) {
+            throw new RedisException(e);
+        }
+    }
+
+    /**
+     * Set device as disconnected
+     *
+     * @param device Device ID
+     * @param node   Node ID
+     */
+    public void setDeviceDisconnected(final String device, final String node) {
+        try (final Jedis jedis = this.jedisPool.getResource()) {
+            final String key = RedisKeys.deviceNodeMappingKey();
+            jedis.eval(RedisLuaScript.SET_DEVICE_DISCONNECTED, 1, key, device, node);
+        } catch (JedisException e) {
+            throw new RedisException(e);
+        }
+    }
+
+    /**
+     * Set user as connected
+     *
+     * @param user   User ID
+     * @param device Device ID
+     * @param node   Node ID
+     */
+    public void setUserConnected(final String user, final String device, final String node) {
+        try (final Jedis jedis = this.jedisPool.getResource()) {
+            final String key1 = RedisKeys.deviceNodeMappingKey();
+            final String key2 = RedisKeys.userDeviceMappingKey(user);
+            final String key3 = RedisKeys.deviceUserMappingKey(device);
+            jedis.eval(RedisLuaScript.SET_USER_CONNECTED, 3, key1, key2, key3, user, device, node);
+        } catch (JedisException e) {
+            throw new RedisException(e);
+        }
+    }
+
+    /**
+     * Set user as disconnected
+     *
+     * @param user   User ID
+     * @param device Device ID
+     * @param node   Node ID
+     */
+    public void setUserDisconnected(final String user, final String device, final String node) {
+        try (final Jedis jedis = this.jedisPool.getResource()) {
+            final String key1 = RedisKeys.deviceNodeMappingKey();
+            final String key2 = RedisKeys.userDeviceMappingKey(user);
+            final String key3 = RedisKeys.deviceUserMappingKey(device);
+            jedis.eval(RedisLuaScript.SET_USER_DISCONNECTED, 3, key1, key2, key3, user, device, node);
+        } catch (JedisException e) {
+            throw new RedisException(e);
+        }
+    }
+
+    /**
      * Set user's token bind with device.
      *
      * @param user   User ID
