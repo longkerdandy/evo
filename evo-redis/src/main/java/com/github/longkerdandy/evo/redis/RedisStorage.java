@@ -30,6 +30,10 @@ public class RedisStorage {
         this.password = password;
     }
 
+    public JedisPool getJedisPool() {
+        return jedisPool;
+    }
+
     /**
      * Init RedisStorage
      */
