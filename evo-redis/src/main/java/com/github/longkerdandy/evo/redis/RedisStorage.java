@@ -8,6 +8,8 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.exceptions.JedisException;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -94,6 +96,20 @@ public class RedisStorage {
     }
 
     /**
+     * Get device's connected node
+     *
+     * @param device Device ID
+     * @return Node ID, null if device is not connected
+     */
+    public String getDeviceConnectedNode(final String device) {
+        try (final Jedis jedis = this.jedisPool.getResource()) {
+            return jedis.hget(RedisKeys.deviceNodeMappingKey(), device);
+        } catch (JedisException e) {
+            throw new RedisException(e);
+        }
+    }
+
+    /**
      * Set user as connected
      *
      * @param user   User ID
@@ -130,6 +146,39 @@ public class RedisStorage {
     }
 
     /**
+     * Get device's connected users
+     *
+     * @param device Device ID
+     * @return Set of User ID
+     */
+    public Set<String> getDeviceConnectedUser(final String device) {
+        try (final Jedis jedis = this.jedisPool.getResource()) {
+            return jedis.smembers(RedisKeys.deviceUserMappingKey(device));
+        } catch (JedisException e) {
+            throw new RedisException(e);
+        }
+    }
+
+    /**
+     * Get user's connected device & node
+     *
+     * @param user User ID
+     * @return Map of Device ID - Node ID
+     */
+    public Map<String, String> getUserConnectedDeviceNode(final String user) {
+        try (final Jedis jedis = this.jedisPool.getResource()) {
+            final HashMap<String, String> map = new HashMap<>();
+            for (final String device : jedis.smembers(RedisKeys.userDeviceMappingKey(user))) {
+                final String node = jedis.hget(RedisKeys.deviceNodeMappingKey(), device);
+                if (node != null) map.put(device, node);
+            }
+            return map;
+        } catch (JedisException e) {
+            throw new RedisException(e);
+        }
+    }
+
+    /**
      * Set user's token bind with device.
      *
      * @param user   User ID
@@ -138,7 +187,7 @@ public class RedisStorage {
      */
     public void setUserToken(final String user, final String device, final String token) {
         try (final Jedis jedis = this.jedisPool.getResource()) {
-            // TODO: jedis should provide a way to SET with NX
+            // TODO: jedis should provide a way to SET with EX
             jedis.set(RedisKeys.userTokenKey(user, device), token);
             jedis.expire(RedisKeys.userTokenKey(user, device), 31536000);
         } catch (JedisException e) {
@@ -205,7 +254,7 @@ public class RedisStorage {
     public boolean isUserFollowDevice(final String user, final String device, final int privilege) {
         try (final Jedis jedis = this.jedisPool.getResource()) {
             final String key = RedisKeys.deviceFollowerUsersKey(device);
-            return (boolean) jedis.eval(RedisLuaScript.IS_USER_FOLLOW_DEVICE, 1, key, user, String.valueOf(privilege));
+            return jedis.eval(RedisLuaScript.IS_USER_FOLLOW_DEVICE, 1, key, user, String.valueOf(privilege)) != null;
         } catch (JedisException e) {
             throw new RedisException(e);
         }
