@@ -6,7 +6,7 @@ import org.junit.Test;
 import redis.clients.jedis.Jedis;
 
 /**
- * RedisStorage UnitTest
+ * RedisStorage test
  */
 public class RedisStorageTest {
 

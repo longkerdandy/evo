@@ -2,3 +2,5 @@ rootProject.name = 'evo'
 
 include 'evo-redis'
 
+include 'evo-api'
+
