@@ -1,0 +1,8 @@
+// Project Version
+version = '1.0.0'
+
+dependencies {
+    // Netty
+    compile 'io.netty:netty-all:4.0.24.Final'
+    compile 'io.netty:netty-codec-mqtt:4.1.0.Beta3'
+}
