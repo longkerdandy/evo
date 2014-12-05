@@ -27,9 +27,9 @@ subprojects {
         compile 'ch.qos.logback:logback-classic:1.1.2'
 
         // JUnit
-        testCompile 'junit:junit:4.11'
+        testCompile 'junit:junit:4.12'
 
         // Mockito
-        testCompile 'org.mockito:mockito-all:1.9.5'
+        testCompile 'org.mockito:mockito-all:1.10.8'
     }
 }
