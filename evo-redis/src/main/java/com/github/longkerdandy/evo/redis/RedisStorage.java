@@ -167,6 +167,7 @@ public class RedisStorage {
      */
     public Map<String, String> getUserConnectedDeviceNode(String user) {
         try (Jedis jedis = this.jedisPool.getResource()) {
+            // TODO: Use Lua script
             HashMap<String, String> map = new HashMap<>();
             for (String device : jedis.smembers(RedisKeys.userDeviceMappingKey(user))) {
                 String node = jedis.hget(RedisKeys.deviceNodeMappingKey(), device);

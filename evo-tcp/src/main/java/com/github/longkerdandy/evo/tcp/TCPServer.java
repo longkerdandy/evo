@@ -1,5 +1,6 @@
 package com.github.longkerdandy.evo.tcp;
 
+import com.github.longkerdandy.evo.redis.RedisStorage;
 import com.github.longkerdandy.evo.tcp.handler.BusinessHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -16,6 +17,10 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
  * TCP Server
  */
 public class TCPServer {
+
+    private static final String REDIS_HOST = "0.0.0.0";
+    private static final int REDIS_PORT = 6379;
+    private static final String REDIS_PASSWORD = "";
 
     private static final String HOST = "0.0.0.0";
     private static final int PORT = 1883;
@@ -39,7 +44,8 @@ public class TCPServer {
                             p.addLast(new MqttEncoder());
                             p.addLast(new MqttDecoder());
                             // Business Handler, in separate ExecutorGroup
-                            p.addLast(new DefaultEventExecutorGroup(THREADS), new BusinessHandler());
+                            p.addLast(new DefaultEventExecutorGroup(THREADS),
+                                    new BusinessHandler(new RedisStorage(REDIS_HOST, REDIS_PORT, REDIS_PASSWORD)));
                         }
                     });
 
