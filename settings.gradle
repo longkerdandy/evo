@@ -4,3 +4,5 @@ include 'evo-redis'
 
 include 'evo-api'
 
+include 'evo-tcp'
+

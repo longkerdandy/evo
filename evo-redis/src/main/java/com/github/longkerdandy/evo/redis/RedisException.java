@@ -6,15 +6,15 @@ package com.github.longkerdandy.evo.redis;
 @SuppressWarnings("unused")
 public class RedisException extends RuntimeException {
 
-    public RedisException(final String message) {
+    public RedisException(String message) {
         super(message);
     }
 
-    public RedisException(final Throwable cause) {
+    public RedisException(Throwable cause) {
         super(cause);
     }
 
-    public RedisException(final String message, final Throwable cause) {
+    public RedisException(String message, Throwable cause) {
         super(message, cause);
     }
 }

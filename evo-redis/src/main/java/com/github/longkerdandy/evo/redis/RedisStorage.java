@@ -18,7 +18,7 @@ import java.util.Set;
 @SuppressWarnings("unused")
 public class RedisStorage {
 
-    private static final Logger logger = LoggerFactory.getLogger(RedisStorage.class);
+    private final static Logger logger = LoggerFactory.getLogger(RedisStorage.class);
     // Redis config
     private final String host;
     private final int port;
@@ -26,7 +26,7 @@ public class RedisStorage {
     // Jedis Connection Pool
     private JedisPool jedisPool;
 
-    public RedisStorage(final String host, final int port, final String password) {
+    public RedisStorage(String host, int port, String password) {
         this.host = host;
         this.port = port;
         this.password = password;
@@ -44,7 +44,7 @@ public class RedisStorage {
         this.jedisPool = new JedisPool(new JedisPoolConfig(), this.host, this.port);
         // auth
         if (StringUtils.isNotEmpty(this.password)) {
-            try (final Jedis jedis = this.jedisPool.getResource()) {
+            try (Jedis jedis = this.jedisPool.getResource()) {
                 // FIXME: make sure jedis.auth 's return value
                 if (StringUtils.isEmpty(jedis.auth(this.password))) {
                     throw new RedisException("Redis authentication failed, password incorrect.");
@@ -72,8 +72,8 @@ public class RedisStorage {
      * @param device Device ID
      * @param node   Node ID
      */
-    public void setDeviceConnected(final String device, final String node) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
+    public void setDeviceConnected(String device, String node) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
             jedis.hset(RedisKeys.deviceNodeMappingKey(), device, node);
         } catch (JedisException e) {
             throw new RedisException(e);
@@ -86,9 +86,9 @@ public class RedisStorage {
      * @param device Device ID
      * @param node   Node ID
      */
-    public void setDeviceDisconnected(final String device, final String node) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
-            final String key = RedisKeys.deviceNodeMappingKey();
+    public void setDeviceDisconnected(String device, String node) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            String key = RedisKeys.deviceNodeMappingKey();
             jedis.eval(RedisLuaScript.SET_DEVICE_DISCONNECTED, 1, key, device, node);
         } catch (JedisException e) {
             throw new RedisException(e);
@@ -101,8 +101,8 @@ public class RedisStorage {
      * @param device Device ID
      * @return Node ID, null if device is not connected
      */
-    public String getDeviceConnectedNode(final String device) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
+    public String getDeviceConnectedNode(String device) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
             return jedis.hget(RedisKeys.deviceNodeMappingKey(), device);
         } catch (JedisException e) {
             throw new RedisException(e);
@@ -116,11 +116,11 @@ public class RedisStorage {
      * @param device Device ID
      * @param node   Node ID
      */
-    public void setUserConnected(final String user, final String device, final String node) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
-            final String key1 = RedisKeys.deviceNodeMappingKey();
-            final String key2 = RedisKeys.userDeviceMappingKey(user);
-            final String key3 = RedisKeys.deviceUserMappingKey(device);
+    public void setUserConnected(String user, String device, String node) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            String key1 = RedisKeys.deviceNodeMappingKey();
+            String key2 = RedisKeys.userDeviceMappingKey(user);
+            String key3 = RedisKeys.deviceUserMappingKey(device);
             jedis.eval(RedisLuaScript.SET_USER_CONNECTED, 3, key1, key2, key3, user, device, node);
         } catch (JedisException e) {
             throw new RedisException(e);
@@ -134,11 +134,11 @@ public class RedisStorage {
      * @param device Device ID
      * @param node   Node ID
      */
-    public void setUserDisconnected(final String user, final String device, final String node) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
-            final String key1 = RedisKeys.deviceNodeMappingKey();
-            final String key2 = RedisKeys.userDeviceMappingKey(user);
-            final String key3 = RedisKeys.deviceUserMappingKey(device);
+    public void setUserDisconnected(String user, String device, String node) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            String key1 = RedisKeys.deviceNodeMappingKey();
+            String key2 = RedisKeys.userDeviceMappingKey(user);
+            String key3 = RedisKeys.deviceUserMappingKey(device);
             jedis.eval(RedisLuaScript.SET_USER_DISCONNECTED, 3, key1, key2, key3, user, device, node);
         } catch (JedisException e) {
             throw new RedisException(e);
@@ -151,8 +151,8 @@ public class RedisStorage {
      * @param device Device ID
      * @return Set of User ID
      */
-    public Set<String> getDeviceConnectedUser(final String device) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
+    public Set<String> getDeviceConnectedUser(String device) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
             return jedis.smembers(RedisKeys.deviceUserMappingKey(device));
         } catch (JedisException e) {
             throw new RedisException(e);
@@ -165,11 +165,11 @@ public class RedisStorage {
      * @param user User ID
      * @return Map of Device ID - Node ID
      */
-    public Map<String, String> getUserConnectedDeviceNode(final String user) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
-            final HashMap<String, String> map = new HashMap<>();
-            for (final String device : jedis.smembers(RedisKeys.userDeviceMappingKey(user))) {
-                final String node = jedis.hget(RedisKeys.deviceNodeMappingKey(), device);
+    public Map<String, String> getUserConnectedDeviceNode(String user) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            HashMap<String, String> map = new HashMap<>();
+            for (String device : jedis.smembers(RedisKeys.userDeviceMappingKey(user))) {
+                String node = jedis.hget(RedisKeys.deviceNodeMappingKey(), device);
                 if (node != null) map.put(device, node);
             }
             return map;
@@ -185,8 +185,8 @@ public class RedisStorage {
      * @param device Device ID
      * @param token  Token
      */
-    public void setUserToken(final String user, final String device, final String token) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
+    public void setUserToken(String user, String device, String token) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
             // TODO: jedis should provide a way to SET with EX
             jedis.set(RedisKeys.userTokenKey(user, device), token);
             jedis.expire(RedisKeys.userTokenKey(user, device), 31536000);
@@ -203,8 +203,8 @@ public class RedisStorage {
      * @param token  Token
      * @return True if token is correct
      */
-    public boolean isUserTokenCorrect(final String user, final String device, final String token) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
+    public boolean isUserTokenCorrect(String user, String device, String token) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
             return token.equals(jedis.get(RedisKeys.userTokenKey(user, device)));
         } catch (JedisException e) {
             throw new RedisException(e);
@@ -218,10 +218,10 @@ public class RedisStorage {
      * @param device    Device ID
      * @param privilege Privilege Level
      */
-    public void setUserFollowDevice(final String user, final String device, final int privilege) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
-            final String key1 = RedisKeys.userFollowingDevicesKey(user);
-            final String key2 = RedisKeys.deviceFollowerUsersKey(device);
+    public void setUserFollowDevice(String user, String device, int privilege) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            String key1 = RedisKeys.userFollowingDevicesKey(user);
+            String key2 = RedisKeys.deviceFollowerUsersKey(device);
             jedis.eval(RedisLuaScript.SET_USER_FOLLOW_DEVICE, 2, key1, key2, user, device, String.valueOf(privilege));
         } catch (JedisException e) {
             throw new RedisException(e);
@@ -234,10 +234,10 @@ public class RedisStorage {
      * @param user   User ID
      * @param device Device ID
      */
-    public void setUserUnFollowDevice(final String user, final String device) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
-            final String key1 = RedisKeys.userFollowingDevicesKey(user);
-            final String key2 = RedisKeys.deviceFollowerUsersKey(device);
+    public void setUserUnFollowDevice(String user, String device) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            String key1 = RedisKeys.userFollowingDevicesKey(user);
+            String key2 = RedisKeys.deviceFollowerUsersKey(device);
             jedis.eval(RedisLuaScript.SET_USER_UNFOLLOW_DEVICE, 2, key1, key2, user, device);
         } catch (JedisException e) {
             throw new RedisException(e);
@@ -251,9 +251,9 @@ public class RedisStorage {
      * @param device    Device ID
      * @param privilege Privilege Level
      */
-    public boolean isUserFollowDevice(final String user, final String device, final int privilege) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
-            final String key = RedisKeys.deviceFollowerUsersKey(device);
+    public boolean isUserFollowDevice(String user, String device, int privilege) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            String key = RedisKeys.deviceFollowerUsersKey(device);
             return jedis.eval(RedisLuaScript.IS_USER_FOLLOW_DEVICE, 1, key, user, String.valueOf(privilege)) != null;
         } catch (JedisException e) {
             throw new RedisException(e);
@@ -268,9 +268,9 @@ public class RedisStorage {
      * @param privilegeMax Max Privilege Level
      * @return Set of Device ID
      */
-    public Set<String> getUserFollowingDevices(final String user, final int privilegeMin, final int privilegeMax) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
-            final String key = RedisKeys.userFollowingDevicesKey(user);
+    public Set<String> getUserFollowingDevices(String user, int privilegeMin, int privilegeMax) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            String key = RedisKeys.userFollowingDevicesKey(user);
             return jedis.zrangeByScore(key, privilegeMin, privilegeMax);
         } catch (JedisException e) {
             throw new RedisException(e);
@@ -285,9 +285,9 @@ public class RedisStorage {
      * @param privilegeMax Max Privilege Level
      * @return Set of User ID
      */
-    public Set<String> getDeviceFollowerUsers(final String device, final int privilegeMin, final int privilegeMax) {
-        try (final Jedis jedis = this.jedisPool.getResource()) {
-            final String key = RedisKeys.deviceFollowerUsersKey(device);
+    public Set<String> getDeviceFollowerUsers(String device, int privilegeMin, int privilegeMax) {
+        try (Jedis jedis = this.jedisPool.getResource()) {
+            String key = RedisKeys.deviceFollowerUsersKey(device);
             return jedis.zrangeByScore(key, privilegeMin, privilegeMax);
         } catch (JedisException e) {
             throw new RedisException(e);

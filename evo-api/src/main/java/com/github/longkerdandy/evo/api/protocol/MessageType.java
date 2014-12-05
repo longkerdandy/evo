@@ -5,5 +5,6 @@ package com.github.longkerdandy.evo.api.protocol;
  */
 @SuppressWarnings("unused")
 public class MessageType {
+
     public static final String CONNECT = "connect";
 }
