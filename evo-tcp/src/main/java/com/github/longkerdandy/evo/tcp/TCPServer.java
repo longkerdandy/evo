@@ -1,14 +1,14 @@
 package com.github.longkerdandy.evo.tcp;
 
 import com.github.longkerdandy.evo.redis.RedisStorage;
+import com.github.longkerdandy.evo.tcp.codec.Decoder;
+import com.github.longkerdandy.evo.tcp.codec.Encoder;
 import com.github.longkerdandy.evo.tcp.handler.BusinessHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.mqtt.MqttDecoder;
-import io.netty.handler.codec.mqtt.MqttEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
@@ -41,8 +41,8 @@ public class TCPServer {
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
                             // MQTT
-                            p.addLast(new MqttEncoder());
-                            p.addLast(new MqttDecoder());
+                            p.addLast(new Encoder());
+                            p.addLast(new Decoder());
                             // Business Handler, in separate ExecutorGroup
                             p.addLast(new DefaultEventExecutorGroup(THREADS),
                                     new BusinessHandler(new RedisStorage(REDIS_HOST, REDIS_PORT, REDIS_PASSWORD)));

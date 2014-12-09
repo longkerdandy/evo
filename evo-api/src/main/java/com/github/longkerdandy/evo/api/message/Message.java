@@ -1,20 +1,17 @@
 package com.github.longkerdandy.evo.api.message;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import java.util.List;
-
 /**
  * Message
  */
 @SuppressWarnings("unused")
 public class Message<T> {
 
+    // Max Message Size
+    public static final int MAX_BYTES = 8092;
+
     private String msgId;
     private String msgType;
     private String from;
-    private List<String> toDevices;
-    private List<String> toUsers;
     private String qos;
     private long timestamp;
     private T payload;
@@ -41,22 +38,6 @@ public class Message<T> {
 
     public void setFrom(String from) {
         this.from = from;
-    }
-
-    public List<String> getToDevices() {
-        return toDevices;
-    }
-
-    public void setToDevices(List<String> toDevices) {
-        this.toDevices = toDevices;
-    }
-
-    public List<String> getToUsers() {
-        return toUsers;
-    }
-
-    public void setToUsers(List<String> toUsers) {
-        this.toUsers = toUsers;
     }
 
     public String getQos() {
