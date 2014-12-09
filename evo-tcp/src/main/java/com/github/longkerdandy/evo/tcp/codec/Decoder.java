@@ -16,25 +16,32 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.OBJECT_MAPPER;
 
 /**
  * Packet Decoder
+ * Decode tcp packet into Message.
+ * Packet has binary header and json payload.
+ * Header is 2 bytes ~ 5 bytes long, which compatible with MQTT header.
+ * Byte 1 is not used.
+ * Bytes 2 ~ 5 represent json payload length.
+ * Payload is json and will be parsed into Message, passed to Handler.
+ * ---------------------------------------
+ * | Bit | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
+ * ---------------------------------------
+ * | 1   | MQTT Type     | MQTT Flags    |
+ * ---------------------------------------
+ * | 2-5 | Remaining Length              |
+ * ---------------------------------------
+ * |       Message (JSON)                |
+ * ---------------------------------------
  */
 @SuppressWarnings("unused")
 public class Decoder extends ByteToMessageDecoder {
 
-    private static final int MAX_BYTES_IN_MESSAGE = 8092;
-
-    @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        // at least 2 bytes for the header
-        if (!in.isReadable() || in.readableBytes() < 2) return;
-
-        in.markReaderIndex();
-
-        // header (inspired by MQTT 3.1.1)
-        short b1 = in.readUnsignedByte();
-        int messageType = b1 >> 4;
-        boolean dupFlag = (b1 & 0x08) == 0x08;
-        int qosLevel = (b1 & 0x06) >> 1;
-        boolean retain = (b1 & 0x01) != 0;
+    /**
+     * The Remaining Length is the number of bytes remaining within the current packet, including data in the
+     * 258 variable header and the payload. The Remaining Length does not include the bytes used to encode the
+     * 259 Remaining Length.
+     * See MQTT V3.1.1 Protocol Specific for more information
+     */
+    protected static int decodeRemainingLength(ByteBuf in) {
         int remainingLength = 0;
         int multiplier = 1;
         short digit;
@@ -46,15 +53,33 @@ public class Decoder extends ByteToMessageDecoder {
             loops++;
         } while ((digit & 128) != 0 && loops < 4);
         if (loops == 4 && (digit & 128) != 0) {
-            in.clear(); // is clear the correct way to discard this message?
-            throw new DecoderException("remaining length exceeds 4 digits (" + messageType + ')');
+            in.clear();
+            throw new DecoderException("remaining length exceeds 4 digits");
         }
-        if (remainingLength > MAX_BYTES_IN_MESSAGE) {
-            in.clear(); // is clear the correct way to discard this message?
+        return remainingLength;
+    }
+
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        // at least 2 bytes for the header
+        if (!in.isReadable() || in.readableBytes() < 2) return;
+
+        in.markReaderIndex();
+
+        // header
+        short b1 = in.readUnsignedByte();
+        int messageType = b1 >> 4;
+        if (messageType != 0 && messageType != 15) {
+            in.clear();
+            throw new DecoderException("MQTT message type: " + messageType + " received");
+        }
+        int remainingLength = decodeRemainingLength(in);
+        if (remainingLength > Message.MAX_BYTES) {
+            in.clear();
             throw new DecoderException("too large message: " + remainingLength + " bytes");
         }
 
-        // enough data?
+        // need more data?
         if (in.readableBytes() < remainingLength) {
             in.resetReaderIndex();
             return;
@@ -66,7 +91,7 @@ public class Decoder extends ByteToMessageDecoder {
             Message<JsonNode> msg = OBJECT_MAPPER.readValue(new ByteBufInputStream(in, remainingLength), type);
             out.add(msg);
         } catch (IOException e) {
-            in.clear(); // is clear the correct way to discard this message?
+            in.clear();
             throw new DecoderException(e);
         }
     }
