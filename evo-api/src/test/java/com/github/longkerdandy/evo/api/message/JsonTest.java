@@ -25,7 +25,7 @@ public class JsonTest {
         Message<ConnectMessage> out = new Message<>();
         out.setMsgId("Message ID 1");
         out.setMsgType(MessageType.CONNECT);
-        out.setFrom("Device 1");
+        out.setDevice("Device 1");
         out.setTimestamp(System.currentTimeMillis());
         out.setPayload(connMsg);
 
@@ -37,7 +37,7 @@ public class JsonTest {
         Message<JsonNode> in = OBJECT_MAPPER.readValue(json, type);
         assert in.getMsgId().equals("Message ID 1");
         assert in.getMsgType().equals(MessageType.CONNECT);
-        assert in.getFrom().equals("Device 1");
+        assert in.getDevice().equals("Device 1");
         assert in.getTimestamp() > 0;
         assert in.getPayload() != null;
 

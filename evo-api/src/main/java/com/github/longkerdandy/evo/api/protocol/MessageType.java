@@ -7,4 +7,5 @@ package com.github.longkerdandy.evo.api.protocol;
 public class MessageType {
 
     public static final String CONNECT = "connect";
+    public static final String CONNACK = "connack";
 }

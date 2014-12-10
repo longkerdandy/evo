@@ -30,7 +30,7 @@ public class DecoderEncoderTest {
         Message<ConnectMessage> msgOut = new Message<>();
         msgOut.setMsgId("Message ID 1");
         msgOut.setMsgType(MessageType.CONNECT);
-        msgOut.setFrom("Device 1");
+        msgOut.setDevice("Device 1");
         msgOut.setTimestamp(System.currentTimeMillis());
         msgOut.setPayload(connMsg);
 
@@ -48,7 +48,7 @@ public class DecoderEncoderTest {
 
         assert msgIn.getMsgId().equals("Message ID 1");
         assert msgIn.getMsgType().equals(MessageType.CONNECT);
-        assert msgIn.getFrom().equals("Device 1");
+        assert msgIn.getDevice().equals("Device 1");
         assert msgIn.getTimestamp() > 0;
         assert msgIn.getPayload() != null;
 

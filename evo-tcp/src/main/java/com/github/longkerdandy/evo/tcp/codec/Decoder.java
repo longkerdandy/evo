@@ -3,6 +3,7 @@ package com.github.longkerdandy.evo.tcp.codec;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.longkerdandy.evo.api.message.Message;
+import com.github.longkerdandy.evo.api.protocol.MessageSize;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.ChannelHandlerContext;
@@ -74,7 +75,7 @@ public class Decoder extends ByteToMessageDecoder {
             throw new DecoderException("MQTT message type: " + messageType + " received");
         }
         int remainingLength = decodeRemainingLength(in);
-        if (remainingLength > Message.MAX_BYTES) {
+        if (remainingLength > MessageSize.MAX_BYTES) {
             in.clear();
             throw new DecoderException("too large message: " + remainingLength + " bytes");
         }

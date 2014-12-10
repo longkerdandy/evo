@@ -45,7 +45,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
 
     protected void onConnect(ChannelHandlerContext ctx, Message<JsonNode> msg) throws IOException {
         ConnectMessage connMsg = OBJECT_MAPPER.treeToValue(msg.getPayload(), ConnectMessage.class);
-        String deviceId = msg.getFrom();
+        String deviceId = msg.getDevice();
 
         // Auth as Device
         if (StringUtils.isEmpty(connMsg.getUser())) {

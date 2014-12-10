@@ -6,10 +6,10 @@ package com.github.longkerdandy.evo.api.message;
 @SuppressWarnings("unused")
 public class ConnectMessage {
 
-    private String protocolVersion;
-    private String gateway;
-    private String user;
-    private String token;
+    private String protocolVersion; // Protocol Version
+    private String gateway;         // Gateway Device ID
+    private String user;            // User ID (as controller)
+    private String token;           // Token
 
     public String getProtocolVersion() {
         return protocolVersion;

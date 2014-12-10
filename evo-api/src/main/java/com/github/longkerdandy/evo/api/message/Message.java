@@ -6,15 +6,12 @@ package com.github.longkerdandy.evo.api.message;
 @SuppressWarnings("unused")
 public class Message<T> {
 
-    // Max Message Size
-    public static final int MAX_BYTES = 8092;
-
-    private String msgId;
-    private String msgType;
-    private String from;
-    private String qos;
-    private long timestamp;
-    private T payload;
+    private String msgId;   // Message ID
+    private String msgType; // Message Type (payload)
+    private String device;  // Device ID (who send this message)
+    private String qos;     // QoS Level
+    private long timestamp; // Timestamp (when message is send)
+    private T payload;      // Payload (sub-message)
 
     public String getMsgId() {
         return msgId;
@@ -32,12 +29,12 @@ public class Message<T> {
         this.msgType = msgType;
     }
 
-    public String getFrom() {
-        return from;
+    public String getDevice() {
+        return device;
     }
 
-    public void setFrom(String from) {
-        this.from = from;
+    public void setDevice(String device) {
+        this.device = device;
     }
 
     public String getQos() {
