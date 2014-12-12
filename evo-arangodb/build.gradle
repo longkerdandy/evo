@@ -4,8 +4,7 @@ version = '1.0.0'
 dependencies {
     // Evo
     compile project(':evo-api')
-    compile project(':evo-redis')
 
-    // Netty
-    compile 'io.netty:netty-all:4.0.24.Final'
+    // Jedis
+    compile 'com.arangodb:arangodb-java-driver:2.2'
 }
