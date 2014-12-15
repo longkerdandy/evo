@@ -8,6 +8,9 @@ import com.github.longkerdandy.evo.api.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.github.longkerdandy.evo.arangodb.Const.COLLECTION_USERS;
+import static com.github.longkerdandy.evo.arangodb.Const.GRAPH_IOT_RELATION;
+
 /**
  * Arango Database Access Layer
  */
@@ -52,10 +55,10 @@ public class ArangoStorage {
     }
 
     public DocumentEntity<User> createUser(User user) throws ArangoException {
-        return this.arango.graphCreateVertex("relation", "users", user, false);
+        return this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_USERS, user, false);
     }
 
     public DocumentEntity<User> getUserById(String uid) throws ArangoException {
-        return this.arango.graphGetVertex("relation", "users", uid, User.class);
+        return this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_USERS, uid, User.class);
     }
 }

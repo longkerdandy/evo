@@ -9,6 +9,8 @@ import com.arangodb.entity.GraphEntity;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.github.longkerdandy.evo.arangodb.Const.*;
+
 /**
  * Create ArangoDB Scheme (Database, Collection, Graph)
  */
@@ -32,12 +34,12 @@ public class CreateScheme {
         // from: user collection
         // to:   devices collection
         EdgeDefinitionEntity edgeDef = new EdgeDefinitionEntity();
-        edgeDef.setCollection("user_device_relation");
+        edgeDef.setCollection(EDGE_USER_DEVICE);
         List<String> from = new ArrayList<>();
-        from.add("users");
+        from.add(COLLECTION_USERS);
         edgeDef.setFrom(from);
         List<String> to = new ArrayList<>();
-        to.add("devices");
+        to.add(COLLECTION_DEVICES);
         edgeDef.setTo(to);
 
         edgeDefs.add(edgeDef);
@@ -45,8 +47,8 @@ public class CreateScheme {
         // orphan collections
         List<String> orphans = new ArrayList<>();
 
-        // create relation graph (TODO: waitForSync option)
-        GraphEntity graph = arango.createGraph("relation", edgeDefs, orphans, false);
+        // create relation graph
+        GraphEntity graph = arango.createGraph(GRAPH_IOT_RELATION, edgeDefs, orphans, true);
         assert graph != null;
     }
 }
