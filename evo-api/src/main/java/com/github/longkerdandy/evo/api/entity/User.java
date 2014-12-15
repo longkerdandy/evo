@@ -1,22 +1,26 @@
 package com.github.longkerdandy.evo.api.entity;
 
+import com.arangodb.annotations.DocumentKey;
+
 /**
  * User Entity
  */
+@SuppressWarnings("unused")
 public class User {
 
-    private String _key;
+    @DocumentKey
+    private String id;          // id
     private String alias;       // name, nick name
     private String email;       // email
     private String mobile;      // mobile phone
     private String password;    // encoded password
 
-    public String get_key() {
-        return _key;
+    public String getId() {
+        return id;
     }
 
-    public void set_key(String _key) {
-        this._key = _key;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getAlias() {

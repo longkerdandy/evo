@@ -5,6 +5,6 @@ dependencies {
     // Evo
     compile project(':evo-api')
 
-    // Jedis
+    // Arango
     compile 'com.arangodb:arangodb-java-driver:2.2'
 }
