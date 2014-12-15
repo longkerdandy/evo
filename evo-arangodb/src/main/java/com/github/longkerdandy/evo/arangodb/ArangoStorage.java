@@ -59,6 +59,14 @@ public class ArangoStorage {
         logger.info("ArangoStorage destroy.");
     }
 
+    /**
+     * Create new user
+     * User entity must been validated before invoking this method.
+     *
+     * @param user User Entity
+     * @return Id, Key, Revision
+     * @throws ArangoException If user's email or mobile already exist
+     */
     public DocumentEntity<User> createUser(User user) throws ArangoException {
         // user exist?
         Map<String, Object> example = new HashMap<>();
@@ -70,6 +78,13 @@ public class ArangoStorage {
         return this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_USERS, user, false);
     }
 
+    /**
+     * Get user entity based on user id
+     *
+     * @param uid User Id
+     * @return User Entity
+     * @throws ArangoException If user id not exist
+     */
     public DocumentEntity<User> getUserById(String uid) throws ArangoException {
         return this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_USERS, uid, User.class);
     }

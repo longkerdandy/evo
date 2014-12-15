@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static com.github.longkerdandy.evo.arangodb.Const.*;
-import static com.googlecode.catchexception.CatchException.*;
+import static com.googlecode.catchexception.CatchException.verifyException;
 
 /**
  * ArangoStorage Test
