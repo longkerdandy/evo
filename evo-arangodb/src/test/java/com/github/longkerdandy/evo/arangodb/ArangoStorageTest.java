@@ -5,9 +5,12 @@ import com.arangodb.entity.DocumentEntity;
 import com.github.longkerdandy.evo.api.entity.User;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import static com.github.longkerdandy.evo.arangodb.Const.*;
+import static com.googlecode.catchexception.CatchException.*;
 
 /**
  * ArangoStorage Test
@@ -15,6 +18,9 @@ import static com.github.longkerdandy.evo.arangodb.Const.*;
 public class ArangoStorageTest {
 
     private static ArangoStorage arango;
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     @BeforeClass
     public static void before() throws ArangoException {
@@ -46,12 +52,27 @@ public class ArangoStorageTest {
         userA.setMobile("18600000000");
         userA.setPassword("passwr0d");
 
+        // normal behavior
         DocumentEntity<User> de = arango.createUser(userA);
         de = arango.getUserById(de.getDocumentKey());
-
         assert de.getEntity().getAlias().equals("User A");
         assert de.getEntity().getEmail().equals("usera@example.com");
         assert de.getEntity().getMobile().equals("18600000000");
         assert de.getEntity().getPassword().equals("passwr0d");
+
+        // create user email already exist
+        User userB = new User();
+        userB.setAlias("User B");
+        userB.setEmail("usera@example.com");
+        userB.setPassword("passwr0d");
+        verifyException(arango, ArangoException.class).createUser(userB);
+
+        // create user mobile already exist
+        userB.setEmail(null);
+        userB.setMobile("18600000000");
+        verifyException(arango, ArangoException.class).createUser(userB);
+
+        // get user not exist
+        verifyException(arango, ArangoException.class).getUserById("00000000");
     }
 }

@@ -3,10 +3,15 @@ package com.github.longkerdandy.evo.arangodb;
 import com.arangodb.ArangoConfigure;
 import com.arangodb.ArangoDriver;
 import com.arangodb.ArangoException;
+import com.arangodb.entity.CursorEntity;
 import com.arangodb.entity.DocumentEntity;
 import com.github.longkerdandy.evo.api.entity.User;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.github.longkerdandy.evo.arangodb.Const.COLLECTION_USERS;
 import static com.github.longkerdandy.evo.arangodb.Const.GRAPH_IOT_RELATION;
@@ -55,6 +60,13 @@ public class ArangoStorage {
     }
 
     public DocumentEntity<User> createUser(User user) throws ArangoException {
+        // user exist?
+        Map<String, Object> example = new HashMap<>();
+        if (StringUtils.isNotBlank(user.getEmail())) example.put("email", user.getEmail());
+        if (StringUtils.isNotBlank(user.getEmail())) example.put("mobile", user.getMobile());
+        CursorEntity<User> cursor = this.arango.executeSimpleByExample(COLLECTION_USERS, example, 0, 1, User.class);
+        if (cursor.getCount() > 0) throw new ArangoException("user's email or mobile already exist");
+
         return this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_USERS, user, false);
     }
 
