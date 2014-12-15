@@ -2,12 +2,16 @@ package com.github.longkerdandy.evo.arangodb;
 
 import com.arangodb.ArangoException;
 import com.arangodb.entity.DocumentEntity;
+import com.github.longkerdandy.evo.api.entity.Device;
 import com.github.longkerdandy.evo.api.entity.User;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.github.longkerdandy.evo.arangodb.Const.*;
 import static com.googlecode.catchexception.CatchException.verifyException;
@@ -46,6 +50,8 @@ public class ArangoStorageTest {
 
     @Test
     public void userTest() throws ArangoException {
+        clear();
+
         User userA = new User();
         userA.setAlias("User A");
         userA.setEmail("usera@example.com");
@@ -74,5 +80,27 @@ public class ArangoStorageTest {
 
         // get user not exist
         verifyException(arango, ArangoException.class).getUserById("00000000");
+    }
+
+    @Test
+    public void deviceTest() throws ArangoException {
+        clear();
+
+        Device deviceA = new Device();
+        deviceA.setId("d0000001");
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("model", "Hue");
+        fields.put("switch", 1);
+        deviceA.setFields(fields);
+        deviceA.setUpdateTime(System.currentTimeMillis());
+
+        // normal behavior
+        DocumentEntity<Device> de = arango.createDevice(deviceA);
+        assert de.getDocumentKey().equals(deviceA.getId());
+        de = arango.getDeviceById(deviceA.getId());
+        assert de.getEntity().getId().equals(deviceA.getId());
+        assert de.getEntity().getFields().get("model").equals("Hue");
+        assert (double) de.getEntity().getFields().get("switch") == 1;
+        assert de.getEntity().getUpdateTime() == deviceA.getUpdateTime();
     }
 }

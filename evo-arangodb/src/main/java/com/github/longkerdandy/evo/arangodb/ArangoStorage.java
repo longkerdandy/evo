@@ -5,6 +5,7 @@ import com.arangodb.ArangoDriver;
 import com.arangodb.ArangoException;
 import com.arangodb.entity.CursorEntity;
 import com.arangodb.entity.DocumentEntity;
+import com.github.longkerdandy.evo.api.entity.Device;
 import com.github.longkerdandy.evo.api.entity.User;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -13,8 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.github.longkerdandy.evo.arangodb.Const.COLLECTION_USERS;
-import static com.github.longkerdandy.evo.arangodb.Const.GRAPH_IOT_RELATION;
+import static com.github.longkerdandy.evo.arangodb.Const.*;
 
 /**
  * Arango Database Access Layer
@@ -64,7 +64,7 @@ public class ArangoStorage {
      * User entity must been validated before invoking this method.
      *
      * @param user User Entity
-     * @return Id, Key, Revision
+     * @return Handler, Key, Revision
      * @throws ArangoException If user's email or mobile already exist
      */
     public DocumentEntity<User> createUser(User user) throws ArangoException {
@@ -87,5 +87,28 @@ public class ArangoStorage {
      */
     public DocumentEntity<User> getUserById(String uid) throws ArangoException {
         return this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_USERS, uid, User.class);
+    }
+
+    /**
+     * Create new device
+     * Device id must provided.
+     *
+     * @param device Device Entity
+     * @return Handler, Key, Revision
+     * @throws ArangoException If device id already exist
+     */
+    public DocumentEntity<Device> createDevice(Device device) throws ArangoException {
+        return this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device, false);
+    }
+
+    /**
+     * Get device entity based on device id
+     *
+     * @param did Device Id
+     * @return Device Entity
+     * @throws ArangoException If device id not exist
+     */
+    public DocumentEntity<Device> getDeviceById(String did) throws ArangoException {
+        return this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, did, Device.class);
     }
 }
