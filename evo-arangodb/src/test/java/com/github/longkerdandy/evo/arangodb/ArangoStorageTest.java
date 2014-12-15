@@ -58,7 +58,7 @@ public class ArangoStorageTest {
         assert de.getEntity().getAlias().equals("User A");
         assert de.getEntity().getEmail().equals("usera@example.com");
         assert de.getEntity().getMobile().equals("18600000000");
-        assert de.getEntity().getPassword().equals("passwr0d");
+        assert de.getEntity().getPassword() == null;
 
         // create user email already exist
         User userB = new User();
