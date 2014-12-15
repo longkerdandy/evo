@@ -5,8 +5,10 @@ import com.arangodb.ArangoDriver;
 import com.arangodb.ArangoException;
 import com.arangodb.entity.CursorEntity;
 import com.arangodb.entity.DocumentEntity;
+import com.arangodb.entity.EdgeEntity;
 import com.github.longkerdandy.evo.api.entity.Device;
 import com.github.longkerdandy.evo.api.entity.User;
+import com.github.longkerdandy.evo.api.entity.UserDeviceRelation;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.github.longkerdandy.evo.api.entity.UserDeviceRelation.relationId;
 import static com.github.longkerdandy.evo.arangodb.Const.*;
 
 /**
@@ -110,5 +113,9 @@ public class ArangoStorage {
      */
     public DocumentEntity<Device> getDeviceById(String did) throws ArangoException {
         return this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, did, Device.class);
+    }
+
+    public EdgeEntity<UserDeviceRelation> saveUserDeviceRelation(String uid, String did, UserDeviceRelation relation) throws ArangoException {
+        return this.arango.graphCreateEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, relationId(uid, did), uid, did, relation, false);
     }
 }
