@@ -4,6 +4,7 @@ import com.arangodb.ArangoConfigure;
 import com.arangodb.ArangoDriver;
 import com.arangodb.ArangoException;
 import com.arangodb.entity.CursorEntity;
+import com.arangodb.entity.DeletedEntity;
 import com.arangodb.entity.DocumentEntity;
 import com.arangodb.entity.EdgeEntity;
 import com.github.longkerdandy.evo.api.entity.Device;
@@ -16,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.github.longkerdandy.evo.api.entity.UserDeviceRelation.relationId;
 import static com.github.longkerdandy.evo.arangodb.Const.*;
 
 /**
@@ -115,7 +115,41 @@ public class ArangoStorage {
         return this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, did, Device.class);
     }
 
-    public EdgeEntity<UserDeviceRelation> saveUserDeviceRelation(String uid, String did, UserDeviceRelation relation) throws ArangoException {
-        return this.arango.graphCreateEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, relationId(uid, did), uid, did, relation, false);
+    /**
+     * Create new user device relation
+     *
+     * @param uid      User Id
+     * @param did      Device Id
+     * @param relation User Device Relation
+     * @return From, To
+     * @throws ArangoException If user/device not exist or relation already exist
+     */
+    public EdgeEntity<UserDeviceRelation> createUserDeviceRelation(String uid, String did, UserDeviceRelation relation) throws ArangoException {
+        return this.arango.graphCreateEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did), userHandle(uid), deviceHandle(did), relation, false);
+    }
+
+    /**
+     * Replace user device relation
+     *
+     * @param uid      User Id
+     * @param did      Device Id
+     * @param relation User Device Relation
+     * @return From, To
+     * @throws ArangoException If relation not exist
+     */
+    public EdgeEntity<UserDeviceRelation> replaceUserDeviceRelation(String uid, String did, UserDeviceRelation relation) throws ArangoException {
+        return this.arango.graphReplaceEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did), relation);
+    }
+
+    /**
+     * Delete user device relation
+     *
+     * @param uid      User Id
+     * @param did      Device Id
+     * @return Deleted?
+     * @throws ArangoException If relation not exist
+     */
+    public DeletedEntity deleteUserDeviceRelation(String uid, String did) throws ArangoException {
+        return this.arango.graphDeleteEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did));
     }
 }

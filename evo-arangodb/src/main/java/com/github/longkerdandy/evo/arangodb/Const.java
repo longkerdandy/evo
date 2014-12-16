@@ -18,7 +18,27 @@ public class Const {
      * @param did Device Id
      * @return UserDeviceRelation Id
      */
-    public static String relationId(String uid, String did) {
+    public static String userDeviceRelationId(String uid, String did) {
         return uid + "_" + did;
+    }
+
+    /**
+     * Generate User Handle from User Id
+     *
+     * @param uid User Id
+     * @return User Handle
+     */
+    public static String userHandle(String uid) {
+        return COLLECTION_USERS + "/" + uid;
+    }
+
+    /**
+     * Generate Device Handle from Device Id
+     *
+     * @param did Device Id
+     * @return Device Handle
+     */
+    public static String deviceHandle(String did) {
+        return COLLECTION_DEVICES + "/" + did;
     }
 }
