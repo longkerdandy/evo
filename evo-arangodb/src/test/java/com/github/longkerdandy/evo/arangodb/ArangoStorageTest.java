@@ -94,7 +94,7 @@ public class ArangoStorageTest {
         Map<String, Object> fields = new HashMap<>();
         fields.put("model", "Hue");
         fields.put("switch", 1);
-        deviceA.setFields(fields);
+        deviceA.setAttributes(fields);
         deviceA.setUpdateTime(System.currentTimeMillis());
 
         // normal behavior
@@ -102,8 +102,8 @@ public class ArangoStorageTest {
         assert de.getDocumentKey().equals(deviceA.getId());
         de = arango.getDeviceById(deviceA.getId());
         assert de.getEntity().getId().equals(deviceA.getId());
-        assert de.getEntity().getFields().get("model").equals("Hue");
-        assert (double) de.getEntity().getFields().get("switch") == 1;
+        assert de.getEntity().getAttributes().get("model").equals("Hue");
+        assert (double) de.getEntity().getAttributes().get("switch") == 1;
         assert de.getEntity().getUpdateTime() == deviceA.getUpdateTime();
     }
 
@@ -121,7 +121,7 @@ public class ArangoStorageTest {
         Map<String, Object> fields = new HashMap<>();
         fields.put("model", "Hue");
         fields.put("switch", 1);
-        deviceA.setFields(fields);
+        deviceA.setAttributes(fields);
         deviceA.setUpdateTime(System.currentTimeMillis());
         UserDeviceRelation relationA = new UserDeviceRelation();
         relationA.setPermission(1);

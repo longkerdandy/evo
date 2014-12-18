@@ -1,20 +1,15 @@
 package com.github.longkerdandy.evo.api.entity;
 
-import com.arangodb.annotations.DocumentKey;
-import com.arangodb.annotations.Exclude;
-
 /**
  * User Entity
  */
 @SuppressWarnings("unused")
 public class User {
 
-    @DocumentKey
     private String id;          // id
     private String alias;       // name, nick name
     private String email;       // email
     private String mobile;      // mobile phone
-    @Exclude(serialize = false)
     private String password;    // password (encoded before saving to db)
 
     public String getId() {
