@@ -9,7 +9,7 @@ import com.arangodb.entity.DocumentEntity;
 import com.arangodb.entity.EdgeEntity;
 import com.github.longkerdandy.evo.api.entity.Device;
 import com.github.longkerdandy.evo.api.entity.User;
-import com.github.longkerdandy.evo.api.entity.UserDeviceRelation;
+import com.github.longkerdandy.evo.api.entity.UserDevice;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,7 +124,7 @@ public class ArangoStorage {
      * @return From, To
      * @throws ArangoException If user/device not exist or relation already exist
      */
-    public EdgeEntity<UserDeviceRelation> createUserDeviceRelation(String uid, String did, UserDeviceRelation relation) throws ArangoException {
+    public EdgeEntity<UserDevice> createUserDeviceRelation(String uid, String did, UserDevice relation) throws ArangoException {
         return this.arango.graphCreateEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did), userHandle(uid), deviceHandle(did), relation, false);
     }
 
@@ -137,7 +137,7 @@ public class ArangoStorage {
      * @return From, To
      * @throws ArangoException If relation not exist
      */
-    public EdgeEntity<UserDeviceRelation> replaceUserDeviceRelation(String uid, String did, UserDeviceRelation relation) throws ArangoException {
+    public EdgeEntity<UserDevice> replaceUserDeviceRelation(String uid, String did, UserDevice relation) throws ArangoException {
         return this.arango.graphReplaceEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did), relation);
     }
 

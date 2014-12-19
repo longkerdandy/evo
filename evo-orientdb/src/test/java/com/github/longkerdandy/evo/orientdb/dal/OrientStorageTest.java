@@ -3,6 +3,7 @@ package com.github.longkerdandy.evo.orientdb.dal;
 import com.arangodb.ArangoException;
 import com.github.longkerdandy.evo.api.entity.Device;
 import com.github.longkerdandy.evo.api.entity.User;
+import com.github.longkerdandy.evo.api.entity.UserDevice;
 import com.orientechnologies.common.exception.OException;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -53,21 +54,21 @@ public class OrientStorageTest {
 
         User userA = new User();
         userA.setAlias("User A");
-        userA.setEmail("usera@example.com");
-        //userA.setMobile("18600000000");
+        userA.setEmail("aaa@example.com");
+        userA.setMobile("18600000000");
         userA.setPassword("passwr0d");
 
         User userB = new User();
-        userB.setAlias("User A");
-        userB.setEmail("userb@example.com");
+        userB.setAlias("User B");
+        userB.setEmail("bbb@example.com");
         userB.setPassword("passwr0d");
 
         // add user
         String uidA = orient.addUser(userA);
-        userA = orient.getUseById(uidA);
+        userA = orient.getUseById(uidA).getPayload();
         assert userA.getAlias().equals("User A");
-        assert userA.getEmail().equals("usera@example.com");
-        //assert userA.getMobile().equals("18600000000");
+        assert userA.getEmail().equals("aaa@example.com");
+        assert userA.getMobile().equals("18600000000");
         assert userA.getPassword() == null;
 
         String uidB = orient.addUser(userB);
@@ -94,8 +95,39 @@ public class OrientStorageTest {
 
         // add device
         String did = orient.addDevice(deviceA);
-        deviceA = orient.getDeviceById(did);
+        deviceA = orient.getDeviceById(did).getPayload();
         assert deviceA.getSn().equals("d0000001");
         assert deviceA.getUpdateTime() > 0;
+    }
+
+    @Test
+    public void userDeviceRelationTest() {
+        clear();
+
+        User userA = new User();
+        userA.setAlias("User A");
+        userA.setEmail("aaa@example.com");
+        userA.setMobile("18600000000");
+        userA.setPassword("123123");
+
+        Device deviceA = new Device();
+        deviceA.setSn("d0000001");
+        Map<String, Object> attrs = new HashMap<>();
+        attrs.put("model", "Hue");
+        attrs.put("switch", 1);
+        deviceA.setAttributes(attrs);
+        deviceA.setUpdateTime(System.currentTimeMillis());
+
+        UserDevice relation = new UserDevice();
+        relation.setPermission(3);
+
+        // add user, device, relation
+        String uidA = orient.addUser(userA);
+        String didA = orient.addDevice(deviceA);
+        String ridA = orient.addUserDeviceRelation(uidA, didA, relation);
+
+        // get user id list
+        Object users = orient.getDeviceRelatedUser(didA, relation);
+        assert users != null;
     }
 }

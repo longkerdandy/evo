@@ -6,19 +6,10 @@ package com.github.longkerdandy.evo.api.entity;
 @SuppressWarnings("unused")
 public class User {
 
-    private String id;          // id
     private String alias;       // name, nick name
     private String email;       // email
     private String mobile;      // mobile phone
     private String password;    // password (encoded before saving to db)
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getAlias() {
         return alias;

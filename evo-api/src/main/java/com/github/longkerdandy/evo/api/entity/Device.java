@@ -7,18 +7,10 @@ import java.util.Map;
  */
 @SuppressWarnings("unused")
 public class Device {
-    private String id;                      // id
+
     private String sn;                      // hardware sn
     private Map<String, Object> attributes; // attributes
     private long updateTime;                // update timestamp
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getSn() {
         return sn;

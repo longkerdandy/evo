@@ -6,7 +6,7 @@ import com.arangodb.entity.DocumentEntity;
 import com.arangodb.entity.EdgeEntity;
 import com.github.longkerdandy.evo.api.entity.Device;
 import com.github.longkerdandy.evo.api.entity.User;
-import com.github.longkerdandy.evo.api.entity.UserDeviceRelation;
+import com.github.longkerdandy.evo.api.entity.UserDevice;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -123,13 +123,13 @@ public class ArangoStorageTest {
         fields.put("switch", 1);
         deviceA.setAttributes(fields);
         deviceA.setUpdateTime(System.currentTimeMillis());
-        UserDeviceRelation relationA = new UserDeviceRelation();
+        UserDevice relationA = new UserDevice();
         relationA.setPermission(1);
 
         // create user device relation
         DocumentEntity<User> deu = arango.createUser(userA);
         DocumentEntity<Device> ded = arango.createDevice(deviceA);
-        EdgeEntity<UserDeviceRelation> ee = arango.createUserDeviceRelation(deu.getDocumentKey(), ded.getDocumentKey(), relationA);
+        EdgeEntity<UserDevice> ee = arango.createUserDeviceRelation(deu.getDocumentKey(), ded.getDocumentKey(), relationA);
         assert ee.getFromVertexHandle().equals(userHandle(deu.getDocumentKey()));
         assert ee.getToVertexHandle().equals(deviceHandle(ded.getDocumentKey()));
         assert ee.getDocumentKey().equals(userDeviceRelationId(deu.getDocumentKey(), ded.getDocumentKey()));
