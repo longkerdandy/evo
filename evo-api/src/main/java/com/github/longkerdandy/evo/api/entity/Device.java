@@ -1,7 +1,5 @@
 package com.github.longkerdandy.evo.api.entity;
 
-import com.arangodb.annotations.DocumentKey;
-
 import java.util.Map;
 
 /**
@@ -10,7 +8,6 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class Device {
 
-    @DocumentKey
     private String sn;                      // hardware sn
     private Map<String, Object> attributes; // attributes
     private long updateTime;                // update timestamp
