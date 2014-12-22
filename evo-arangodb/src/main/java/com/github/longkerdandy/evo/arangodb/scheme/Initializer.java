@@ -1,4 +1,4 @@
-package com.github.longkerdandy.evo.arangodb.tools;
+package com.github.longkerdandy.evo.arangodb.scheme;
 
 import com.arangodb.ArangoConfigure;
 import com.arangodb.ArangoDriver;
@@ -12,9 +12,10 @@ import java.util.List;
 import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
 
 /**
- * Create ArangoDB Scheme (Database, Collection, Graph)
+ * Create ArangoDB Scheme (Graph, Vertex, Edge, Index)
  */
-public class CreateScheme {
+@SuppressWarnings("unused")
+public class Initializer {
 
     public static void main(String[] args) throws ArangoException {
         // Initialize configure
@@ -22,7 +23,7 @@ public class CreateScheme {
         configure.init();
         // Create Driver (this instance is thread-safe)
         ArangoDriver arango = new ArangoDriver(configure);
-
+        // Create Graph
         createRelationGraph(arango);
     }
 
@@ -49,6 +50,10 @@ public class CreateScheme {
 
         // create relation graph
         GraphEntity graph = arango.createGraph(GRAPH_IOT_RELATION, edgeDefs, orphans, true);
-        assert graph != null;
+
+        // create index
+        // user index
+        arango.createHashIndex(COLLECTION_USERS, true, USER_EMAIL);
+        arango.createHashIndex(COLLECTION_USERS, true, USER_MOBILE);
     }
 }
