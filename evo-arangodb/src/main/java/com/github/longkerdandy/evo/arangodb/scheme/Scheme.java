@@ -16,6 +16,9 @@ public class Scheme {
     public static final String USER_EMAIL = "email";
     public static final String USER_MOBILE = "mobile";
 
+    // User Device Relation
+    public static final String USER_DEVICE_PERMISSION = "permission";
+
     /**
      * Generate UserDevice Relation Id from User Id and Device Id
      *

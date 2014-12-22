@@ -58,7 +58,7 @@ public class ArangoStorage {
      * User entity must been validated before invoking this method.
      *
      * @param user User Entity
-     * @return Document with User entity
+     * @return Document WITHOUT User entity
      * @throws ArangoException If user's email or mobile already exist
      */
     public Document<User> createUser(User user) throws ArangoException {
@@ -81,7 +81,7 @@ public class ArangoStorage {
      * Device id must provided.
      *
      * @param device Device Entity
-     * @return Document with Device entity
+     * @return Document WITHOUT Device entity
      * @throws ArangoException If device id already exist
      */
     public Document<Device> createDevice(Device device) throws ArangoException {
@@ -105,7 +105,7 @@ public class ArangoStorage {
      * @param uid      User Id
      * @param did      Device Id
      * @param relation User Device Relation
-     * @return Relation with UserDevice entity
+     * @return Relation WITHOUT UserDevice entity
      * @throws ArangoException If user/device not exist or relation already exist
      */
     public Relation<UserDevice> createUserDeviceRelation(String uid, String did, UserDevice relation) throws ArangoException {
@@ -117,12 +117,24 @@ public class ArangoStorage {
     }
 
     /**
+     * Get user device relation
+     *
+     * @param uid User Id
+     * @param did Device Id
+     * @return Relation with UserDevice entity
+     * @throws ArangoException If relation not exist
+     */
+    public Relation<UserDevice> getUserDeviceRelation(String uid, String did) throws ArangoException {
+        return toRelation(this.arango.graphGetEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did), UserDevice.class));
+    }
+
+    /**
      * Replace user device relation
      *
      * @param uid      User Id
      * @param did      Device Id
      * @param relation User Device Relation
-     * @return Relation with UserDevice entity
+     * @return Relation WITHOUT UserDevice entity
      * @throws ArangoException If relation not exist
      */
     public Relation<UserDevice> replaceUserDeviceRelation(String uid, String did, UserDevice relation) throws ArangoException {
@@ -139,5 +151,18 @@ public class ArangoStorage {
      */
     public boolean deleteUserDeviceRelation(String uid, String did) throws ArangoException {
         return this.arango.graphDeleteEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did)).getDeleted();
+    }
+
+    /**
+     * Get device related user's id
+     *
+     * @param did Device Id
+     * @param min Minimal Relation requirement
+     * @param max Maximum Relation requirement
+     * @return User Id Set
+     */
+    public Object getDeviceRelatedUserId(String did, UserDevice min, UserDevice max) throws ArangoException {
+        // TODO: using AQL
+        return null;
     }
 }
