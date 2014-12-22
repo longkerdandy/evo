@@ -1,12 +1,7 @@
 package com.github.longkerdandy.evo.arangodb;
 
 import com.arangodb.ArangoException;
-import com.arangodb.entity.DeletedEntity;
-import com.arangodb.entity.DocumentEntity;
-import com.arangodb.entity.EdgeEntity;
-import com.github.longkerdandy.evo.api.entity.Device;
-import com.github.longkerdandy.evo.api.entity.User;
-import com.github.longkerdandy.evo.api.entity.UserDevice;
+import com.github.longkerdandy.evo.api.entity.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -16,7 +11,7 @@ import org.junit.rules.ExpectedException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.github.longkerdandy.evo.arangodb.Const.*;
+import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
 import static com.googlecode.catchexception.CatchException.verifyException;
 
 /**
@@ -62,12 +57,12 @@ public class ArangoStorageTest {
         userA.setPassword("passwr0d");
 
         // normal behavior
-        DocumentEntity<User> de = arango.createUser(userA);
-        de = arango.getUserById(de.getDocumentKey());
-        assert de.getEntity().getAlias().equals("User A");
-        assert de.getEntity().getEmail().equals("usera@example.com");
-        assert de.getEntity().getMobile().equals("18600000000");
-        assert de.getEntity().getPassword() == null;
+        Document<User> d = arango.createUser(userA);
+        d = arango.getUserById(d.getId());
+        assert d.getEntity().getAlias().equals("User A");
+        assert d.getEntity().getEmail().equals("usera@example.com");
+        assert d.getEntity().getMobile().equals("18600000000");
+        assert d.getEntity().getPassword() == null;
 
         // create user email already exist
         User userB = new User();
@@ -90,7 +85,7 @@ public class ArangoStorageTest {
         clear();
 
         Device deviceA = new Device();
-        deviceA.setId("d0000001");
+        deviceA.setSn("d0000001");
         Map<String, Object> fields = new HashMap<>();
         fields.put("model", "Hue");
         fields.put("switch", 1);
@@ -98,13 +93,12 @@ public class ArangoStorageTest {
         deviceA.setUpdateTime(System.currentTimeMillis());
 
         // normal behavior
-        DocumentEntity<Device> de = arango.createDevice(deviceA);
-        assert de.getDocumentKey().equals(deviceA.getId());
-        de = arango.getDeviceById(deviceA.getId());
-        assert de.getEntity().getId().equals(deviceA.getId());
-        assert de.getEntity().getAttributes().get("model").equals("Hue");
-        assert (double) de.getEntity().getAttributes().get("switch") == 1;
-        assert de.getEntity().getUpdateTime() == deviceA.getUpdateTime();
+        Document<Device> d = arango.createDevice(deviceA);
+        d = arango.getDeviceById(d.getId());
+        assert d.getEntity().getSn().equals(deviceA.getSn());
+        assert d.getEntity().getAttributes().get("model").equals("Hue");
+        assert (double) d.getEntity().getAttributes().get("switch") == 1;
+        assert d.getEntity().getUpdateTime() == deviceA.getUpdateTime();
     }
 
     @Test
@@ -117,7 +111,7 @@ public class ArangoStorageTest {
         userA.setMobile("18600000000");
         userA.setPassword("passwr0d");
         Device deviceA = new Device();
-        deviceA.setId("d0000001");
+        deviceA.setSn("d0000001");
         Map<String, Object> fields = new HashMap<>();
         fields.put("model", "Hue");
         fields.put("switch", 1);
@@ -127,20 +121,19 @@ public class ArangoStorageTest {
         relationA.setPermission(1);
 
         // create user device relation
-        DocumentEntity<User> deu = arango.createUser(userA);
-        DocumentEntity<Device> ded = arango.createDevice(deviceA);
-        EdgeEntity<UserDevice> ee = arango.createUserDeviceRelation(deu.getDocumentKey(), ded.getDocumentKey(), relationA);
-        assert ee.getFromVertexHandle().equals(userHandle(deu.getDocumentKey()));
-        assert ee.getToVertexHandle().equals(deviceHandle(ded.getDocumentKey()));
-        assert ee.getDocumentKey().equals(userDeviceRelationId(deu.getDocumentKey(), ded.getDocumentKey()));
+        Document<User> du = arango.createUser(userA);
+        Document<Device> dd = arango.createDevice(deviceA);
+        Relation<UserDevice> rud = arango.createUserDeviceRelation(du.getId(), dd.getId(), relationA);
+        assert rud.getFrom().equals(du.getId());
+        assert rud.getTo().equals(dd.getId());
+        assert rud.getId().equals(userDeviceRelationId(du.getId(), dd.getId()));
 
         // replace user device relation
         relationA.setPermission(2);
-        ee = arango.replaceUserDeviceRelation(deu.getDocumentKey(), ded.getDocumentKey(), relationA);
-        assert ee.getDocumentKey().equals(userDeviceRelationId(deu.getDocumentKey(), ded.getDocumentKey()));
+        rud = arango.replaceUserDeviceRelation(du.getId(), dd.getId(), relationA);
+        assert rud.getId().equals(userDeviceRelationId(du.getId(), dd.getId()));
 
         // delete user device relation
-        DeletedEntity de = arango.deleteUserDeviceRelation(deu.getDocumentKey(), ded.getDocumentKey());
-        assert de.getDeleted();
+        assert arango.deleteUserDeviceRelation(du.getId(), dd.getId());
     }
 }

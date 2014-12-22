@@ -4,12 +4,7 @@ import com.arangodb.ArangoConfigure;
 import com.arangodb.ArangoDriver;
 import com.arangodb.ArangoException;
 import com.arangodb.entity.CursorEntity;
-import com.arangodb.entity.DeletedEntity;
-import com.arangodb.entity.DocumentEntity;
-import com.arangodb.entity.EdgeEntity;
-import com.github.longkerdandy.evo.api.entity.Device;
-import com.github.longkerdandy.evo.api.entity.User;
-import com.github.longkerdandy.evo.api.entity.UserDevice;
+import com.github.longkerdandy.evo.api.entity.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +12,8 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.github.longkerdandy.evo.arangodb.Const.*;
+import static com.github.longkerdandy.evo.arangodb.converter.Converter.*;
+import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
 
 /**
  * Arango Database Access Layer
@@ -67,10 +63,10 @@ public class ArangoStorage {
      * User entity must been validated before invoking this method.
      *
      * @param user User Entity
-     * @return Handler, Key, Revision
+     * @return Document with User entity
      * @throws ArangoException If user's email or mobile already exist
      */
-    public DocumentEntity<User> createUser(User user) throws ArangoException {
+    public Document<User> createUser(User user) throws ArangoException {
         // user exist?
         Map<String, Object> example = new HashMap<>();
         if (StringUtils.isNotBlank(user.getEmail())) example.put("email", user.getEmail());
@@ -78,18 +74,18 @@ public class ArangoStorage {
         CursorEntity<User> cursor = this.arango.executeSimpleByExample(COLLECTION_USERS, example, 0, 1, User.class);
         if (cursor.getCount() > 0) throw new ArangoException("user's email or mobile already exist");
 
-        return this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_USERS, user, false);
+        return toDocument(this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_USERS, user, false));
     }
 
     /**
      * Get user entity based on user id
      *
      * @param uid User Id
-     * @return User Entity
+     * @return Document with User entity
      * @throws ArangoException If user id not exist
      */
-    public DocumentEntity<User> getUserById(String uid) throws ArangoException {
-        return this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_USERS, uid, User.class);
+    public Document<User> getUserById(String uid) throws ArangoException {
+        return toDocument(this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_USERS, uid, User.class));
     }
 
     /**
@@ -97,11 +93,11 @@ public class ArangoStorage {
      * Device id must provided.
      *
      * @param device Device Entity
-     * @return Handler, Key, Revision
+     * @return Document with Device entity
      * @throws ArangoException If device id already exist
      */
-    public DocumentEntity<Device> createDevice(Device device) throws ArangoException {
-        return this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device, false);
+    public Document<Device> createDevice(Device device) throws ArangoException {
+        return toDocument(this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device, false));
     }
 
     /**
@@ -111,8 +107,8 @@ public class ArangoStorage {
      * @return Device Entity
      * @throws ArangoException If device id not exist
      */
-    public DocumentEntity<Device> getDeviceById(String did) throws ArangoException {
-        return this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, did, Device.class);
+    public Document<Device> getDeviceById(String did) throws ArangoException {
+        return toDocument(this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, did, Device.class));
     }
 
     /**
@@ -121,11 +117,15 @@ public class ArangoStorage {
      * @param uid      User Id
      * @param did      Device Id
      * @param relation User Device Relation
-     * @return From, To
+     * @return Relation with UserDevice entity
      * @throws ArangoException If user/device not exist or relation already exist
      */
-    public EdgeEntity<UserDevice> createUserDeviceRelation(String uid, String did, UserDevice relation) throws ArangoException {
-        return this.arango.graphCreateEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did), userHandle(uid), deviceHandle(did), relation, false);
+    public Relation<UserDevice> createUserDeviceRelation(String uid, String did, UserDevice relation) throws ArangoException {
+        return toRelation(this.arango.graphCreateEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE,
+                userDeviceRelationId(uid, did),
+                keyToHandle(COLLECTION_USERS, uid),
+                keyToHandle(COLLECTION_DEVICES, did),
+                relation, false));
     }
 
     /**
@@ -134,22 +134,22 @@ public class ArangoStorage {
      * @param uid      User Id
      * @param did      Device Id
      * @param relation User Device Relation
-     * @return From, To
+     * @return Relation with UserDevice entity
      * @throws ArangoException If relation not exist
      */
-    public EdgeEntity<UserDevice> replaceUserDeviceRelation(String uid, String did, UserDevice relation) throws ArangoException {
-        return this.arango.graphReplaceEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did), relation);
+    public Relation<UserDevice> replaceUserDeviceRelation(String uid, String did, UserDevice relation) throws ArangoException {
+        return toRelation(this.arango.graphReplaceEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did), relation));
     }
 
     /**
      * Delete user device relation
      *
-     * @param uid      User Id
-     * @param did      Device Id
+     * @param uid User Id
+     * @param did Device Id
      * @return Deleted?
      * @throws ArangoException If relation not exist
      */
-    public DeletedEntity deleteUserDeviceRelation(String uid, String did) throws ArangoException {
-        return this.arango.graphDeleteEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did));
+    public boolean deleteUserDeviceRelation(String uid, String did) throws ArangoException {
+        return this.arango.graphDeleteEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did)).getDeleted();
     }
 }
