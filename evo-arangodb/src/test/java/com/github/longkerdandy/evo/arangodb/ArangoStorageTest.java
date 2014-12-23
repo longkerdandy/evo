@@ -45,6 +45,26 @@ public class ArangoStorageTest {
         arango.getArangoDriver().truncateCollection(COLLECTION_USERS);
         arango.getArangoDriver().truncateCollection(COLLECTION_DEVICES);
         arango.getArangoDriver().truncateCollection(EDGE_USER_DEVICE);
+        arango.getArangoDriver().truncateCollection(COLLECTION_USER_TOKEN);
+    }
+
+    @Test
+    public void userTokenTest() throws ArangoException {
+        clear();
+
+        UserToken userTokenA = new UserToken();
+        userTokenA.setUser("u00000001");
+        userTokenA.setDevice("d00000001");
+        userTokenA.setToken("abcdefg");
+
+        // create token
+        arango.createOrReplaceUserToken(userTokenA);
+        assert arango.isUserTokenCorrect(userTokenA);
+
+        // replace token
+        userTokenA.setToken("1234567890");
+        arango.createOrReplaceUserToken(userTokenA);
+        assert arango.isUserTokenCorrect(userTokenA);
     }
 
     @Test
@@ -86,7 +106,7 @@ public class ArangoStorageTest {
         clear();
 
         Device deviceA = new Device();
-        deviceA.setSn("d0000001");
+        deviceA.setId("d0000001");
         Map<String, Object> fields = new HashMap<>();
         fields.put("model", "Hue");
         fields.put("switch", 1);
@@ -96,7 +116,7 @@ public class ArangoStorageTest {
         // normal behavior
         Document<Device> d = arango.createDevice(deviceA);
         d = arango.getDeviceById(d.getId());
-        assert d.getEntity().getSn().equals(deviceA.getSn());
+        assert d.getEntity().getId().equals(deviceA.getId());
         assert d.getEntity().getAttributes().get("model").equals("Hue");
         assert (double) d.getEntity().getAttributes().get("switch") == 1;
         assert d.getEntity().getUpdateTime() == deviceA.getUpdateTime();
@@ -112,7 +132,7 @@ public class ArangoStorageTest {
         userA.setMobile("18600000000");
         userA.setPassword("passwr0d");
         Device deviceA = new Device();
-        deviceA.setSn("d0000001");
+        deviceA.setId("d0000001");
         Map<String, Object> fields = new HashMap<>();
         fields.put("model", "Hue");
         fields.put("switch", 1);

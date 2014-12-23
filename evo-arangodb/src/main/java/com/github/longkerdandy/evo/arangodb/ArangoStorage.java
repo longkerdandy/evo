@@ -4,8 +4,10 @@ import com.arangodb.ArangoConfigure;
 import com.arangodb.ArangoDriver;
 import com.arangodb.ArangoException;
 import com.arangodb.CursorResultSet;
+import com.arangodb.entity.CursorEntity;
 import com.arangodb.util.MapBuilder;
 import com.github.longkerdandy.evo.api.entity.*;
+import com.github.longkerdandy.evo.arangodb.scheme.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +21,6 @@ import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
 /**
  * Arango Database Access Layer
  */
-@SuppressWarnings("unused")
 public class ArangoStorage {
 
     private final static Logger logger = LoggerFactory.getLogger(ArangoStorage.class);
@@ -57,6 +58,39 @@ public class ArangoStorage {
      */
     public void destroy() {
         logger.info("ArangoStorage destroy.");
+    }
+
+    /**
+     * Is user token correct
+     *
+     * @param userToken User Token
+     * @return Correct?
+     */
+    public boolean isUserTokenCorrect(UserToken userToken) throws ArangoException {
+        // query
+        Map<String, Object> bindVars = new MapBuilder().put(USER_TOKEN_USER, userToken.getUser()).put(USER_TOKEN_DEVICE, userToken.getDevice()).get();
+        // query user device edge, return device id set
+        CursorEntity<UserToken> r = this.arango.executeQuery(Query.GET_USER_TOKEN, bindVars, UserToken.class, true, 0);
+        // deal with result
+        return r.getCount() > 0 && userToken.getToken().equals(r.get(0).getToken());
+    }
+
+    /**
+     * Create new user token (bind with device)
+     *
+     * @param userToken User Token
+     */
+    public void createOrReplaceUserToken(UserToken userToken) throws ArangoException {
+        // query
+        Map<String, Object> bindVars = new MapBuilder().put(USER_TOKEN_USER, userToken.getUser()).put(USER_TOKEN_DEVICE, userToken.getDevice()).get();
+        // query user device edge, return device id set
+        CursorEntity<UserToken> r = this.arango.executeQuery(Query.GET_USER_TOKEN, bindVars, UserToken.class, true, 0);
+        // create or replace
+        if (r.getCount() > 0) {
+            this.arango.graphReplaceVertex(GRAPH_IOT_RELATION, COLLECTION_USER_TOKEN, r.get(0).getId(), userToken);
+        } else {
+            this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_USER_TOKEN, userToken, false);
+        }
     }
 
     /**
@@ -169,11 +203,10 @@ public class ArangoStorage {
      */
     public Set<String> getDeviceRelatedUserId(String did, UserDevice min, UserDevice max) throws ArangoException {
         Set<String> set = new HashSet<>();
-        // aql
-        String query = "FOR ud IN " + EDGE_USER_DEVICE + " FILTER ud._to == @to && ud.permission >= @min && ud.permission <= @max RETURN ud._from";
+        // query
         Map<String, Object> bindVars = new MapBuilder().put("to", keyToHandle(COLLECTION_DEVICES, did)).put("min", min.getPermission()).put("max", max.getPermission()).get();
         // query user device edge, return user id set
-        CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(query, bindVars, String.class, true, 20);
+        CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(Query.GET_DEVICE_RELATED_USER_ID, bindVars, String.class, true, 20);
         // deal with result
         for (String uid : rs) {
             set.add(handleToKey(uid));
@@ -191,11 +224,10 @@ public class ArangoStorage {
      */
     public Set<String> getUserRelatedDeviceId(String uid, UserDevice min, UserDevice max) throws ArangoException {
         Set<String> set = new HashSet<>();
-        // aql
-        String query = "FOR ud IN " + EDGE_USER_DEVICE + " FILTER ud._from == @from && ud.permission >= @min && ud.permission <= @max RETURN ud._to";
+        // query
         Map<String, Object> bindVars = new MapBuilder().put("from", keyToHandle(COLLECTION_USERS, uid)).put("min", min.getPermission()).put("max", max.getPermission()).get();
         // query user device edge, return device id set
-        CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(query, bindVars, String.class, true, 20);
+        CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(Query.GET_USER_RELATED_DEVICE_ID, bindVars, String.class, false, 0);
         // deal with result
         for (String did : rs) {
             set.add(handleToKey(did));

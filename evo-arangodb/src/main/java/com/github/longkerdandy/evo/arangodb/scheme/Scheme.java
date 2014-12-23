@@ -11,6 +11,7 @@ public class Scheme {
     public static final String COLLECTION_USERS = "users";
     public static final String COLLECTION_DEVICES = "devices";
     public static final String EDGE_USER_DEVICE = "user_device";
+    public static final String COLLECTION_USER_TOKEN = "user_token";
 
     // User Collection
     public static final String USER_EMAIL = "email";
@@ -18,6 +19,11 @@ public class Scheme {
 
     // User Device Relation
     public static final String USER_DEVICE_PERMISSION = "permission";
+
+    // User Token
+    public static final String USER_TOKEN_USER = "user";
+    public static final String USER_TOKEN_DEVICE = "device";
+    public static final String USER_TOKEN_TOKEN = "token";
 
     /**
      * Generate UserDevice Relation Id from User Id and Device Id

@@ -1,5 +1,6 @@
 package com.github.longkerdandy.evo.api.entity;
 
+import com.arangodb.annotations.DocumentKey;
 import com.arangodb.annotations.Exclude;
 
 /**
@@ -8,11 +9,21 @@ import com.arangodb.annotations.Exclude;
 @SuppressWarnings("unused")
 public class User {
 
+    @DocumentKey
+    private String id;          // id
     private String alias;       // name, nick name
     private String email;       // email
     private String mobile;      // mobile phone
     @Exclude(deserialize = false)
     private String password;    // password (encoded before saving to db)
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getAlias() {
         return alias;
