@@ -55,5 +55,7 @@ public class Initializer {
         // user index
         arango.createHashIndex(COLLECTION_USERS, true, USER_EMAIL);
         arango.createHashIndex(COLLECTION_USERS, true, USER_MOBILE);
+        // user device edge index
+        arango.createSkipListIndex(EDGE_USER_DEVICE, false, USER_DEVICE_PERMISSION);
     }
 }
