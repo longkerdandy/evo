@@ -7,10 +7,10 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import sun.rmi.transport.ObjectTable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
 import static com.googlecode.catchexception.CatchException.verifyException;
@@ -138,13 +138,16 @@ public class ArangoStorageTest {
         rud = arango.getUserDeviceRelation(du.getId(), dd.getId());
         assert rud.getEntity().getPermission() == 2;
 
-        // get device related user
         UserDevice relation1 = new UserDevice();
-        relationA.setPermission(1);
+        relation1.setPermission(1);
         UserDevice relation2 = new UserDevice();
-        relationA.setPermission(2);
-        Object users = arango.getDeviceRelatedUserId(dd.getId(), relation1, relation2);
-        assert users != null;
+        relation2.setPermission(2);
+        // get device related user
+        Set<String> users = arango.getDeviceRelatedUserId(dd.getId(), relation1, relation2);
+        assert users.contains(du.getId());
+        // get user related device
+        Set<String> devices = arango.getUserRelatedDeviceId(du.getId(), relation1, relation2);
+        assert devices.contains(dd.getId());
 
         // delete user device relation
         assert arango.deleteUserDeviceRelation(du.getId(), dd.getId());

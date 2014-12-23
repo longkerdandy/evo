@@ -3,9 +3,15 @@ package com.github.longkerdandy.evo.arangodb;
 import com.arangodb.ArangoConfigure;
 import com.arangodb.ArangoDriver;
 import com.arangodb.ArangoException;
+import com.arangodb.CursorResultSet;
+import com.arangodb.util.MapBuilder;
 import com.github.longkerdandy.evo.api.entity.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static com.github.longkerdandy.evo.arangodb.converter.Converter.*;
 import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
@@ -154,15 +160,46 @@ public class ArangoStorage {
     }
 
     /**
-     * Get device related user's id
+     * Get device related user id set
      *
      * @param did Device Id
      * @param min Minimal Relation requirement
      * @param max Maximum Relation requirement
      * @return User Id Set
      */
-    public Object getDeviceRelatedUserId(String did, UserDevice min, UserDevice max) throws ArangoException {
-        // TODO: using AQL
-        return null;
+    public Set<String> getDeviceRelatedUserId(String did, UserDevice min, UserDevice max) throws ArangoException {
+        Set<String> set = new HashSet<>();
+        // aql
+        String query = "FOR ud IN " + EDGE_USER_DEVICE + " FILTER ud._to == @to && ud.permission >= @min && ud.permission <= @max RETURN ud._from";
+        Map<String, Object> bindVars = new MapBuilder().put("to", keyToHandle(COLLECTION_DEVICES, did)).put("min", min.getPermission()).put("max", max.getPermission()).get();
+        // query user device edge, return user id set
+        CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(query, bindVars, String.class, true, 20);
+        // deal with result
+        for (String uid : rs) {
+            set.add(handleToKey(uid));
+        }
+        return set;
+    }
+
+    /**
+     * Get user related device id set
+     *
+     * @param uid User Id
+     * @param min Minimal Relation requirement
+     * @param max Maximum Relation requirement
+     * @return Device Id Set
+     */
+    public Set<String> getUserRelatedDeviceId(String uid, UserDevice min, UserDevice max) throws ArangoException {
+        Set<String> set = new HashSet<>();
+        // aql
+        String query = "FOR ud IN " + EDGE_USER_DEVICE + " FILTER ud._from == @from && ud.permission >= @min && ud.permission <= @max RETURN ud._to";
+        Map<String, Object> bindVars = new MapBuilder().put("from", keyToHandle(COLLECTION_USERS, uid)).put("min", min.getPermission()).put("max", max.getPermission()).get();
+        // query user device edge, return device id set
+        CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(query, bindVars, String.class, true, 20);
+        // deal with result
+        for (String did : rs) {
+            set.add(handleToKey(did));
+        }
+        return set;
     }
 }
