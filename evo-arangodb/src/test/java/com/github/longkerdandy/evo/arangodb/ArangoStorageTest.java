@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
+import static com.github.longkerdandy.evo.api.scheme.Scheme.*;
 import static com.googlecode.catchexception.CatchException.verifyException;
 
 /**
@@ -45,6 +45,7 @@ public class ArangoStorageTest {
         arango.getArangoDriver().truncateCollection(COLLECTION_USERS);
         arango.getArangoDriver().truncateCollection(COLLECTION_DEVICES);
         arango.getArangoDriver().truncateCollection(EDGE_USER_FOLLOW_DEVICE);
+        arango.getArangoDriver().truncateCollection(EDGE_DEVICE_REGISTER_USER);
         arango.getArangoDriver().truncateCollection(COLLECTION_USER_TOKEN);
     }
 
@@ -177,5 +178,59 @@ public class ArangoStorageTest {
 
         // delete user device relation
         assert arango.deleteUserFollowDevice(du.getId(), dd.getId());
+    }
+
+    @Test
+    public void deviceRegisterUserTest() throws ArangoException {
+        clear();
+
+        User userA = new User();
+        userA.setAlias("User A");
+        userA.setEmail("usera@example.com");
+        userA.setMobile("18600000000");
+        userA.setPassword("passwr0d");
+        Device deviceA = new Device();
+        deviceA.setId("d0000001");
+        Map<String, Object> fields = new HashMap<>();
+        fields.put("model", "Hue");
+        fields.put("switch", 1);
+        deviceA.setAttributes(fields);
+        deviceA.setUpdateTime(System.currentTimeMillis());
+        DeviceRegisterUser relationA = new DeviceRegisterUser();
+        relationA.setToken("abcdefgh");
+
+        // create device user relation
+        Document<User> duA = arango.createUser(userA);
+        Document<Device> dd = arango.createOrReplaceDevice(deviceA);
+        Relation<DeviceRegisterUser> rdu = arango.createOrReplaceDeviceRegisterUser(dd.getId(), duA.getId(), relationA);
+        assert rdu.getFrom().equals(dd.getId());
+        assert rdu.getTo().equals(duA.getId());
+        assert rdu.getId().equals(deviceRegisterUserId(dd.getId(), duA.getId()));
+        rdu = arango.getDeviceRegisterUser(dd.getId(), duA.getId());
+        assert rdu.getEntity().getToken().equals("abcdefgh");
+
+        // replace device user relation
+        User userB = new User();
+        userB.setAlias("User B");
+        userB.setEmail("userb@example.com");
+        userB.setPassword("passwr0d");
+
+        Document<User> duB = arango.createUser(userB);
+        rdu = arango.createOrReplaceDeviceRegisterUser(dd.getId(), duB.getId(), relationA);
+        assert rdu.getFrom().equals(dd.getId());
+        assert rdu.getTo().equals(duB.getId());
+        assert rdu.getId().equals(deviceRegisterUserId(dd.getId(), duB.getId()));
+        rdu = arango.getDeviceRegisterUser(dd.getId(), duB.getId());
+        assert rdu.getEntity().getToken().equals("abcdefgh");
+        verifyException(arango, ArangoException.class).getDeviceRegisterUser(dd.getId(), duA.getId());
+
+        // update device user relation
+        relationA.setToken("1234567890");
+        arango.updateDeviceRegisterUser(dd.getId(), duB.getId(), relationA);
+        rdu = arango.getDeviceRegisterUser(dd.getId(), duB.getId());
+        assert rdu.getEntity().getToken().equals("1234567890");
+
+        // delete device user relation
+        assert arango.deleteDeviceRegisterUser(dd.getId(), duB.getId());
     }
 }

@@ -3,14 +3,14 @@ package com.github.longkerdandy.evo.api.entity;
 import com.arangodb.annotations.DocumentKey;
 
 /**
- * User Follow Device Relation
+ * Device Register User Relation
  */
 @SuppressWarnings("unused")
-public class UserFollowDevice {
+public class DeviceRegisterUser {
 
     @DocumentKey
     private String id;      // id
-    private int permission; // permission
+    private String token;   // token
 
     public String getId() {
         return id;
@@ -20,11 +20,11 @@ public class UserFollowDevice {
         this.id = id;
     }
 
-    public int getPermission() {
-        return permission;
+    public String getToken() {
+        return token;
     }
 
-    public void setPermission(int permission) {
-        this.permission = permission;
+    public void setToken(String token) {
+        this.token = token;
     }
 }

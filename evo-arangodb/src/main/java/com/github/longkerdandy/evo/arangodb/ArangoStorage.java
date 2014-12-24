@@ -15,8 +15,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static com.github.longkerdandy.evo.api.scheme.Scheme.*;
 import static com.github.longkerdandy.evo.arangodb.converter.Converter.*;
-import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
 
 /**
  * Arango Database Access Layer
@@ -143,7 +143,7 @@ public class ArangoStorage {
     }
 
     /**
-     * Create or replace user device relation
+     * Create or replace user follow device relation
      *
      * @param uid      User Id
      * @param did      Device Id
@@ -201,7 +201,7 @@ public class ArangoStorage {
         Set<String> set = new HashSet<>();
         // query
         Map<String, Object> bindVars = new MapBuilder().put("to", keyToHandle(COLLECTION_DEVICES, did)).put("min", min.getPermission()).put("max", max.getPermission()).get();
-        // query user device edge, return user id set
+        // query user follow device edge, return user id set
         CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(Query.GET_DEVICE_FOLLOWED_USER_ID, bindVars, String.class, true, 20);
         // deal with result
         for (String uid : rs) {
@@ -222,8 +222,8 @@ public class ArangoStorage {
         Set<String> set = new HashSet<>();
         // query
         Map<String, Object> bindVars = new MapBuilder().put("from", keyToHandle(COLLECTION_USERS, uid)).put("min", min.getPermission()).put("max", max.getPermission()).get();
-        // query user device edge, return device id set
-        CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(Query.GET_USER_RELATED_DEVICE_ID, bindVars, String.class, false, 0);
+        // query user follow device edge, return device id set
+        CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(Query.GET_USER_FOLLOWING_DEVICE_ID, bindVars, String.class, false, 0);
         // deal with result
         for (String did : rs) {
             set.add(handleToKey(did));
@@ -232,9 +232,77 @@ public class ArangoStorage {
     }
 
     /**
+     * Create or replace device register user relation
+     *
+     * @param did      Device Id
+     * @param uid      User Id
+     * @param relation Device Register User Relation
+     * @return Relation WITHOUT DeviceRegisterUser entity
+     */
+    public Relation<DeviceRegisterUser> createOrReplaceDeviceRegisterUser(String did, String uid, DeviceRegisterUser relation) throws ArangoException {
+        // query
+        Map<String, Object> bindVars = new MapBuilder().put("from", keyToHandle(COLLECTION_DEVICES, did)).get();
+        // query device register user edge, return user id if exist
+        CursorEntity<String> r = this.arango.executeQuery(Query.GET_DEVICE_REGISTER_USER_ID, bindVars, String.class, true, 0);
+        // create or replace
+        if (r.getCount() > 0 && uid.equals(handleToKey(r.get(0)))) {
+            return toRelation(this.arango.graphReplaceEdge(GRAPH_IOT_RELATION, EDGE_DEVICE_REGISTER_USER,
+                    deviceRegisterUserId(did, uid),
+                    relation));
+        } else {
+            // remove exist relation which not bind to this user
+            if (r.getCount() > 0) {
+                this.arango.graphDeleteEdge(GRAPH_IOT_RELATION, EDGE_DEVICE_REGISTER_USER, deviceRegisterUserId(did, handleToKey(r.get(0))));
+            }
+            return toRelation(this.arango.graphCreateEdge(GRAPH_IOT_RELATION, EDGE_DEVICE_REGISTER_USER,
+                    deviceRegisterUserId(did, uid),
+                    keyToHandle(COLLECTION_DEVICES, did),
+                    keyToHandle(COLLECTION_USERS, uid),
+                    relation, false));
+        }
+    }
+
+    /**
+     * Update device register user relation
+     *
+     * @param did      Device Id
+     * @param uid      User Id
+     * @param relation Device Register User Relation data to be merged
+     * @return Relation WITHOUT DeviceRegisterUser entity
+     * @throws ArangoException If relation not exist
+     */
+    public Relation<DeviceRegisterUser> updateDeviceRegisterUser(String did, String uid, Object relation) throws ArangoException {
+        return toRelation(this.arango.graphUpdateEdge(GRAPH_IOT_RELATION, EDGE_DEVICE_REGISTER_USER, deviceRegisterUserId(did, uid), relation, false));
+    }
+
+    /**
+     * Get device register user relation
+     *
+     * @param did Device Id
+     * @param uid User Id
+     * @return Relation with DeviceRegisterUser entity
+     * @throws ArangoException If relation not exist
+     */
+    public Relation<DeviceRegisterUser> getDeviceRegisterUser(String did, String uid) throws ArangoException {
+        return toRelation(this.arango.graphGetEdge(GRAPH_IOT_RELATION, EDGE_DEVICE_REGISTER_USER, deviceRegisterUserId(did, uid), DeviceRegisterUser.class));
+    }
+
+    /**
+     * Delete device register user relation
+     *
+     * @param did Device Id
+     * @param uid User Id
+     * @return Deleted?
+     * @throws ArangoException If relation not exist
+     */
+    public boolean deleteDeviceRegisterUser(String did, String uid) throws ArangoException {
+        return this.arango.graphDeleteEdge(GRAPH_IOT_RELATION, EDGE_DEVICE_REGISTER_USER, deviceRegisterUserId(did, uid)).getDeleted();
+    }
+
+    /**
      * Check whether document exist
      *
-     * @param collection Collection Name
+     * @param collection  Collection Name
      * @param documentKey Document Key
      * @return True if document exist
      */

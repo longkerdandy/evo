@@ -9,7 +9,7 @@ import com.arangodb.entity.GraphEntity;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
+import static com.github.longkerdandy.evo.api.scheme.Scheme.*;
 
 /**
  * Create ArangoDB Scheme (Graph, Vertex, Edge, Index)
@@ -29,28 +29,40 @@ public class Initializer {
 
     protected static void createRelationGraph(ArangoDriver arango) throws ArangoException {
         // edge definitions
-        List<EdgeDefinitionEntity> edgeDefs = new ArrayList<>();
+        List<EdgeDefinitionEntity> edges = new ArrayList<>();
 
-        // edge: user -> device
-        // from: user collection
+        // edge: user follow device
+        // from: users collection
         // to:   devices collection
-        EdgeDefinitionEntity edgeDef = new EdgeDefinitionEntity();
-        edgeDef.setCollection(EDGE_USER_FOLLOW_DEVICE);
-        List<String> from = new ArrayList<>();
-        from.add(COLLECTION_USERS);
-        edgeDef.setFrom(from);
-        List<String> to = new ArrayList<>();
-        to.add(COLLECTION_DEVICES);
-        edgeDef.setTo(to);
+        EdgeDefinitionEntity ufd = new EdgeDefinitionEntity();
+        ufd.setCollection(EDGE_USER_FOLLOW_DEVICE);
+        List<String> ufdFrom = new ArrayList<>();
+        ufdFrom.add(COLLECTION_USERS);
+        ufd.setFrom(ufdFrom);
+        List<String> ufdTo = new ArrayList<>();
+        ufdTo.add(COLLECTION_DEVICES);
+        ufd.setTo(ufdTo);
+        edges.add(ufd);
 
-        edgeDefs.add(edgeDef);
+        // edge: device register user
+        // from: devices collection
+        // to:   users collection
+        EdgeDefinitionEntity dru = new EdgeDefinitionEntity();
+        dru.setCollection(EDGE_DEVICE_REGISTER_USER);
+        List<String> druFrom = new ArrayList<>();
+        druFrom.add(COLLECTION_DEVICES);
+        dru.setFrom(druFrom);
+        List<String> druTo = new ArrayList<>();
+        druTo.add(COLLECTION_USERS);
+        dru.setTo(druTo);
+        edges.add(dru);
 
         // orphan collections
         List<String> orphans = new ArrayList<>();
         orphans.add(COLLECTION_USER_TOKEN);
 
         // create relation graph
-        GraphEntity graph = arango.createGraph(GRAPH_IOT_RELATION, edgeDefs, orphans, true);
+        GraphEntity graph = arango.createGraph(GRAPH_IOT_RELATION, edges, orphans, true);
 
         // create index
         // user index
