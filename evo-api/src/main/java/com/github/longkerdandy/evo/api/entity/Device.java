@@ -12,6 +12,7 @@ public class Device {
 
     @DocumentKey
     private String id;                      // id
+    private boolean connected;              // connected?
     private Map<String, Object> attributes; // attributes
     private long updateTime;                // update timestamp
 
@@ -21,6 +22,14 @@ public class Device {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public boolean isConnected() {
+        return connected;
+    }
+
+    public void setConnected(boolean connected) {
+        this.connected = connected;
     }
 
     public Map<String, Object> getAttributes() {
