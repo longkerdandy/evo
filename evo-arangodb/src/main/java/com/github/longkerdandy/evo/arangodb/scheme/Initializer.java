@@ -35,7 +35,7 @@ public class Initializer {
         // from: user collection
         // to:   devices collection
         EdgeDefinitionEntity edgeDef = new EdgeDefinitionEntity();
-        edgeDef.setCollection(EDGE_USER_DEVICE);
+        edgeDef.setCollection(EDGE_USER_FOLLOW_DEVICE);
         List<String> from = new ArrayList<>();
         from.add(COLLECTION_USERS);
         edgeDef.setFrom(from);
@@ -54,9 +54,9 @@ public class Initializer {
 
         // create index
         // user index
-        arango.createHashIndex(COLLECTION_USERS, true, USER_EMAIL);
-        arango.createHashIndex(COLLECTION_USERS, true, USER_MOBILE);
+        arango.createHashIndex(COLLECTION_USERS, true, U_EMAIL);
+        arango.createHashIndex(COLLECTION_USERS, true, U_MOBILE);
         // user device edge index
-        arango.createSkipListIndex(EDGE_USER_DEVICE, false, USER_DEVICE_PERMISSION);
+        arango.createSkipListIndex(EDGE_USER_FOLLOW_DEVICE, false, U_F_D_PERMISSION);
     }
 }

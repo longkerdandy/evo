@@ -44,7 +44,7 @@ public class ArangoStorageTest {
     public static void clear() throws ArangoException {
         arango.getArangoDriver().truncateCollection(COLLECTION_USERS);
         arango.getArangoDriver().truncateCollection(COLLECTION_DEVICES);
-        arango.getArangoDriver().truncateCollection(EDGE_USER_DEVICE);
+        arango.getArangoDriver().truncateCollection(EDGE_USER_FOLLOW_DEVICE);
         arango.getArangoDriver().truncateCollection(COLLECTION_USER_TOKEN);
     }
 
@@ -123,7 +123,7 @@ public class ArangoStorageTest {
     }
 
     @Test
-    public void userDeviceRelationTest() throws ArangoException {
+    public void userFollowDeviceTest() throws ArangoException {
         clear();
 
         User userA = new User();
@@ -138,38 +138,38 @@ public class ArangoStorageTest {
         fields.put("switch", 1);
         deviceA.setAttributes(fields);
         deviceA.setUpdateTime(System.currentTimeMillis());
-        UserDevice relationA = new UserDevice();
+        UserFollowDevice relationA = new UserFollowDevice();
         relationA.setPermission(1);
 
         // create user device relation
         Document<User> du = arango.createUser(userA);
         Document<Device> dd = arango.createDevice(deviceA);
-        Relation<UserDevice> rud = arango.createUserDeviceRelation(du.getId(), dd.getId(), relationA);
+        Relation<UserFollowDevice> rud = arango.createOrReplaceUserFollowDevice(du.getId(), dd.getId(), relationA);
         assert rud.getFrom().equals(du.getId());
         assert rud.getTo().equals(dd.getId());
-        assert rud.getId().equals(userDeviceRelationId(du.getId(), dd.getId()));
-        rud = arango.getUserDeviceRelation(du.getId(), dd.getId());
+        assert rud.getId().equals(userFollowDeviceId(du.getId(), dd.getId()));
+        rud = arango.getUserFollowDevice(du.getId(), dd.getId());
         assert rud.getEntity().getPermission() == 1;
 
         // replace user device relation
         relationA.setPermission(2);
-        rud = arango.replaceUserDeviceRelation(du.getId(), dd.getId(), relationA);
-        assert rud.getId().equals(userDeviceRelationId(du.getId(), dd.getId()));
-        rud = arango.getUserDeviceRelation(du.getId(), dd.getId());
+        rud = arango.createOrReplaceUserFollowDevice(du.getId(), dd.getId(), relationA);
+        assert rud.getId().equals(userFollowDeviceId(du.getId(), dd.getId()));
+        rud = arango.getUserFollowDevice(du.getId(), dd.getId());
         assert rud.getEntity().getPermission() == 2;
 
-        UserDevice relation1 = new UserDevice();
+        UserFollowDevice relation1 = new UserFollowDevice();
         relation1.setPermission(1);
-        UserDevice relation2 = new UserDevice();
+        UserFollowDevice relation2 = new UserFollowDevice();
         relation2.setPermission(2);
         // get device related user
-        Set<String> users = arango.getDeviceRelatedUserId(dd.getId(), relation1, relation2);
+        Set<String> users = arango.getDeviceFollowedUserId(dd.getId(), relation1, relation2);
         assert users.contains(du.getId());
         // get user related device
-        Set<String> devices = arango.getUserRelatedDeviceId(du.getId(), relation1, relation2);
+        Set<String> devices = arango.getUserFollowingDeviceId(du.getId(), relation1, relation2);
         assert devices.contains(dd.getId());
 
         // delete user device relation
-        assert arango.deleteUserDeviceRelation(du.getId(), dd.getId());
+        assert arango.deleteUserFollowDevice(du.getId(), dd.getId());
     }
 }

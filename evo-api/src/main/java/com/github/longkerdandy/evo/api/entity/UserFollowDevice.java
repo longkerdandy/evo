@@ -6,7 +6,7 @@ import com.arangodb.annotations.DocumentKey;
  * User - Device Relation
  */
 @SuppressWarnings("unused")
-public class UserDevice {
+public class UserFollowDevice {
 
     @DocumentKey
     private String id;      // id

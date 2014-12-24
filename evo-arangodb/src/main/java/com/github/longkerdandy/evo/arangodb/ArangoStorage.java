@@ -140,45 +140,50 @@ public class ArangoStorage {
     }
 
     /**
-     * Create new user device relation
+     * Create or replace user device relation
      *
      * @param uid      User Id
      * @param did      Device Id
-     * @param relation User Device Relation
-     * @return Relation WITHOUT UserDevice entity
-     * @throws ArangoException If user/device not exist or relation already exist
+     * @param relation User Follow Device Relation
+     * @return Relation WITHOUT UserFollowDevice entity
      */
-    public Relation<UserDevice> createUserDeviceRelation(String uid, String did, UserDevice relation) throws ArangoException {
-        return toRelation(this.arango.graphCreateEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE,
-                userDeviceRelationId(uid, did),
-                keyToHandle(COLLECTION_USERS, uid),
-                keyToHandle(COLLECTION_DEVICES, did),
-                relation, false));
+    public Relation<UserFollowDevice> createOrReplaceUserFollowDevice(String uid, String did, UserFollowDevice relation) throws ArangoException {
+        // exist?
+        boolean exist;
+        try {
+            arango.checkDocument(EDGE_USER_FOLLOW_DEVICE, userFollowDeviceId(uid, did));
+            exist = true;
+        } catch (ArangoException e) {
+            if (e.getCode() == 0 && e.getErrorNumber() == 404) {
+                exist = false;
+            } else {
+                throw e;
+            }
+        }
+        // create or replace
+        if (exist) {
+            return toRelation(this.arango.graphReplaceEdge(GRAPH_IOT_RELATION, EDGE_USER_FOLLOW_DEVICE,
+                    userFollowDeviceId(uid, did),
+                    relation));
+        } else {
+            return toRelation(this.arango.graphCreateEdge(GRAPH_IOT_RELATION, EDGE_USER_FOLLOW_DEVICE,
+                    userFollowDeviceId(uid, did),
+                    keyToHandle(COLLECTION_USERS, uid),
+                    keyToHandle(COLLECTION_DEVICES, did),
+                    relation, false));
+        }
     }
 
     /**
-     * Get user device relation
+     * Get user follow device relation
      *
      * @param uid User Id
      * @param did Device Id
-     * @return Relation with UserDevice entity
+     * @return Relation with UserFollowDevice entity
      * @throws ArangoException If relation not exist
      */
-    public Relation<UserDevice> getUserDeviceRelation(String uid, String did) throws ArangoException {
-        return toRelation(this.arango.graphGetEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did), UserDevice.class));
-    }
-
-    /**
-     * Replace user device relation
-     *
-     * @param uid      User Id
-     * @param did      Device Id
-     * @param relation User Device Relation
-     * @return Relation WITHOUT UserDevice entity
-     * @throws ArangoException If relation not exist
-     */
-    public Relation<UserDevice> replaceUserDeviceRelation(String uid, String did, UserDevice relation) throws ArangoException {
-        return toRelation(this.arango.graphReplaceEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did), relation));
+    public Relation<UserFollowDevice> getUserFollowDevice(String uid, String did) throws ArangoException {
+        return toRelation(this.arango.graphGetEdge(GRAPH_IOT_RELATION, EDGE_USER_FOLLOW_DEVICE, userFollowDeviceId(uid, did), UserFollowDevice.class));
     }
 
     /**
@@ -189,24 +194,24 @@ public class ArangoStorage {
      * @return Deleted?
      * @throws ArangoException If relation not exist
      */
-    public boolean deleteUserDeviceRelation(String uid, String did) throws ArangoException {
-        return this.arango.graphDeleteEdge(GRAPH_IOT_RELATION, EDGE_USER_DEVICE, userDeviceRelationId(uid, did)).getDeleted();
+    public boolean deleteUserFollowDevice(String uid, String did) throws ArangoException {
+        return this.arango.graphDeleteEdge(GRAPH_IOT_RELATION, EDGE_USER_FOLLOW_DEVICE, userFollowDeviceId(uid, did)).getDeleted();
     }
 
     /**
-     * Get device related user id set
+     * Get user id set which device being followed
      *
      * @param did Device Id
      * @param min Minimal Relation requirement
      * @param max Maximum Relation requirement
      * @return User Id Set
      */
-    public Set<String> getDeviceRelatedUserId(String did, UserDevice min, UserDevice max) throws ArangoException {
+    public Set<String> getDeviceFollowedUserId(String did, UserFollowDevice min, UserFollowDevice max) throws ArangoException {
         Set<String> set = new HashSet<>();
         // query
         Map<String, Object> bindVars = new MapBuilder().put("to", keyToHandle(COLLECTION_DEVICES, did)).put("min", min.getPermission()).put("max", max.getPermission()).get();
         // query user device edge, return user id set
-        CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(Query.GET_DEVICE_RELATED_USER_ID, bindVars, String.class, true, 20);
+        CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(Query.GET_DEVICE_FOLLOWED_USER_ID, bindVars, String.class, true, 20);
         // deal with result
         for (String uid : rs) {
             set.add(handleToKey(uid));
@@ -215,14 +220,14 @@ public class ArangoStorage {
     }
 
     /**
-     * Get user related device id set
+     * Get device id set which user following
      *
      * @param uid User Id
      * @param min Minimal Relation requirement
      * @param max Maximum Relation requirement
      * @return Device Id Set
      */
-    public Set<String> getUserRelatedDeviceId(String uid, UserDevice min, UserDevice max) throws ArangoException {
+    public Set<String> getUserFollowingDeviceId(String uid, UserFollowDevice min, UserFollowDevice max) throws ArangoException {
         Set<String> set = new HashSet<>();
         // query
         Map<String, Object> bindVars = new MapBuilder().put("from", keyToHandle(COLLECTION_USERS, uid)).put("min", min.getPermission()).put("max", max.getPermission()).get();
