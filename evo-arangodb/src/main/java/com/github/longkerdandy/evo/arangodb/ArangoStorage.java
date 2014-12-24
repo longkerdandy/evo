@@ -117,15 +117,18 @@ public class ArangoStorage {
     }
 
     /**
-     * Create new device
+     * Create or replace device
      * Device id must provided.
      *
      * @param device Device Entity
      * @return Document WITHOUT Device entity
-     * @throws ArangoException If device id already exist
      */
-    public Document<Device> createDevice(Device device) throws ArangoException {
-        return toDocument(this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device, false));
+    public Document<Device> createOrReplaceDevice(Device device) throws ArangoException {
+        if (checkExist(COLLECTION_DEVICES, device.getId())) {
+            return toDocument(this.arango.graphReplaceVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device.getId(), device));
+        } else {
+            return toDocument(this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device, false));
+        }
     }
 
     /**
@@ -148,20 +151,8 @@ public class ArangoStorage {
      * @return Relation WITHOUT UserFollowDevice entity
      */
     public Relation<UserFollowDevice> createOrReplaceUserFollowDevice(String uid, String did, UserFollowDevice relation) throws ArangoException {
-        // exist?
-        boolean exist;
-        try {
-            arango.checkDocument(EDGE_USER_FOLLOW_DEVICE, userFollowDeviceId(uid, did));
-            exist = true;
-        } catch (ArangoException e) {
-            if (e.getCode() == 0 && e.getErrorNumber() == 404) {
-                exist = false;
-            } else {
-                throw e;
-            }
-        }
         // create or replace
-        if (exist) {
+        if (checkExist(EDGE_USER_FOLLOW_DEVICE, userFollowDeviceId(uid, did))) {
             return toRelation(this.arango.graphReplaceEdge(GRAPH_IOT_RELATION, EDGE_USER_FOLLOW_DEVICE,
                     userFollowDeviceId(uid, did),
                     relation));
@@ -238,5 +229,25 @@ public class ArangoStorage {
             set.add(handleToKey(did));
         }
         return set;
+    }
+
+    /**
+     * Check whether document exist
+     *
+     * @param collection Collection Name
+     * @param documentKey Document Key
+     * @return True if document exist
+     */
+    protected boolean checkExist(String collection, String documentKey) throws ArangoException {
+        try {
+            this.arango.checkDocument(collection, documentKey);
+            return true;
+        } catch (ArangoException e) {
+            if (e.getCode() == 0 && e.getErrorNumber() == 404) {
+                return false;
+            } else {
+                throw e;
+            }
+        }
     }
 }

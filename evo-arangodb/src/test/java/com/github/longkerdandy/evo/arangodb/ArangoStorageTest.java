@@ -77,7 +77,7 @@ public class ArangoStorageTest {
         userA.setMobile("18600000000");
         userA.setPassword("passwr0d");
 
-        // normal behavior
+        // create user
         Document<User> d = arango.createUser(userA);
         d = arango.getUserById(d.getId());
         assert d.getEntity().getAlias().equals("User A");
@@ -113,13 +113,19 @@ public class ArangoStorageTest {
         deviceA.setAttributes(fields);
         deviceA.setUpdateTime(System.currentTimeMillis());
 
-        // normal behavior
-        Document<Device> d = arango.createDevice(deviceA);
+        // create device
+        Document<Device> d = arango.createOrReplaceDevice(deviceA);
         d = arango.getDeviceById(d.getId());
         assert d.getEntity().getId().equals(deviceA.getId());
         assert d.getEntity().getAttributes().get("model").equals("Hue");
         assert (double) d.getEntity().getAttributes().get("switch") == 1;
         assert d.getEntity().getUpdateTime() == deviceA.getUpdateTime();
+
+        // replace device
+        deviceA.getAttributes().put("switch", 0);
+        d = arango.createOrReplaceDevice(deviceA);
+        d = arango.getDeviceById(d.getId());
+        assert (double) d.getEntity().getAttributes().get("switch") == 0;
     }
 
     @Test
@@ -143,7 +149,7 @@ public class ArangoStorageTest {
 
         // create user device relation
         Document<User> du = arango.createUser(userA);
-        Document<Device> dd = arango.createDevice(deviceA);
+        Document<Device> dd = arango.createOrReplaceDevice(deviceA);
         Relation<UserFollowDevice> rud = arango.createOrReplaceUserFollowDevice(du.getId(), dd.getId(), relationA);
         assert rud.getFrom().equals(du.getId());
         assert rud.getTo().equals(dd.getId());
