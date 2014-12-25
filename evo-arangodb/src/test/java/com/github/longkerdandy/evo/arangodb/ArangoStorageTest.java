@@ -88,10 +88,10 @@ public class ArangoStorageTest {
 
         Device deviceA = new Device();
         deviceA.setId("d0000001");
-        Map<String, Object> fields = new HashMap<>();
-        fields.put("model", "Hue");
-        fields.put("switch", 1);
-        deviceA.setAttributes(fields);
+        Map<String, Object> fieldsA = new HashMap<>();
+        fieldsA.put("model", "Hue");
+        fieldsA.put("switch", 1);
+        deviceA.setAttributes(fieldsA);
         deviceA.setUpdateTime(System.currentTimeMillis());
 
         // create device
@@ -106,6 +106,16 @@ public class ArangoStorageTest {
         deviceA.getAttributes().put("switch", 0);
         d = arango.createOrReplaceDevice(deviceA);
         d = arango.getDeviceById(d.getId());
+        assert (double) d.getEntity().getAttributes().get("switch") == 0;
+
+        // update device
+        Device deviceB = new Device();
+        Map<String, Object> fieldsB = new HashMap<>();
+        fieldsB.put("model", "Sonos");
+        deviceB.setAttributes(fieldsB);
+        d = arango.updateDevice(d.getId(), deviceB);
+        d = arango.getDeviceById(d.getId());
+        assert d.getEntity().getAttributes().get("model").equals("Sonos");
         assert (double) d.getEntity().getAttributes().get("switch") == 0;
     }
 

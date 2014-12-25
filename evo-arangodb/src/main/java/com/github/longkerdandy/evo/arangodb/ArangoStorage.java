@@ -100,8 +100,20 @@ public class ArangoStorage {
     /**
      * Get device entity based on device id
      *
+     * @param did    Device Id
+     * @param device Device data to be merged
+     * @return Document WITHOUT Device Entity
+     * @throws ArangoException If device id not exist
+     */
+    public Document<Device> updateDevice(String did, Object device) throws ArangoException {
+        return toDocument(this.arango.graphUpdateVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, did, device, false));
+    }
+
+    /**
+     * Get device entity based on device id
+     *
      * @param did Device Id
-     * @return Device Entity
+     * @return Document with Device Entity
      * @throws ArangoException If device id not exist
      */
     public Document<Device> getDeviceById(String did) throws ArangoException {
