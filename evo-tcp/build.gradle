@@ -4,7 +4,7 @@ version = '1.0.0'
 dependencies {
     // Evo
     compile project(':evo-api')
-    compile project(':evo-redis')
+    compile project(':evo-arangodb')
 
     // Netty
     compile 'io.netty:netty-all:4.0.24.Final'

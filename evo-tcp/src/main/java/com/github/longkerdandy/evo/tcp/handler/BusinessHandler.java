@@ -1,15 +1,21 @@
 package com.github.longkerdandy.evo.tcp.handler;
 
+import com.arangodb.ArangoException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.longkerdandy.evo.api.entity.DeviceRegisterUser;
+import com.github.longkerdandy.evo.api.entity.Relation;
+import com.github.longkerdandy.evo.api.message.ConnAckMessage;
 import com.github.longkerdandy.evo.api.message.ConnectMessage;
 import com.github.longkerdandy.evo.api.message.Message;
-import com.github.longkerdandy.evo.redis.RedisStorage;
+import com.github.longkerdandy.evo.api.protocol.MessageType;
+import com.github.longkerdandy.evo.arangodb.ArangoStorage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.github.longkerdandy.evo.api.util.JsonUtils.OBJECT_MAPPER;
 
@@ -24,20 +30,18 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
     public static final int AUTH_AS_DEVICE = 1;
     public static final int AUTH_AS_USER = 2;
 
-    private int authState;        // Auth state
-    private List<String> devices; // Auth devices with this connection
-    private String user;          // Auth user
+    private final Map<String, String> auth;   // Authorized device - user map
+    private final ArangoStorage storage;      // Storage
 
-    private RedisStorage redis;   // Redis
-
-    public BusinessHandler(RedisStorage redis) {
-        this.redis = redis;
+    public BusinessHandler(ArangoStorage storage) {
+        this.storage = storage;
+        this.auth = new HashMap<>();
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message<JsonNode> msg) throws Exception {
         switch (msg.getMsgType()) {
-            case "connect":
+            case MessageType.CONNECT:
                 onConnect(ctx, msg);
                 break;
         }
@@ -45,32 +49,48 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
 
     protected void onConnect(ChannelHandlerContext ctx, Message<JsonNode> msg) throws IOException {
         ConnectMessage connMsg = OBJECT_MAPPER.treeToValue(msg.getPayload(), ConnectMessage.class);
-        String deviceId = msg.getDevice();
+        String did = msg.getDevice();
+        ConnAckMessage connAck = new ConnAckMessage();
+        connAck.setConnMsg(msg.getMsgId());
 
-        // Auth as Device
+        // auth as device
         if (StringUtils.isEmpty(connMsg.getUser())) {
-            authState = AUTH_AS_DEVICE;
+            this.auth.put(did, null);
         }
 
-        // Auth as User
+        // auth as user
         else {
-            String userId = connMsg.getUser();
+            String uid = connMsg.getUser();
             String token = connMsg.getToken();
-
-            // Empty User or Token
-            if (StringUtils.isBlank(userId) || StringUtils.isBlank(token)) {
-//                MqttConnAckMessage connAck = new MqttConnAckMessage(
-//                        new MqttFixedHeader(MqttMessageType.CONNACK, false, MqttQoS.AT_MOST_ONCE, false, 0),
-//                        new MqttConnAckVariableHeader(MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD));
+            // empty user or token
+            if (StringUtils.isBlank(uid) || StringUtils.isBlank(token)) {
+                connAck.setReturnCode(ConnAckMessage.EMPTY_USER_OR_TOKEN);
             }
-
-            // User Token not correct
-            if (!redis.isUserTokenCorrect(userId, deviceId, token)) {
-//                MqttConnAckMessage connAck = new MqttConnAckMessage(
-//                        new MqttFixedHeader(MqttMessageType.CONNACK, false, MqttQoS.AT_MOST_ONCE, false, 0),
-//                        new MqttConnAckVariableHeader(MqttConnectReturnCode.CONNECTION_REFUSED_NOT_AUTHORIZED));
+            // user token incorrect
+            else if (!isUserTokenCorrect(uid, did, token)) {
+                connAck.setReturnCode(ConnAckMessage.USER_TOKEN_INCORRECT);
+            } else {
+                this.auth.put(did, uid);
             }
-            authState = AUTH_AS_USER;
+        }
+        // send connack message back
+        // notify user device online
+    }
+
+    /**
+     * Is user token correct?
+     *
+     * @param uid   User Id
+     * @param did   Device Id
+     * @param token Token
+     * @return Correct?
+     */
+    protected boolean isUserTokenCorrect(String uid, String did, String token) {
+        try {
+            Relation<DeviceRegisterUser> relation = this.storage.getDeviceRegisterUser(did, uid);
+            return token.equals(relation.getEntity().getToken());
+        } catch (ArangoException e) {
+            return false;
         }
     }
 }

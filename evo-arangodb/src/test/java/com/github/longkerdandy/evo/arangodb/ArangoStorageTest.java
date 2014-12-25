@@ -27,7 +27,7 @@ public class ArangoStorageTest {
 
     @BeforeClass
     public static void before() throws ArangoException {
-        arango = new ArangoStorage("127.0.0.1", 8529);
+        arango = new ArangoStorage("127.0.0.1", 8529, password);
         arango.init();
         clear();
     }

@@ -6,12 +6,13 @@ package com.github.longkerdandy.evo.api.message;
 @SuppressWarnings("unused")
 public class Message<T> {
 
-    private String msgId;   // Message ID
-    private String msgType; // Message Type (payload)
-    private String device;  // Device ID (who send this message)
-    private String qos;     // QoS Level
-    private long timestamp; // Timestamp (when message is send)
-    private T payload;      // Payload (sub-message)
+    private String msgId;           // Message ID
+    private String msgType;         // Message Type (payload)
+    private String protocolVersion; // Protocol Version
+    private String device;          // Device ID (who send this message)
+    private String qos;             // QoS Level
+    private long timestamp;         // Timestamp (when message is send)
+    private T payload;              // Payload (sub-message)
 
     public String getMsgId() {
         return msgId;
@@ -27,6 +28,14 @@ public class Message<T> {
 
     public void setMsgType(String msgType) {
         this.msgType = msgType;
+    }
+
+    public String getProtocolVersion() {
+        return protocolVersion;
+    }
+
+    public void setProtocolVersion(String protocolVersion) {
+        this.protocolVersion = protocolVersion;
     }
 
     public String getDevice() {

@@ -1,6 +1,6 @@
 package com.github.longkerdandy.evo.tcp;
 
-import com.github.longkerdandy.evo.redis.RedisStorage;
+import com.github.longkerdandy.evo.arangodb.ArangoStorage;
 import com.github.longkerdandy.evo.tcp.codec.Decoder;
 import com.github.longkerdandy.evo.tcp.codec.Encoder;
 import com.github.longkerdandy.evo.tcp.handler.BusinessHandler;
@@ -18,9 +18,9 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
  */
 public class TCPServer {
 
-    private static final String REDIS_HOST = "0.0.0.0";
-    private static final int REDIS_PORT = 6379;
-    private static final String REDIS_PASSWORD = "";
+    private static final String STORAGE_HOST = "0.0.0.0";
+    private static final int STORAGE_PORT = 6379;
+    private static final String STORAGE_PASSWORD = "";
 
     private static final String HOST = "0.0.0.0";
     private static final int PORT = 1883;
@@ -40,12 +40,12 @@ public class TCPServer {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
-                            // MQTT
+                            // Encoder/Decoder
                             p.addLast(new Encoder());
                             p.addLast(new Decoder());
                             // Business Handler, in separate ExecutorGroup
                             p.addLast(new DefaultEventExecutorGroup(THREADS),
-                                    new BusinessHandler(new RedisStorage(REDIS_HOST, REDIS_PORT, REDIS_PASSWORD)));
+                                    new BusinessHandler(new ArangoStorage(STORAGE_HOST, STORAGE_PORT, STORAGE_PASSWORD)));
                         }
                     });
 

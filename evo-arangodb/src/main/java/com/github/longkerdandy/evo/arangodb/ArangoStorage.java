@@ -7,6 +7,7 @@ import com.arangodb.CursorResultSet;
 import com.arangodb.entity.CursorEntity;
 import com.arangodb.util.MapBuilder;
 import com.github.longkerdandy.evo.api.entity.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +27,14 @@ public class ArangoStorage {
     // ArangoDB config
     private final String host;
     private final int port;
+    private final String password;
     // ArangoDB Driver
     private ArangoDriver arango;
 
-    public ArangoStorage(String host, int port) {
+    public ArangoStorage(String host, int port, String password) {
         this.host = host;
         this.port = port;
+        this.password = password;
     }
 
     public ArangoDriver getArangoDriver() {
@@ -46,6 +49,7 @@ public class ArangoStorage {
         ArangoConfigure configure = new ArangoConfigure();
         configure.setHost(this.host);
         configure.setPort(this.port);
+        if (StringUtils.isNotBlank(password)) configure.setPassword(this.password);
         configure.init();
         // Create Driver (this instance is thread-safe)
         this.arango = new ArangoDriver(configure);
