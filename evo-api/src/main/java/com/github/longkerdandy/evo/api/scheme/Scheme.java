@@ -12,7 +12,6 @@ public class Scheme {
     public static final String COLLECTION_DEVICES = "devices";
     public static final String EDGE_USER_FOLLOW_DEVICE = "user_follow_device";
     public static final String EDGE_DEVICE_REGISTER_USER = "device_register_user";
-    public static final String COLLECTION_USER_TOKEN = "user_token";
 
     // User Collection
     public static final String U_EMAIL = "email";
@@ -20,11 +19,6 @@ public class Scheme {
 
     // User Follow Device Relation
     public static final String U_F_D_PERMISSION = "permission";
-
-    // User Token
-    public static final String USER_TOKEN_USER = "user";
-    public static final String USER_TOKEN_DEVICE = "device";
-    public static final String USER_TOKEN_TOKEN = "token";
 
     /**
      * Generate UserFollowDevice Relation Id from User Id and Device Id

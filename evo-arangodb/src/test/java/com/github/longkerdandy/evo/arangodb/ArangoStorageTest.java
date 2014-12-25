@@ -46,26 +46,6 @@ public class ArangoStorageTest {
         arango.getArangoDriver().truncateCollection(COLLECTION_DEVICES);
         arango.getArangoDriver().truncateCollection(EDGE_USER_FOLLOW_DEVICE);
         arango.getArangoDriver().truncateCollection(EDGE_DEVICE_REGISTER_USER);
-        arango.getArangoDriver().truncateCollection(COLLECTION_USER_TOKEN);
-    }
-
-    @Test
-    public void userTokenTest() throws ArangoException {
-        clear();
-
-        UserToken userTokenA = new UserToken();
-        userTokenA.setUser("u00000001");
-        userTokenA.setDevice("d00000001");
-        userTokenA.setToken("abcdefg");
-
-        // create token
-        arango.createOrReplaceUserToken(userTokenA);
-        assert arango.isUserTokenCorrect(userTokenA);
-
-        // replace token
-        userTokenA.setToken("1234567890");
-        arango.createOrReplaceUserToken(userTokenA);
-        assert arango.isUserTokenCorrect(userTokenA);
     }
 
     @Test

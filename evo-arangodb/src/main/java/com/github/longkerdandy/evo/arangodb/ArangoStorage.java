@@ -7,7 +7,6 @@ import com.arangodb.CursorResultSet;
 import com.arangodb.entity.CursorEntity;
 import com.arangodb.util.MapBuilder;
 import com.github.longkerdandy.evo.api.entity.*;
-import com.github.longkerdandy.evo.arangodb.scheme.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,39 +57,6 @@ public class ArangoStorage {
      */
     public void destroy() {
         logger.info("ArangoStorage destroy.");
-    }
-
-    /**
-     * Is user token correct
-     *
-     * @param userToken User Token
-     * @return Correct?
-     */
-    public boolean isUserTokenCorrect(UserToken userToken) throws ArangoException {
-        // query
-        Map<String, Object> bindVars = new MapBuilder().put(USER_TOKEN_USER, userToken.getUser()).put(USER_TOKEN_DEVICE, userToken.getDevice()).get();
-        // query user device edge, return device id set
-        CursorEntity<UserToken> r = this.arango.executeQuery(Query.GET_USER_TOKEN, bindVars, UserToken.class, true, 0);
-        // deal with result
-        return r.getCount() > 0 && userToken.getToken().equals(r.get(0).getToken());
-    }
-
-    /**
-     * Create new user token (bind with device)
-     *
-     * @param userToken User Token
-     */
-    public void createOrReplaceUserToken(UserToken userToken) throws ArangoException {
-        // query
-        Map<String, Object> bindVars = new MapBuilder().put(USER_TOKEN_USER, userToken.getUser()).put(USER_TOKEN_DEVICE, userToken.getDevice()).get();
-        // query user device edge, return device id set
-        CursorEntity<UserToken> r = this.arango.executeQuery(Query.GET_USER_TOKEN, bindVars, UserToken.class, true, 0);
-        // create or replace
-        if (r.getCount() > 0) {
-            this.arango.graphReplaceVertex(GRAPH_IOT_RELATION, COLLECTION_USER_TOKEN, r.get(0).getId(), userToken);
-        } else {
-            this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_USER_TOKEN, userToken, false);
-        }
     }
 
     /**

@@ -59,7 +59,6 @@ public class Initializer {
 
         // orphan collections
         List<String> orphans = new ArrayList<>();
-        orphans.add(COLLECTION_USER_TOKEN);
 
         // create relation graph
         GraphEntity graph = arango.createGraph(GRAPH_IOT_RELATION, edges, orphans, true);
