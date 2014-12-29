@@ -166,6 +166,21 @@ public class ArangoStorageTest {
         Set<String> devices = arango.getUserFollowingDeviceId(du.getId(), relation1, relation2);
         assert devices.contains(dd.getId());
 
+        // get device related controller
+        Device deviceB = new Device();
+        deviceB.setId("d0000002");
+        deviceB.setUpdateTime(System.currentTimeMillis());
+        Device deviceC = new Device();
+        deviceC.setId("d0000003");
+        deviceC.setUpdateTime(System.currentTimeMillis());
+        Document<Device> ddB = arango.createOrReplaceDevice(deviceB);
+        Document<Device> ddC = arango.createOrReplaceDevice(deviceC);
+        arango.createOrReplaceDeviceRegisterUser(ddB.getId(), du.getId(), new DeviceRegisterUser());
+        arango.createOrReplaceDeviceRegisterUser(ddC.getId(), du.getId(), new DeviceRegisterUser());
+        devices = arango.getDeviceFollowedControllerId(dd.getId(), relation1, relation2);
+        assert devices.contains(ddB.getId());
+        assert devices.contains(ddC.getId());
+
         // delete user device relation
         assert arango.deleteUserFollowDevice(du.getId(), dd.getId());
     }
