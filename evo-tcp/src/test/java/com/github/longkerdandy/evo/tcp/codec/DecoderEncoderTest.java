@@ -24,13 +24,13 @@ public class DecoderEncoderTest {
     public void decoderEncoderTest() throws Exception {
         // Message, payload is ConnectMessage
         ConnectMessage connMsg = new ConnectMessage();
-        connMsg.setProtocolVersion(Protocol.VERSION_1_0);
         connMsg.setUser("User 1");
         connMsg.setToken("Token 1");
         Message<ConnectMessage> msgOut = new Message<>();
         msgOut.setMsgId("Message ID 1");
         msgOut.setMsgType(MessageType.CONNECT);
-        msgOut.setDevice("Device 1");
+        msgOut.setProtocolVersion(Protocol.VERSION_1_0);
+        msgOut.setFrom("Device 1");
         msgOut.setTimestamp(System.currentTimeMillis());
         msgOut.setPayload(connMsg);
 
@@ -48,12 +48,12 @@ public class DecoderEncoderTest {
 
         assert msgIn.getMsgId().equals("Message ID 1");
         assert msgIn.getMsgType().equals(MessageType.CONNECT);
-        assert msgIn.getDevice().equals("Device 1");
+        assert msgIn.getProtocolVersion().equals(Protocol.VERSION_1_0);
+        assert msgIn.getFrom().equals("Device 1");
         assert msgIn.getTimestamp() > 0;
         assert msgIn.getPayload() != null;
 
         connMsg = OBJECT_MAPPER.treeToValue(msgIn.getPayload(), ConnectMessage.class);
-        assert connMsg.getProtocolVersion().equals(Protocol.VERSION_1_0);
         assert connMsg.getUser().equals("User 1");
         assert connMsg.getToken().equals("Token 1");
     }

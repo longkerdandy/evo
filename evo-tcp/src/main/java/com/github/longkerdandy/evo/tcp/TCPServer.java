@@ -4,6 +4,7 @@ import com.github.longkerdandy.evo.arangodb.ArangoStorage;
 import com.github.longkerdandy.evo.tcp.codec.Decoder;
 import com.github.longkerdandy.evo.tcp.codec.Encoder;
 import com.github.longkerdandy.evo.tcp.handler.BusinessHandler;
+import com.github.longkerdandy.evo.tcp.repo.Repository;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -45,7 +46,7 @@ public class TCPServer {
                             p.addLast(new Decoder());
                             // Business Handler, in separate ExecutorGroup
                             p.addLast(new DefaultEventExecutorGroup(THREADS),
-                                    new BusinessHandler(new ArangoStorage(STORAGE_HOST, STORAGE_PORT, STORAGE_PASSWORD)));
+                                    new BusinessHandler(new ArangoStorage(STORAGE_HOST, STORAGE_PORT, STORAGE_PASSWORD), new Repository()));
                         }
                     });
 

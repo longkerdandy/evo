@@ -9,8 +9,9 @@ public class Message<T> {
     private String msgId;           // Message ID
     private String msgType;         // Message Type (payload)
     private String protocolVersion; // Protocol Version
-    private String device;          // Device ID (who send this message)
-    private String qos;             // QoS Level
+    private String from;            // Device ID (who send this message)
+    private String to;              // Device ID (whom this message send to)
+    private int qos;                // QoS Level
     private long timestamp;         // Timestamp (when message is send)
     private T payload;              // Payload (sub-message)
 
@@ -38,19 +39,27 @@ public class Message<T> {
         this.protocolVersion = protocolVersion;
     }
 
-    public String getDevice() {
-        return device;
+    public String getFrom() {
+        return from;
     }
 
-    public void setDevice(String device) {
-        this.device = device;
+    public void setFrom(String from) {
+        this.from = from;
     }
 
-    public String getQos() {
+    public String getTo() {
+        return to;
+    }
+
+    public void setTo(String to) {
+        this.to = to;
+    }
+
+    public int getQos() {
         return qos;
     }
 
-    public void setQos(String qos) {
+    public void setQos(int qos) {
         this.qos = qos;
     }
 
