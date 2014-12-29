@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static com.github.longkerdandy.evo.api.util.JsonUtils.OBJECT_MAPPER;
 
@@ -115,6 +116,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
         this.repository.saveConn(did, ctx);
 
         // notify user device online
+        // Set<String> controllers = this.storage.getDeviceFollowedControllerId(did)
     }
 
     @Override
