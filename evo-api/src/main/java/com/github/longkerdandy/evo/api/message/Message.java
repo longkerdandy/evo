@@ -2,6 +2,7 @@ package com.github.longkerdandy.evo.api.message;
 
 /**
  * Message
+ * Base message & carrier for all other messages
  */
 @SuppressWarnings("unused")
 public class Message<T> {

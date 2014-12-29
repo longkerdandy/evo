@@ -2,6 +2,7 @@ package com.github.longkerdandy.evo.api.message;
 
 /**
  * Connect Message
+ * Must be sent before all other messages when device connecting to the Cloud
  */
 @SuppressWarnings("unused")
 public class ConnectMessage {

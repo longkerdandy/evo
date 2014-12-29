@@ -8,9 +8,8 @@ import com.github.longkerdandy.evo.api.entity.Relation;
 import com.github.longkerdandy.evo.api.message.ConnAckMessage;
 import com.github.longkerdandy.evo.api.message.ConnectMessage;
 import com.github.longkerdandy.evo.api.message.Message;
+import com.github.longkerdandy.evo.api.message.MessageFactory;
 import com.github.longkerdandy.evo.api.protocol.MessageType;
-import com.github.longkerdandy.evo.api.protocol.Protocol;
-import com.github.longkerdandy.evo.api.protocol.QoS;
 import com.github.longkerdandy.evo.arangodb.ArangoStorage;
 import com.github.longkerdandy.evo.tcp.repo.Repository;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static com.github.longkerdandy.evo.api.util.JsonUtils.OBJECT_MAPPER;
 
@@ -76,14 +74,9 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
         // prepare ConnAck message
         ConnAckMessage connAck = new ConnAckMessage();
         connAck.setConnMsg(msg.getMsgId());
-        Message<ConnAckMessage> msgConnAck = new Message<>();
-        msgConnAck.setMsgId(UUID.randomUUID().toString());
+        Message<ConnAckMessage> msgConnAck = MessageFactory.newMessage();
         msgConnAck.setMsgType(MessageType.CONNACK);
-        msgConnAck.setProtocolVersion(Protocol.VERSION_1_0);
-        msgConnAck.setFrom("Evo Platform");
         msgConnAck.setTo(did);
-        msgConnAck.setQos(QoS.MOST_ONCE);
-        msgConnAck.setTimestamp(System.currentTimeMillis());
         msgConnAck.setPayload(connAck);
 
         // auth as device

@@ -2,6 +2,7 @@ package com.github.longkerdandy.evo.api.message;
 
 /**
  * ConnAck Message
+ * Acknowledge for Connect Messgae
  */
 @SuppressWarnings("unused")
 public class ConnAckMessage {
