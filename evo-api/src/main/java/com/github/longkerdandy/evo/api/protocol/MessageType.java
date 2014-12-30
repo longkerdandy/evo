@@ -8,4 +8,6 @@ public class MessageType {
 
     public static final String CONNECT = "connect";
     public static final String CONNACK = "connack";
+    public static final String ONLINE = "online";
+    public static final String OFFLINE = "offline";
 }

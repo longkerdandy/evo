@@ -155,15 +155,13 @@ public class ArangoStorageTest {
         rud = arango.getUserFollowDevice(du.getId(), dd.getId());
         assert rud.getEntity().getPermission() == 2;
 
-        UserFollowDevice relation1 = new UserFollowDevice();
-        relation1.setPermission(1);
-        UserFollowDevice relation2 = new UserFollowDevice();
-        relation2.setPermission(2);
+        int permission1 = 1;
+        int permission2 = 2;
         // get device related user
-        Set<String> users = arango.getDeviceFollowedUserId(dd.getId(), relation1, relation2);
+        Set<String> users = arango.getDeviceFollowedUserId(dd.getId(), permission1, permission2);
         assert users.contains(du.getId());
         // get user related device
-        Set<String> devices = arango.getUserFollowingDeviceId(du.getId(), relation1, relation2);
+        Set<String> devices = arango.getUserFollowingDeviceId(du.getId(), permission1, permission2);
         assert devices.contains(dd.getId());
 
         // get device related controller
@@ -177,7 +175,7 @@ public class ArangoStorageTest {
         Document<Device> ddC = arango.createOrReplaceDevice(deviceC);
         arango.createOrReplaceDeviceRegisterUser(ddB.getId(), du.getId(), new DeviceRegisterUser());
         arango.createOrReplaceDeviceRegisterUser(ddC.getId(), du.getId(), new DeviceRegisterUser());
-        devices = arango.getDeviceFollowedControllerId(dd.getId(), relation1, relation2);
+        devices = arango.getDeviceFollowedControllerId(dd.getId(), permission1, permission2);
         assert devices.contains(ddB.getId());
         assert devices.contains(ddC.getId());
 

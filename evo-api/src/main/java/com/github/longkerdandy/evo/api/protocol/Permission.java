@@ -4,7 +4,7 @@ package com.github.longkerdandy.evo.api.protocol;
  * Privilege Definition
  */
 @SuppressWarnings("unused")
-public class Privilege {
+public class Permission {
 
     public static final int NONE = 0;       // Level 0  Default, No Privilege
     public static final int READ = 3;       // Level 3  Read Privilege

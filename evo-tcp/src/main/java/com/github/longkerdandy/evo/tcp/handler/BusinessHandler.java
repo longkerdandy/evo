@@ -5,11 +5,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.longkerdandy.evo.api.entity.DeviceRegisterUser;
 import com.github.longkerdandy.evo.api.entity.Relation;
-import com.github.longkerdandy.evo.api.message.ConnAckMessage;
-import com.github.longkerdandy.evo.api.message.ConnectMessage;
-import com.github.longkerdandy.evo.api.message.Message;
-import com.github.longkerdandy.evo.api.message.MessageFactory;
+import com.github.longkerdandy.evo.api.message.*;
 import com.github.longkerdandy.evo.api.protocol.MessageType;
+import com.github.longkerdandy.evo.api.protocol.Permission;
 import com.github.longkerdandy.evo.arangodb.ArangoStorage;
 import com.github.longkerdandy.evo.tcp.repo.Repository;
 import io.netty.channel.ChannelHandlerContext;
@@ -19,6 +17,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -73,12 +72,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
         // auth succeed?
         boolean auth = false;
         // prepare ConnAck message
-        ConnAckMessage connAck = new ConnAckMessage();
-        connAck.setConnMsg(msg.getMsgId());
-        Message<ConnAckMessage> msgConnAck = MessageFactory.newMessage();
-        msgConnAck.setMsgType(MessageType.CONNACK);
-        msgConnAck.setTo(did);
-        msgConnAck.setPayload(connAck);
+        Message<ConnAckMessage> msgConnAck = MessageFactory.newConnAckMessage(did, msg.getMsgId());
 
         // auth as device
         if (StringUtils.isEmpty(connect.getUser())) {
@@ -91,12 +85,12 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
             // empty user or token
             if (StringUtils.isBlank(uid) || StringUtils.isBlank(token)) {
                 logger.trace("Empty user id or token");
-                connAck.setReturnCode(ConnAckMessage.EMPTY_USER_OR_TOKEN);
+                msgConnAck.getPayload().setReturnCode(ConnAckMessage.EMPTY_USER_OR_TOKEN);
             }
             // user token incorrect
             else if (!isUserTokenCorrect(uid, did, token)) {
                 logger.trace("User id & token incorrect");
-                connAck.setReturnCode(ConnAckMessage.USER_TOKEN_INCORRECT);
+                msgConnAck.getPayload().setReturnCode(ConnAckMessage.USER_TOKEN_INCORRECT);
             }
             // mark as auth
             else {
@@ -116,16 +110,46 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
         this.repository.saveConn(did, ctx);
 
         // notify user device online
-        // Set<String> controllers = this.storage.getDeviceFollowedControllerId(did)
+        try {
+            Set<String> controllers = this.storage.getDeviceFollowedControllerId(did, Permission.READ, Permission.OWNER);
+            for (String controller : controllers) {
+                Message<OnlineMessage> msgOnline = MessageFactory.newOnlineMessage(did, controller);
+                this.repository.sendMessage(controller, msgOnline);
+            }
+        } catch (ArangoException e) {
+            logger.error("Try to get device {} followers with exception: {}", did, ExceptionUtils.getMessage(e));
+        }
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        for (String did : authMap.keySet()) {
-            this.repository.removeConn(did, ctx);
-        }
-        authMap.clear();
-        ctx.fireChannelActive();
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        logger.debug("Received channel in-active event from remote peer {}", getRemoteAddress(ctx));
+        this.authMap.keySet().stream().filter(did -> this.repository.removeConn(did, ctx)).forEach(did -> {
+            // notify user device offline
+            try {
+                Set<String> controllers = this.storage.getDeviceFollowedControllerId(did, Permission.READ, Permission.OWNER);
+                for (String controller : controllers) {
+                    Message<OfflineMessage> msgOffline = MessageFactory.newOfflineMessage(did, controller);
+                    this.repository.sendMessage(controller, msgOffline);
+                }
+            } catch (ArangoException e) {
+                logger.error("Try to get device {} followers with exception: {}", did, ExceptionUtils.getMessage(e));
+            }
+        });
+        this.authMap.clear();
+        ctx.close();
+        ctx.fireChannelInactive();
+    }
+
+    /**
+     * Get remote address string from ChannelHandlerContext
+     *
+     * @param ctx ChannelHandlerContext
+     * @return Remote Address String
+     */
+    protected String getRemoteAddress(ChannelHandlerContext ctx) {
+        InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress();
+        return address != null ? address.toString() : "<unknown>";
     }
 
     /**

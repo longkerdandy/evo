@@ -57,7 +57,7 @@ public class Repository {
     /**
      * Send message to specific device
      *
-     * @param did Device Id
+     * @param did     Device Id
      * @param message Message to be sent
      */
     public void sendMessage(String did, Message message) {

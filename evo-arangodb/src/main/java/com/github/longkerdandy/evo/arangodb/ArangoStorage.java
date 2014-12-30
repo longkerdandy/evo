@@ -175,14 +175,14 @@ public class ArangoStorage {
      * Get user id set which device being followed
      *
      * @param did Device Id
-     * @param min Minimal Relation requirement
-     * @param max Maximum Relation requirement
+     * @param min Minimal Permission requirement
+     * @param max Maximum Permission requirement
      * @return User Id Set
      */
-    public Set<String> getDeviceFollowedUserId(String did, UserFollowDevice min, UserFollowDevice max) throws ArangoException {
+    public Set<String> getDeviceFollowedUserId(String did, int min, int max) throws ArangoException {
         Set<String> set = new HashSet<>();
         // query
-        Map<String, Object> bindVars = new MapBuilder().put("to", keyToHandle(COLLECTION_DEVICES, did)).put("min", min.getPermission()).put("max", max.getPermission()).get();
+        Map<String, Object> bindVars = new MapBuilder().put("to", keyToHandle(COLLECTION_DEVICES, did)).put("min", min).put("max", max).get();
         // query user follow device edge, return user id set
         CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(Query.GET_DEVICE_FOLLOWED_USER_ID, bindVars, String.class, false, 0);
         // deal with result
@@ -196,14 +196,14 @@ public class ArangoStorage {
      * Get device(controller register as user) id set which device being followed
      *
      * @param did Device Id
-     * @param min Minimal Relation requirement
-     * @param max Maximum Relation requirement
+     * @param min Minimal Permission requirement
+     * @param max Maximum Permission requirement
      * @return Device Id Set
      */
-    public Set<String> getDeviceFollowedControllerId(String did, UserFollowDevice min, UserFollowDevice max) throws ArangoException {
+    public Set<String> getDeviceFollowedControllerId(String did, int min, int max) throws ArangoException {
         Set<String> set = new HashSet<>();
         // query
-        Map<String, Object> bindVars = new MapBuilder().put("to", keyToHandle(COLLECTION_DEVICES, did)).put("min", min.getPermission()).put("max", max.getPermission()).get();
+        Map<String, Object> bindVars = new MapBuilder().put("to", keyToHandle(COLLECTION_DEVICES, did)).put("min", min).put("max", max).get();
         // query user follow device edge & device register user edge, return device id set
         CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(Query.GET_DEVICE_FOLLOWED_CONTROLLER_ID, bindVars, String.class, false, 0);
         // deal with result
@@ -217,14 +217,14 @@ public class ArangoStorage {
      * Get device id set which user following
      *
      * @param uid User Id
-     * @param min Minimal Relation requirement
-     * @param max Maximum Relation requirement
+     * @param min Minimal Permission requirement
+     * @param max Maximum Permission requirement
      * @return Device Id Set
      */
-    public Set<String> getUserFollowingDeviceId(String uid, UserFollowDevice min, UserFollowDevice max) throws ArangoException {
+    public Set<String> getUserFollowingDeviceId(String uid, int min, int max) throws ArangoException {
         Set<String> set = new HashSet<>();
         // query
-        Map<String, Object> bindVars = new MapBuilder().put("from", keyToHandle(COLLECTION_USERS, uid)).put("min", min.getPermission()).put("max", max.getPermission()).get();
+        Map<String, Object> bindVars = new MapBuilder().put("from", keyToHandle(COLLECTION_USERS, uid)).put("min", min).put("max", max).get();
         // query user follow device edge, return device id set
         CursorResultSet<String> rs = this.arango.executeQueryWithResultSet(Query.GET_USER_FOLLOWING_DEVICE_ID, bindVars, String.class, false, 0);
         // deal with result
