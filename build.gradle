@@ -35,9 +35,4 @@ subprojects {
         // Mockito
         testCompile 'org.mockito:mockito-all:1.10.8'
     }
-
-    // Gradle Wrapper
-    task wrapper(type: Wrapper) {
-        gradleVersion = '2.2.1'
-    }
 }
