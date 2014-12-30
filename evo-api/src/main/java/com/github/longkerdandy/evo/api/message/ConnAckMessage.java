@@ -10,6 +10,8 @@ public class ConnAckMessage {
     // Return Codes
     public static final int EMPTY_USER_OR_TOKEN = 101;
     public static final int USER_TOKEN_INCORRECT = 102;
+    public static final int PROTOCOL_VERSION_UNACCEPTABLE = 103;
+    public static final int DESCRIPTION_NOT_REGISTERED = 104;
 
     private String connMsg;     // ConnectMessage's message id
     private int returnCode;     // Return Code

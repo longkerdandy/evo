@@ -1,9 +1,9 @@
 package com.github.longkerdandy.evo.api.message;
 
 import com.github.longkerdandy.evo.api.protocol.MessageType;
-import com.github.longkerdandy.evo.api.protocol.Protocol;
 import com.github.longkerdandy.evo.api.protocol.QoS;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -18,7 +18,7 @@ public class MessageFactory {
         Message<T> msg = new Message<>();
         msg.setMsgId(UUID.randomUUID().toString());     // Random UUID as Message Id
         // msg.setMsgType();
-        msg.setProtocolVersion(Protocol.VERSION_1_0);   // Default Protocol Version
+        // msg.setDescription();
         msg.setFrom("Evo Platform");                    // Default from Evolution Platform
         // msg.setTo();
         msg.setQos(QoS.MOST_ONCE);                      // Default QoS 0
@@ -51,9 +51,12 @@ public class MessageFactory {
      * @param to   Device Id which follows online device
      * @return Message<OnlineMessage>
      */
-    public static Message<OnlineMessage> newOnlineMessage(String from, String to) {
+    public static Message<OnlineMessage> newOnlineMessage(String from, String to, String pv, String desc, Map<String, Object> attr) {
         Message<OnlineMessage> msg = newMessage();
         OnlineMessage online = new OnlineMessage();
+        online.setProtocolVersion(pv);          // Protocol Version
+        online.setDescription(desc);            // Description
+        online.setAttributes(attr);             // Attributes
         msg.setMsgType(MessageType.ONLINE);     // Message Type: Online
         msg.setFrom(from);                      // From
         msg.setTo(to);                          // To
@@ -68,9 +71,11 @@ public class MessageFactory {
      * @param to   Device Id which follows offline device
      * @return Message<OfflineMessage>
      */
-    public static Message<OfflineMessage> newOfflineMessage(String from, String to) {
+    public static Message<OfflineMessage> newOfflineMessage(String from, String to, String pv, String desc) {
         Message<OfflineMessage> msg = newMessage();
         OfflineMessage offline = new OfflineMessage();
+        offline.setProtocolVersion(pv);         // Protocol Version
+        offline.setDescription(desc);           // Description
         msg.setMsgType(MessageType.OFFLINE);    // Message Type: Offline
         msg.setFrom(from);                      // From
         msg.setTo(to);                          // To

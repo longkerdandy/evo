@@ -9,7 +9,6 @@ public class Message<T> {
 
     private String msgId;           // Message ID
     private String msgType;         // Message Type (payload)
-    private String protocolVersion; // Protocol Version
     private String from;            // Device ID (who send this message)
     private String to;              // Device ID (whom this message send to)
     private int qos;                // QoS Level
@@ -30,14 +29,6 @@ public class Message<T> {
 
     public void setMsgType(String msgType) {
         this.msgType = msgType;
-    }
-
-    public String getProtocolVersion() {
-        return protocolVersion;
-    }
-
-    public void setProtocolVersion(String protocolVersion) {
-        this.protocolVersion = protocolVersion;
     }
 
     public String getFrom() {

@@ -7,13 +7,22 @@ package com.github.longkerdandy.evo.api.message;
 @SuppressWarnings("unused")
 public class OfflineMessage {
 
-    private long offlineTimestamp;     // Timestamp (when device connected)
+    private String protocolVersion;         // Protocol Version
+    private String description;             // Device Description (File) Id
 
-    public long getOfflineTimestamp() {
-        return offlineTimestamp;
+    public String getProtocolVersion() {
+        return protocolVersion;
     }
 
-    public void setOfflineTimestamp(long offlineTimestamp) {
-        this.offlineTimestamp = offlineTimestamp;
+    public void setProtocolVersion(String protocolVersion) {
+        this.protocolVersion = protocolVersion;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

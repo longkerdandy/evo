@@ -19,12 +19,12 @@ public class JsonTest {
     public void jsonTest() throws IOException {
         // Message, payload is ConnectMessage
         ConnectMessage connMsg = new ConnectMessage();
+        connMsg.setProtocolVersion(Protocol.VERSION_1_0);
         connMsg.setUser("User 1");
         connMsg.setToken("Token 1");
         Message<ConnectMessage> out = new Message<>();
         out.setMsgId("Message ID 1");
         out.setMsgType(MessageType.CONNECT);
-        out.setProtocolVersion(Protocol.VERSION_1_0);
         out.setFrom("Device 1");
         out.setTimestamp(System.currentTimeMillis());
         out.setPayload(connMsg);
@@ -37,13 +37,13 @@ public class JsonTest {
         Message<JsonNode> in = OBJECT_MAPPER.readValue(json, type);
         assert in.getMsgId().equals("Message ID 1");
         assert in.getMsgType().equals(MessageType.CONNECT);
-        assert in.getProtocolVersion().equals(Protocol.VERSION_1_0);
         assert in.getFrom().equals("Device 1");
         assert in.getTimestamp() > 0;
         assert in.getPayload() != null;
 
         // Deserialization (connect message)
         connMsg = OBJECT_MAPPER.treeToValue(in.getPayload(), ConnectMessage.class);
+        assert connMsg.getProtocolVersion().equals(Protocol.VERSION_1_0);
         assert connMsg.getUser().equals("User 1");
         assert connMsg.getToken().equals("Token 1");
     }

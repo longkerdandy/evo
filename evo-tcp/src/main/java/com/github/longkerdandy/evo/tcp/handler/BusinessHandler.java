@@ -8,6 +8,7 @@ import com.github.longkerdandy.evo.api.entity.Relation;
 import com.github.longkerdandy.evo.api.message.*;
 import com.github.longkerdandy.evo.api.protocol.MessageType;
 import com.github.longkerdandy.evo.api.protocol.Permission;
+import com.github.longkerdandy.evo.api.protocol.Protocol;
 import com.github.longkerdandy.evo.arangodb.ArangoStorage;
 import com.github.longkerdandy.evo.tcp.repo.Repository;
 import io.netty.channel.ChannelHandlerContext;
@@ -33,6 +34,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
     private static final Logger logger = LoggerFactory.getLogger(BusinessHandler.class);
 
     private final Map<String, String> authMap;   // Authorized device - user map in this connection
+    private final Map<String, String> descMap;   // Authorized device - description map in this connection
+    private final Map<String, String> pvMap;     // Authorized device - protocol version map in this connection
     private final ArangoStorage storage;         // Storage
     private final Repository repository;         // Connection Repository
 
@@ -40,6 +43,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
         this.storage = storage;
         this.repository = repository;
         this.authMap = new HashMap<>();
+        this.descMap = new HashMap<>();
+        this.pvMap = new HashMap<>();
     }
 
     @Override
@@ -67,6 +72,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
             return;
         }
         String did = msg.getFrom();
+        String pv = connect.getProtocolVersion();
+        String desc = connect.getDescription();
         String uid = connect.getUser();
         String token = connect.getToken();
         // auth succeed?
@@ -74,12 +81,20 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
         // prepare ConnAck message
         Message<ConnAckMessage> msgConnAck = MessageFactory.newConnAckMessage(did, msg.getMsgId());
 
+        // protocol version
+        if (!isProtocolVersionAcceptable(pv)) {
+            logger.trace("Protocol version {} unacceptable", pv);
+            msgConnAck.getPayload().setReturnCode(ConnAckMessage.PROTOCOL_VERSION_UNACCEPTABLE);
+        }
+        // description
+        else if (!isDescriptionRegistered(desc)) {
+            logger.trace("Description {} not registered", desc);
+            msgConnAck.getPayload().setReturnCode(ConnAckMessage.DESCRIPTION_NOT_REGISTERED);
+        }
         // auth as device
-        if (StringUtils.isEmpty(connect.getUser())) {
-            this.authMap.put(did, null);
+        else if (StringUtils.isEmpty(uid)) {
             auth = true;
         }
-
         // auth as user
         else {
             // empty user or token
@@ -107,13 +122,15 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
 
         // save connection mapping
         this.authMap.put(did, uid);
+        this.descMap.put(did, desc);
+        this.pvMap.put(did, pv);
         this.repository.saveConn(did, ctx);
 
         // notify user device online
         try {
             Set<String> controllers = this.storage.getDeviceFollowedControllerId(did, Permission.READ, Permission.OWNER);
             for (String controller : controllers) {
-                Message<OnlineMessage> msgOnline = MessageFactory.newOnlineMessage(did, controller);
+                Message<OnlineMessage> msgOnline = MessageFactory.newOnlineMessage(did, controller, pv, desc, connect.getAttributes());
                 this.repository.sendMessage(controller, msgOnline);
             }
         } catch (ArangoException e) {
@@ -129,7 +146,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
             try {
                 Set<String> controllers = this.storage.getDeviceFollowedControllerId(did, Permission.READ, Permission.OWNER);
                 for (String controller : controllers) {
-                    Message<OfflineMessage> msgOffline = MessageFactory.newOfflineMessage(did, controller);
+                    Message<OfflineMessage> msgOffline = MessageFactory.newOfflineMessage(did, controller, this.pvMap.get(did), this.descMap.get(did));
                     this.repository.sendMessage(controller, msgOffline);
                 }
             } catch (ArangoException e) {
@@ -137,7 +154,9 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
             }
         });
         this.authMap.clear();
-        ctx.close();
+        this.descMap.clear();
+        this.pvMap.clear();
+        // ctx.close();
         ctx.fireChannelInactive();
     }
 
@@ -150,6 +169,25 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
     protected String getRemoteAddress(ChannelHandlerContext ctx) {
         InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress();
         return address != null ? address.toString() : "<unknown>";
+    }
+
+    /**
+     * Is protocol version acceptable?
+     *
+     * @param pv Protocol Version
+     */
+    protected boolean isProtocolVersionAcceptable(String pv) {
+        return pv.equals(Protocol.VERSION_1_0);
+    }
+
+    /**
+     * Is protocol version acceptable?
+     *
+     * @param desc Description Id
+     */
+    protected boolean isDescriptionRegistered(String desc) {
+        // TODO: check description id
+        return true;
     }
 
     /**
