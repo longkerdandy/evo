@@ -15,10 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Connection Repository
  */
-public class Repository {
+public class ChannelRepository {
 
     // Logger
-    private static final Logger logger = LoggerFactory.getLogger(Repository.class);
+    private static final Logger logger = LoggerFactory.getLogger(ChannelRepository.class);
     // Thread safe HashMap as Repository (Device Id : ChannelHandlerContext)
     private final Map<String, ChannelHandlerContext> repo = new ConcurrentHashMap<>();
 

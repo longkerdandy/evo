@@ -10,7 +10,7 @@ import com.github.longkerdandy.evo.api.protocol.MessageType;
 import com.github.longkerdandy.evo.api.protocol.Permission;
 import com.github.longkerdandy.evo.api.protocol.Protocol;
 import com.github.longkerdandy.evo.arangodb.ArangoStorage;
-import com.github.longkerdandy.evo.tcp.repo.Repository;
+import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -37,11 +37,11 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
     private final Map<String, String> descMap;   // Authorized device - description map in this connection
     private final Map<String, String> pvMap;     // Authorized device - protocol version map in this connection
     private final ArangoStorage storage;         // Storage
-    private final Repository repository;         // Connection Repository
+    private final ChannelRepository channelRepository;         // Connection Repository
 
-    public BusinessHandler(ArangoStorage storage, Repository repository) {
+    public BusinessHandler(ArangoStorage storage, ChannelRepository channelRepository) {
         this.storage = storage;
-        this.repository = repository;
+        this.channelRepository = channelRepository;
         this.authMap = new HashMap<>();
         this.descMap = new HashMap<>();
         this.pvMap = new HashMap<>();
@@ -114,7 +114,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
         }
 
         // send connack message back
-        this.repository.sendMessage(ctx, msgConnAck);
+        this.channelRepository.sendMessage(ctx, msgConnAck);
 
         if (!auth) {
             return;
@@ -124,14 +124,14 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
         this.authMap.put(did, uid);
         this.descMap.put(did, desc);
         this.pvMap.put(did, pv);
-        this.repository.saveConn(did, ctx);
+        this.channelRepository.saveConn(did, ctx);
 
         // notify user device online
         try {
             Set<String> controllers = this.storage.getDeviceFollowedControllerId(did, Permission.READ, Permission.OWNER);
             for (String controller : controllers) {
                 Message<OnlineMessage> msgOnline = MessageFactory.newOnlineMessage(did, controller, pv, desc, connect.getAttributes());
-                this.repository.sendMessage(controller, msgOnline);
+                this.channelRepository.sendMessage(controller, msgOnline);
             }
         } catch (ArangoException e) {
             logger.error("Try to get device {} followers with exception: {}", did, ExceptionUtils.getMessage(e));
@@ -141,13 +141,13 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         logger.debug("Received channel in-active event from remote peer {}", getRemoteAddress(ctx));
-        this.authMap.keySet().stream().filter(did -> this.repository.removeConn(did, ctx)).forEach(did -> {
+        this.authMap.keySet().stream().filter(did -> this.channelRepository.removeConn(did, ctx)).forEach(did -> {
             // notify user device offline
             try {
                 Set<String> controllers = this.storage.getDeviceFollowedControllerId(did, Permission.READ, Permission.OWNER);
                 for (String controller : controllers) {
                     Message<OfflineMessage> msgOffline = MessageFactory.newOfflineMessage(did, controller, this.pvMap.get(did), this.descMap.get(did));
-                    this.repository.sendMessage(controller, msgOffline);
+                    this.channelRepository.sendMessage(controller, msgOffline);
                 }
             } catch (ArangoException e) {
                 logger.error("Try to get device {} followers with exception: {}", did, ExceptionUtils.getMessage(e));
