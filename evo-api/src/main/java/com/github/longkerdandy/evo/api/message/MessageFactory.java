@@ -38,7 +38,7 @@ public class MessageFactory {
         Message<ConnAckMessage> msg = newMessage();
         ConnAckMessage connAck = new ConnAckMessage();
         connAck.setConnMsg(msgId);              // ConnectMessage Id
-        msg.setMsgType(MessageType.CONNACK);    // Message Type: Online
+        msg.setMsgType(MessageType.CONNACK);    // Message Type: ConnAck
         msg.setTo(to);                          // To
         msg.setPayload(connAck);                // Payload
         return msg;

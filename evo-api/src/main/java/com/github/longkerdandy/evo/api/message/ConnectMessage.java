@@ -13,7 +13,7 @@ public class ConnectMessage {
     private String description;             // Device Description (File) Id
     private String user;                    // User ID (as controller)
     private String token;                   // Token
-    private Map<String, Object> attributes; // attributes
+    private Map<String, Object> attributes; // Attributes
 
     public String getProtocolVersion() {
         return protocolVersion;
