@@ -26,7 +26,7 @@ import java.util.Set;
 import static com.github.longkerdandy.evo.api.util.JsonUtils.OBJECT_MAPPER;
 
 /**
- * BusinessHandler
+ * Business Handler
  */
 public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNode>> {
 

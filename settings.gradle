@@ -8,3 +8,5 @@ include 'evo-tcp'
 
 include 'evo-arangodb'
 
+include 'evo-weather'
+

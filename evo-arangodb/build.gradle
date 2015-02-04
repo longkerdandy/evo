@@ -6,5 +6,8 @@ dependencies {
     compile project(':evo-api')
 
     // Arango
-    compile 'com.arangodb:arangodb-java-driver:2.2.1'
+    compile('com.arangodb:arangodb-java-driver:2.4'){
+        exclude module: 'commons-logging'
+    }
+    compile 'org.slf4j:jcl-over-slf4j:1.7.10'
 }
