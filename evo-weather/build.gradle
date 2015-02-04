@@ -1,0 +1,24 @@
+// Project Version
+version = '1.0.0'
+
+dependencies {
+    // Evo
+    compile project(':evo-api')
+
+    // Apache Poi
+    compile 'org.apache.poi:poi:3.11'
+    compile 'org.apache.poi:poi-ooxml:3.11'
+
+    // Http Client
+    compile('org.apache.httpcomponents:httpclient:4.2.3') {
+        exclude module: 'commons-logging'
+    }
+    compile 'org.slf4j:jcl-over-slf4j:1.7.10'
+
+    // Quartz
+    compile "org.quartz-scheduler:quartz:2.2.1"
+    compile "org.quartz-scheduler:quartz-jobs:2.2.1"
+    
+    // Netty
+    compile 'io.netty:netty-all:4.0.25.Final'
+}
