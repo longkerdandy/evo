@@ -12,14 +12,14 @@ import com.github.longkerdandy.evo.arangodb.entity.Relation;
 public class Converter {
 
     /**
-     * ArangoDB DocumentEntity to Evo Document
+     * ArangoDB DocumentEntity to Document
      */
     public static <T> Document<T> toDocument(DocumentEntity<T> de) {
         return new Document<>(de.getDocumentKey(), de.getDocumentRevision(), de.getEntity());
     }
 
     /**
-     * ArangoDB EdgeEntity to Evo Relation
+     * ArangoDB EdgeEntity to Relation
      */
     public static <T> Relation<T> toRelation(EdgeEntity<T> ee) {
         return new Relation<>(ee.getDocumentKey(),
