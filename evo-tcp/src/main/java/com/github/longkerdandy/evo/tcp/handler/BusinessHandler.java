@@ -3,12 +3,12 @@ package com.github.longkerdandy.evo.tcp.handler;
 import com.arangodb.ArangoException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.longkerdandy.evo.api.entity.DeviceRegisterUser;
-import com.github.longkerdandy.evo.api.entity.Relation;
+import com.github.longkerdandy.evo.arangodb.entity.DeviceRegisterUser;
+import com.github.longkerdandy.evo.arangodb.entity.Relation;
 import com.github.longkerdandy.evo.api.message.*;
 import com.github.longkerdandy.evo.api.protocol.MessageType;
 import com.github.longkerdandy.evo.api.protocol.Permission;
-import com.github.longkerdandy.evo.api.protocol.Protocol;
+import com.github.longkerdandy.evo.api.protocol.Const;
 import com.github.longkerdandy.evo.arangodb.ArangoStorage;
 import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
 import io.netty.channel.ChannelHandlerContext;
@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.github.longkerdandy.evo.api.util.JsonUtils.OBJECT_MAPPER;
+import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
 
 /**
  * Business Handler
@@ -64,9 +64,9 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
      */
     protected void onConnect(ChannelHandlerContext ctx, Message<JsonNode> msg) {
         logger.debug("Process Connect message {} from device {}", msg.getMsgId(), msg.getFrom());
-        ConnectMessage connect;
+        Connect connect;
         try {
-            connect = OBJECT_MAPPER.treeToValue(msg.getPayload(), ConnectMessage.class);
+            connect = ObjectMapper.treeToValue(msg.getPayload(), Connect.class);
         } catch (JsonProcessingException e) {
             logger.trace("Exception when parse message's payload as ConnectMessage: {}", ExceptionUtils.getMessage(e));
             return;
@@ -79,17 +79,17 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
         // auth succeed?
         boolean auth = false;
         // prepare ConnAck message
-        Message<ConnAckMessage> msgConnAck = MessageFactory.newConnAckMessage(did, msg.getMsgId());
+        Message<ConnAck> msgConnAck = MessageFactory.newConnAckMessage(did, msg.getMsgId());
 
         // protocol version
         if (!isProtocolVersionAcceptable(pv)) {
             logger.trace("Protocol version {} unacceptable", pv);
-            msgConnAck.getPayload().setReturnCode(ConnAckMessage.PROTOCOL_VERSION_UNACCEPTABLE);
+            msgConnAck.getPayload().setReturnCode(ConnAck.PROTOCOL_VERSION_UNACCEPTABLE);
         }
         // description
         else if (!isDescriptionRegistered(desc)) {
             logger.trace("Description {} not registered", desc);
-            msgConnAck.getPayload().setReturnCode(ConnAckMessage.DESCRIPTION_NOT_REGISTERED);
+            msgConnAck.getPayload().setReturnCode(ConnAck.DESCRIPTION_NOT_REGISTERED);
         }
         // auth as device
         else if (StringUtils.isEmpty(uid)) {
@@ -100,12 +100,12 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
             // empty user or token
             if (StringUtils.isBlank(uid) || StringUtils.isBlank(token)) {
                 logger.trace("Empty user id or token");
-                msgConnAck.getPayload().setReturnCode(ConnAckMessage.EMPTY_USER_OR_TOKEN);
+                msgConnAck.getPayload().setReturnCode(ConnAck.EMPTY_USER_OR_TOKEN);
             }
             // user token incorrect
             else if (!isUserTokenCorrect(uid, did, token)) {
                 logger.trace("User id & token incorrect");
-                msgConnAck.getPayload().setReturnCode(ConnAckMessage.USER_TOKEN_INCORRECT);
+                msgConnAck.getPayload().setReturnCode(ConnAck.USER_TOKEN_INCORRECT);
             }
             // mark as auth
             else {
@@ -177,7 +177,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
      * @param pv Protocol Version
      */
     protected boolean isProtocolVersionAcceptable(String pv) {
-        return pv.equals(Protocol.VERSION_1_0);
+        return pv.equals(Const.PROTOCOL_VERSION_1_0);
     }
 
     /**

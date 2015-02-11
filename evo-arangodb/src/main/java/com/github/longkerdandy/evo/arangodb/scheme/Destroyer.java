@@ -4,7 +4,7 @@ import com.arangodb.ArangoConfigure;
 import com.arangodb.ArangoDriver;
 import com.arangodb.ArangoException;
 
-import static com.github.longkerdandy.evo.api.scheme.Scheme.GRAPH_IOT_RELATION;
+import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.GRAPH_IOT_RELATION;
 
 /**
  * Drop ArangoDB Scheme (Graph, Vertex, Edge, Index)

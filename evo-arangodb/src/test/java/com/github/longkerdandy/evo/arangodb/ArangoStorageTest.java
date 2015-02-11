@@ -1,7 +1,7 @@
 package com.github.longkerdandy.evo.arangodb;
 
 import com.arangodb.ArangoException;
-import com.github.longkerdandy.evo.api.entity.*;
+import com.github.longkerdandy.evo.arangodb.entity.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.github.longkerdandy.evo.api.scheme.Scheme.*;
+import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
 import static com.googlecode.catchexception.CatchException.verifyException;
 
 /**

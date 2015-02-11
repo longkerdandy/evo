@@ -1,5 +1,7 @@
 package com.github.longkerdandy.evo.api.message;
 
+import com.github.longkerdandy.evo.api.protocol.Const;
+import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.protocol.MessageType;
 import com.github.longkerdandy.evo.api.protocol.QoS;
 
@@ -9,77 +11,175 @@ import java.util.UUID;
 /**
  * Message Factory
  */
+@SuppressWarnings("unused")
 public class MessageFactory {
 
     /**
-     * Create a default Message
+     * Create a default message
+     *
+     * @param msgType    Message Type
+     * @param qos        QoS
+     * @param deviceType DeviceType
+     * @param from       Device ID (who sends this message)
+     * @param to         Device ID (who receives this message)
+     * @param payload    Payload
+     * @param <T>        Payload Message Class
+     * @return Message with Payload
      */
-    protected static <T> Message<T> newMessage() {
+    protected static <T> Message<T> newMessage(int msgType, int qos, int deviceType, String from, String to, T payload) {
         Message<T> msg = new Message<>();
+        msg.setMsgType(msgType);                        // Message Type
+        msg.setQos(qos);                                // QoS
+        msg.setDeviceType(deviceType);                  // Device Type
+        msg.setDuplicate(false);                        // Default mark as not duplicate
         msg.setMsgId(UUID.randomUUID().toString());     // Random UUID as Message Id
-        // msg.setMsgType();
-        // msg.setDescription();
-        msg.setFrom("Evo Platform");                    // Default from Evolution Platform
-        // msg.setTo();
-        msg.setQos(QoS.MOST_ONCE);                      // Default QoS 0
+        msg.setFrom(from);                              // Device ID (who sends this message)
+        msg.setTo(to);                                  // Device ID (who receives this message)
         msg.setTimestamp(System.currentTimeMillis());   // Current time as Timestamp
-        // msg.setPayload();
+        msg.setPayload(payload);                        // Payload
         return msg;
     }
 
     /**
-     * Create a new Message<ConnAckMessage>
+     * Create a new Message<Connect>
      *
-     * @param to    Device Id which message will be sent to
-     * @param msgId ConnectMessage Id
-     * @return Message<ConnAckMessage>
+     * @param deviceType Device Type
+     * @param from       Device ID (who sends this message)
+     * @param to         Device ID (who receives this message)
+     * @param descId     Device Description Id
+     * @param userId     User ID (optional)
+     * @param token      Token
+     * @param attributes Attributes
+     * @return Message<Connect>
      */
-    public static Message<ConnAckMessage> newConnAckMessage(String to, String msgId) {
-        Message<ConnAckMessage> msg = newMessage();
-        ConnAckMessage connAck = new ConnAckMessage();
-        connAck.setConnMsg(msgId);              // ConnectMessage Id
-        msg.setMsgType(MessageType.CONNACK);    // Message Type: ConnAck
-        msg.setTo(to);                          // To
-        msg.setPayload(connAck);                // Payload
+    public static Message<Connect> newConnectMessage(int deviceType, String from, String to, String descId, String userId,
+                                                     String token, Map<String, Object> attributes) {
+        Connect connect = new Connect();
+        connect.setToken(token);
+        connect.setAttributes(attributes);
+        Message<Connect> msg = newMessage(MessageType.CONNECT, QoS.LEAST_ONCE, deviceType, from, to, connect);
+        msg.setPv(Const.PROTOCOL_VERSION_1_0);
+        msg.setDescId(descId);
+        msg.setUserId(userId);
         return msg;
     }
 
     /**
-     * Create a new Message<OnlineMessage>
+     * Create a new Message<ConnAck>
      *
-     * @param from Device Id which is online
-     * @param to   Device Id which follows online device
-     * @return Message<OnlineMessage>
+     * @param to         Device ID (who receives this message)
+     * @param connMsgId  Connect Message Id
+     * @param returnCode Return Code
+     * @return Message<ConnAck>
      */
-    public static Message<OnlineMessage> newOnlineMessage(String from, String to, String pv, String desc, Map<String, Object> attr) {
-        Message<OnlineMessage> msg = newMessage();
-        OnlineMessage online = new OnlineMessage();
-        online.setProtocolVersion(pv);          // Protocol Version
-        online.setDescription(desc);            // Description
-        online.setAttributes(attr);             // Attributes
-        msg.setMsgType(MessageType.ONLINE);     // Message Type: Online
-        msg.setFrom(from);                      // From
-        msg.setTo(to);                          // To
-        msg.setPayload(online);                 // Payload
+    public static Message<ConnAck> newConnAckMessage(String to, String connMsgId, int returnCode) {
+        ConnAck connAck = new ConnAck();
+        connAck.setConnMsgId(connMsgId);
+        connAck.setReturnCode(returnCode);
+        return newMessage(MessageType.CONNACK, QoS.MOST_ONCE, DeviceType.PLATFORM, Const.PLATFORM_ID, to, connAck);
+    }
+
+    /**
+     * Create a new Message<Disconnect>
+     *
+     * @param deviceType Device Type
+     * @param from       Device ID (who sends this message)
+     * @param to         Device ID (who receives this message)
+     * @param statusCode Status Code
+     * @return Message<Disconnect>
+     */
+    public static Message<Disconnect> newDisconnectMessage(int deviceType, String from, String to, int statusCode) {
+        Disconnect disconnect = new Disconnect();
+        disconnect.setStatusCode(statusCode);
+        return newMessage(MessageType.DISCONNECT, QoS.LEAST_ONCE, deviceType, from, to, disconnect);
+    }
+
+    /**
+     * Create a new Message<DisconnAck>
+     *
+     * @param to           Device ID (who receives this message)
+     * @param disconnMsgId Disconnect Message Id
+     * @return Message<DisconnAck>
+     */
+    public static Message<DisconnAck> newDisconnAckMessage(String to, String disconnMsgId) {
+        DisconnAck disconnAck = new DisconnAck();
+        disconnAck.setDisconnMsgId(disconnMsgId);
+        return newMessage(MessageType.DISCONNACK, QoS.MOST_ONCE, DeviceType.PLATFORM, Const.PLATFORM_ID, to, disconnAck);
+    }
+
+    /**
+     * Create a new Message<Trigger>
+     *
+     * @param deviceType Device Type
+     * @param from       Device ID (who sends this message)
+     * @param to         Device ID (who receives this message)
+     * @param triggerId  Trigger Id
+     * @param policy     Attributes Override Policy
+     * @param attributes Attributes
+     * @return Message<Trigger>
+     */
+    public static Message<Trigger> newTriggerMessage(int deviceType, String from, String to,
+                                                     String triggerId, int policy, Map<String, Object> attributes) {
+        Trigger trigger = new Trigger();
+        trigger.setTriggerId(triggerId);
+        trigger.setPolicy(policy);
+        trigger.setAttributes(attributes);
+        return newMessage(MessageType.TRIGGER, QoS.MOST_ONCE, deviceType, from, to, trigger);
+    }
+
+    /**
+     * Create a new Message<TrigAck>
+     *
+     * @param to         Device ID (who receives this message)
+     * @param trigMsgId  Trigger Message Id
+     * @param returnCode Return Code
+     * @return Message<TrigAck>
+     */
+    public static Message<TrigAck> newTrigAckMessage(String to, String trigMsgId, int returnCode) {
+        TrigAck trigAck = new TrigAck();
+        trigAck.setTrigMsgId(trigMsgId);
+        trigAck.setReturnCode(returnCode);
+        return newMessage(MessageType.TRIGACK, QoS.MOST_ONCE, DeviceType.PLATFORM, Const.PLATFORM_ID, to, trigAck);
+    }
+
+    /**
+     * Create a new Message<Action>
+     *
+     * @param deviceType Device Type
+     * @param from       Device ID (who sends this message)
+     * @param to         Device ID (who receives this message)
+     * @param userId     User Id
+     * @param actionId   Action Id
+     * @param lifetime   Action Lifetime, seconds until this action expires
+     * @param attributes Attributes
+     * @return Message<Action>
+     */
+    public static Message<Action> newActionMessage(int deviceType, String from, String to, String userId,
+                                                   String actionId, int lifetime, Map<String, Object> attributes) {
+        Action action = new Action();
+        action.setActionId(actionId);
+        action.setLifetime(lifetime);
+        action.setAttributes(attributes);
+        Message<Action> msg = newMessage(MessageType.ACTION, QoS.MOST_ONCE, deviceType, from, to, action);
+        msg.setUserId(userId);
         return msg;
     }
 
     /**
-     * Create a new Message<OfflineMessage>
+     * Create a new Message<ActAck>
      *
-     * @param from Device Id which is online
-     * @param to   Device Id which follows offline device
-     * @return Message<OfflineMessage>
+     * @param deviceType Device Type
+     * @param from       Device ID (who sends this message)
+     * @param to         Device ID (who receives this message)
+     * @param actMsgId   ActAck Message Id
+     * @param returnCode Return Code
+     * @return Message<ActAck>
      */
-    public static Message<OfflineMessage> newOfflineMessage(String from, String to, String pv, String desc) {
-        Message<OfflineMessage> msg = newMessage();
-        OfflineMessage offline = new OfflineMessage();
-        offline.setProtocolVersion(pv);         // Protocol Version
-        offline.setDescription(desc);           // Description
-        msg.setMsgType(MessageType.OFFLINE);    // Message Type: Offline
-        msg.setFrom(from);                      // From
-        msg.setTo(to);                          // To
-        msg.setPayload(offline);                // Payload
-        return msg;
+    public static Message<ActAck> newActAckMessage(int deviceType, String from, String to,
+                                                   String actMsgId, int returnCode) {
+        ActAck actAck = new ActAck();
+        actAck.setActMsgId(actMsgId);
+        actAck.setReturnCode(returnCode);
+        return newMessage(MessageType.ACTACK, QoS.MOST_ONCE, deviceType, from, to, actAck);
     }
 }

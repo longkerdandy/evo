@@ -13,7 +13,7 @@ import io.netty.handler.codec.DecoderException;
 import java.io.IOException;
 import java.util.List;
 
-import static com.github.longkerdandy.evo.api.util.JsonUtils.OBJECT_MAPPER;
+import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
 
 /**
  * Packet Decoder
@@ -88,8 +88,8 @@ public class Decoder extends ByteToMessageDecoder {
 
         // json -> message
         try {
-            JavaType type = OBJECT_MAPPER.getTypeFactory().constructParametricType(Message.class, JsonNode.class);
-            Message<JsonNode> msg = OBJECT_MAPPER.readValue(new ByteBufInputStream(in, remainingLength), type);
+            JavaType type = ObjectMapper.getTypeFactory().constructParametricType(Message.class, JsonNode.class);
+            Message<JsonNode> msg = ObjectMapper.readValue(new ByteBufInputStream(in, remainingLength), type);
             out.add(msg);
         } catch (IOException e) {
             in.clear();

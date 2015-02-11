@@ -2,9 +2,6 @@
 version = '1.0.0'
 
 dependencies {
-    // Arango
-    compile('com.arangodb:arangodb-java-driver:2.4'){
-        exclude module: 'commons-logging'
-    }
-    compile 'org.slf4j:jcl-over-slf4j:1.7.10'
+    // UUID
+    compile 'com.fasterxml.uuid:java-uuid-generator:3.1.4'
 }

@@ -10,12 +10,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  */
 public class JsonUtils {
     // Global JSON ObjectMapper
-    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final ObjectMapper ObjectMapper = new ObjectMapper();
 
     static {
-        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        OBJECT_MAPPER.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        ObjectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        ObjectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        ObjectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+        ObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     private JsonUtils() {

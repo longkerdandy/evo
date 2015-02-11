@@ -1,4 +1,4 @@
-package com.github.longkerdandy.evo.api.scheme;
+package com.github.longkerdandy.evo.arangodb.scheme;
 
 /**
  * Constants

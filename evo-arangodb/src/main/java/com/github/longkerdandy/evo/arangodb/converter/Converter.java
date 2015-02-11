@@ -2,8 +2,8 @@ package com.github.longkerdandy.evo.arangodb.converter;
 
 import com.arangodb.entity.DocumentEntity;
 import com.arangodb.entity.EdgeEntity;
-import com.github.longkerdandy.evo.api.entity.Document;
-import com.github.longkerdandy.evo.api.entity.Relation;
+import com.github.longkerdandy.evo.arangodb.entity.Document;
+import com.github.longkerdandy.evo.arangodb.entity.Relation;
 
 /**
  * Converter

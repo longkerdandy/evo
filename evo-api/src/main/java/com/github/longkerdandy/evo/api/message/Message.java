@@ -7,13 +7,58 @@ package com.github.longkerdandy.evo.api.message;
 @SuppressWarnings("unused")
 public class Message<T> {
 
+    private int pv;                 // Protocol Version
+    private int msgType;            // Message Type (payload)
+    private int qos;                // QoS Level
+    private boolean duplicate;      // Is duplicate?
+    private int deviceType;         // Device Type
     private String msgId;           // Message ID
-    private String msgType;         // Message Type (payload)
     private String from;            // Device ID (who send this message)
     private String to;              // Device ID (whom this message send to)
-    private int qos;                // QoS Level
+    private String descId;          // Device Description Id
+    private String userId;          // User ID (as controller)
     private long timestamp;         // Timestamp (when message is send)
     private T payload;              // Payload (sub-message)
+
+    public int getPv() {
+        return pv;
+    }
+
+    public void setPv(int pv) {
+        this.pv = pv;
+    }
+
+    public int getMsgType() {
+        return msgType;
+    }
+
+    public void setMsgType(int msgType) {
+        this.msgType = msgType;
+    }
+
+    public int getQos() {
+        return qos;
+    }
+
+    public void setQos(int qos) {
+        this.qos = qos;
+    }
+
+    public boolean isDuplicate() {
+        return duplicate;
+    }
+
+    public void setDuplicate(boolean duplicate) {
+        this.duplicate = duplicate;
+    }
+
+    public int getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(int deviceType) {
+        this.deviceType = deviceType;
+    }
 
     public String getMsgId() {
         return msgId;
@@ -21,14 +66,6 @@ public class Message<T> {
 
     public void setMsgId(String msgId) {
         this.msgId = msgId;
-    }
-
-    public String getMsgType() {
-        return msgType;
-    }
-
-    public void setMsgType(String msgType) {
-        this.msgType = msgType;
     }
 
     public String getFrom() {
@@ -47,12 +84,20 @@ public class Message<T> {
         this.to = to;
     }
 
-    public int getQos() {
-        return qos;
+    public String getDescId() {
+        return descId;
     }
 
-    public void setQos(int qos) {
-        this.qos = qos;
+    public void setDescId(String descId) {
+        this.descId = descId;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public long getTimestamp() {

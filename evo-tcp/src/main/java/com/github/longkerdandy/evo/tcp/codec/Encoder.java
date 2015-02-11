@@ -9,7 +9,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 
 import java.io.IOException;
 
-import static com.github.longkerdandy.evo.api.util.JsonUtils.OBJECT_MAPPER;
+import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
 
 /**
  * Packet Encoder
@@ -54,7 +54,7 @@ public class Encoder extends MessageToByteEncoder<Message> {
         // message -> json
         byte[] bytes;
         try {
-            bytes = OBJECT_MAPPER.writeValueAsBytes(msg);
+            bytes = ObjectMapper.writeValueAsBytes(msg);
         } catch (IOException e) {
             throw new EncoderException(e);
         }

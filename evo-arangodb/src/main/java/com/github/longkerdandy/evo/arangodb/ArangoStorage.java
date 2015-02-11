@@ -6,7 +6,7 @@ import com.arangodb.ArangoException;
 import com.arangodb.CursorResultSet;
 import com.arangodb.entity.CursorEntity;
 import com.arangodb.util.MapBuilder;
-import com.github.longkerdandy.evo.api.entity.*;
+import com.github.longkerdandy.evo.arangodb.entity.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static com.github.longkerdandy.evo.api.scheme.Scheme.*;
+import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
 import static com.github.longkerdandy.evo.arangodb.converter.Converter.*;
 
 /**

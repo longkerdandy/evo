@@ -9,7 +9,7 @@ import com.arangodb.entity.GraphEntity;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.longkerdandy.evo.api.scheme.Scheme.*;
+import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
 
 /**
  * Create ArangoDB Scheme (Graph, Vertex, Edge, Index)

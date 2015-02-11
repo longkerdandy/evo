@@ -80,7 +80,7 @@ public class OpenWeatherJob implements Job {
             }
             HttpEntity entity = response.getEntity();
             String content = EntityUtils.toString(entity, "UTF-8");
-            ForecastResult forecast = JsonUtils.OBJECT_MAPPER.readValue(content, ForecastResult.class);
+            ForecastResult forecast = JsonUtils.ObjectMapper.readValue(content, ForecastResult.class);
             logger.debug(content);
         } catch (ClientProtocolException e) {
             logger.error("Http error when getting weather information from OpenWeather: {}", ExceptionUtils.getMessage(e));

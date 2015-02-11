@@ -1,4 +1,4 @@
-package com.github.longkerdandy.evo.api.entity;
+package com.github.longkerdandy.evo.arangodb.entity;
 
 import com.arangodb.annotations.DocumentKey;
 import com.arangodb.annotations.Exclude;

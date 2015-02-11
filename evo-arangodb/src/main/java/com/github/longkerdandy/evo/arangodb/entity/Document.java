@@ -1,21 +1,17 @@
-package com.github.longkerdandy.evo.api.entity;
+package com.github.longkerdandy.evo.arangodb.entity;
 
 /**
- * Relation, Edge
+ * Document, Vertex
  */
 @SuppressWarnings("unused")
-public class Relation<T> {
+public class Document<T> {
 
     private String id;      // id
-    private String from;    // from document id
-    private String to;      // to document id
     private long revision;  // revision number
-    private T entity;       // real entity
+    private T entity;       // entity
 
-    public Relation(String id, String from, String to, long revision, T entity) {
+    public Document(String id, long revision, T entity) {
         this.id = id;
-        this.from = from;
-        this.to = to;
         this.revision = revision;
         this.entity = entity;
     }
@@ -26,22 +22,6 @@ public class Relation<T> {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getFrom() {
-        return from;
-    }
-
-    public void setFrom(String from) {
-        this.from = from;
-    }
-
-    public String getTo() {
-        return to;
-    }
-
-    public void setTo(String to) {
-        this.to = to;
     }
 
     public long getRevision() {
