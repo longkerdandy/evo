@@ -29,7 +29,7 @@ public class TCPServer {
 
     public static void main(String[] args) throws Exception {
         ArangoStorage storage = new ArangoStorage(STORAGE_HOST, STORAGE_PORT, STORAGE_PASSWORD);
-        ChannelRepository channelRepository = new ChannelRepository();
+        ChannelRepository repository = new ChannelRepository();
         // Configure the server.
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup(THREADS);
@@ -48,7 +48,7 @@ public class TCPServer {
                             p.addLast(new Decoder());
                             // Business Handler, in separate ExecutorGroup
                             p.addLast(new DefaultEventExecutorGroup(THREADS),
-                                    new BusinessHandler(storage, channelRepository));
+                                    new BusinessHandler(storage, repository));
                         }
                     });
 

@@ -1,7 +1,7 @@
 package com.github.longkerdandy.evo.tcp.codec;
 
 import com.github.longkerdandy.evo.api.message.Message;
-import com.github.longkerdandy.evo.api.protocol.MessageSize;
+import com.github.longkerdandy.evo.api.protocol.Const;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.EncoderException;
@@ -14,28 +14,36 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
 /**
  * Packet Encoder
  * Encode Message into tcp packet.
- * Packet has binary header and json payload.
- * Header is 2 bytes ~ 5 bytes long, which compatible with MQTT header.
- * Byte 1 is not used.
- * Bytes 2 ~ 5 represent json payload length.
- * Payload is json and will be parsed into Message, passed to Handler.
+ * Packet has binary header and payload.
+ * Header is 7 bytes ~ 10 bytes long.
+ * Bytes 1 ~ 3 signature .
+ * Byte 4 is protocol version.
+ * Byte 5 is protocol type.
+ * Byte 6 is reserved at the moment.
+ * Bytes 7 ~ 10 represent payload length.
+ * Payload is payload and will be parsed into Message, passed to Handler.
  * ---------------------------------------
  * | Bit | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
  * ---------------------------------------
- * | 1   | MQTT Type     | MQTT Flags    |
+ * | 1-3 | Signature                     |
  * ---------------------------------------
- * | 2-5 | Remaining Length              |
+ * | 4   | Protocol Version              |
  * ---------------------------------------
- * |       Message (JSON)                |
+ * | 5   | Protocol Type                 |
+ * ---------------------------------------
+ * | 6   | Reserved                      |
+ * ---------------------------------------
+ * | 7-10| Remaining Length              |
+ * ---------------------------------------
+ * |       Message Payload               |
  * ---------------------------------------
  */
 @SuppressWarnings("unused")
 public class Encoder extends MessageToByteEncoder<Message> {
 
     /**
-     * The Remaining Length is the number of bytes remaining within the current packet, including data in the
-     * 258 variable header and the payload. The Remaining Length does not include the bytes used to encode the
-     * 259 Remaining Length.
+     * The Remaining Length is the number of bytes remaining within the current packet, including data in the payload.
+     * The Remaining Length does not include the bytes used to encode the Remaining Length.
      * See MQTT V3.1.1 Protocol Specific for more information
      */
     protected static void encodeRemainingLength(ByteBuf out, int remainingLength) {
@@ -51,7 +59,7 @@ public class Encoder extends MessageToByteEncoder<Message> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message msg, ByteBuf out) throws Exception {
-        // message -> json
+        // payload
         byte[] bytes;
         try {
             bytes = ObjectMapper.writeValueAsBytes(msg);
@@ -61,9 +69,14 @@ public class Encoder extends MessageToByteEncoder<Message> {
 
         // header
         int remainingLength = bytes.length;
-        if (remainingLength > MessageSize.MAX_BYTES) {
-            throw new EncoderException("too large message: " + remainingLength + " bytes");
+        if (remainingLength > Const.MESSAGE_MAX_BYTES) {
+            throw new EncoderException("Message size is too large: " + remainingLength + " bytes");
         }
+        out.writeByte(0x45);
+        out.writeByte(0x56);
+        out.writeByte(0x4F);
+        out.writeByte((short) msg.getPv());
+        out.writeByte((short) msg.getPt());
         out.writeByte(0);
         encodeRemainingLength(out, remainingLength);
 

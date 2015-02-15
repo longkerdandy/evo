@@ -3,7 +3,7 @@ package com.github.longkerdandy.evo.tcp.codec;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.longkerdandy.evo.api.message.Message;
-import com.github.longkerdandy.evo.api.protocol.MessageSize;
+import com.github.longkerdandy.evo.api.protocol.Const;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.ChannelHandlerContext;
@@ -18,28 +18,35 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
 /**
  * Packet Decoder
  * Decode tcp packet into Message.
- * Packet has binary header and json payload.
- * Header is 2 bytes ~ 5 bytes long, which compatible with MQTT header.
- * Byte 1 is not used.
- * Bytes 2 ~ 5 represent json payload length.
- * Payload is json and will be parsed into Message, passed to Handler.
+ * Packet has binary header and payload.
+ * Header is 7 bytes ~ 10 bytes long.
+ * Bytes 1 ~ 3 signature .
+ * Byte 4 is protocol version.
+ * Byte 5 is protocol type.
+ * Byte 6 is reserved at the moment.
+ * Bytes 7 ~ 10 represent payload length.
+ * Payload is payload and will be parsed into Message, passed to Handler.
  * ---------------------------------------
  * | Bit | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
  * ---------------------------------------
- * | 1   | MQTT Type     | MQTT Flags    |
+ * | 1-3 | Signature                     |
  * ---------------------------------------
- * | 2-5 | Remaining Length              |
+ * | 4   | Protocol Version              |
  * ---------------------------------------
- * |       Message (JSON)                |
+ * | 5   | Protocol Type                 |
+ * ---------------------------------------
+ * | 6   | Reserved                      |
+ * ---------------------------------------
+ * | 7-10| Remaining Length              |
+ * ---------------------------------------
+ * |       Message Payload               |
  * ---------------------------------------
  */
-@SuppressWarnings("unused")
 public class Decoder extends ByteToMessageDecoder {
 
     /**
-     * The Remaining Length is the number of bytes remaining within the current packet, including data in the
-     * 258 variable header and the payload. The Remaining Length does not include the bytes used to encode the
-     * 259 Remaining Length.
+     * The Remaining Length is the number of bytes remaining within the current packet, including data in the payload.
+     * The Remaining Length does not include the bytes used to encode the Remaining Length.
      * See MQTT V3.1.1 Protocol Specific for more information
      */
     protected static int decodeRemainingLength(ByteBuf in) {
@@ -55,29 +62,42 @@ public class Decoder extends ByteToMessageDecoder {
         } while ((digit & 128) != 0 && loops < 4);
         if (loops == 4 && (digit & 128) != 0) {
             in.clear();
-            throw new DecoderException("remaining length exceeds 4 digits");
+            throw new DecoderException("remaining length exceeds 4 bytes");
         }
         return remainingLength;
     }
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        // at least 2 bytes for the header
-        if (!in.isReadable() || in.readableBytes() < 2) return;
+        // at least 7 bytes for the header
+        if (!in.isReadable() || in.readableBytes() < 7) return;
 
         in.markReaderIndex();
 
         // header
         short b1 = in.readUnsignedByte();
-        int messageType = b1 >> 4;
-        if (messageType != 0 && messageType != 15) {
+        short b2 = in.readUnsignedByte();
+        short b3 = in.readUnsignedByte();
+        if (b1 != 0x45 || b2 != 0x56 || b3 != 0x4F) {
             in.clear();
-            throw new DecoderException("MQTT message type: " + messageType + " received");
+            throw new DecoderException("Wrong message signature");
         }
-        int remainingLength = decodeRemainingLength(in);
-        if (remainingLength > MessageSize.MAX_BYTES) {
+        short b4 = in.readUnsignedByte();
+        if (b4 != Const.PROTOCOL_VERSION_1_0) {
             in.clear();
-            throw new DecoderException("too large message: " + remainingLength + " bytes");
+            throw new DecoderException("Unsupported protocol version " + b4);
+        }
+        short b5 = in.readUnsignedByte();
+        if (b5 != Const.PROTOCOL_TYPE_JSON && b5 != Const.PROTOCOL_TYPE_AVRO) {
+            in.clear();
+            throw new DecoderException("Unsupported protocol type " + b5);
+        }
+        @SuppressWarnings("unused")
+        short b6 = in.readUnsignedByte();
+        int remainingLength = decodeRemainingLength(in);
+        if (remainingLength > Const.MESSAGE_MAX_BYTES) {
+            in.clear();
+            throw new DecoderException("Message size is too large: " + remainingLength + " bytes");
         }
 
         // need more data?
@@ -86,14 +106,18 @@ public class Decoder extends ByteToMessageDecoder {
             return;
         }
 
-        // json -> message
-        try {
-            JavaType type = ObjectMapper.getTypeFactory().constructParametricType(Message.class, JsonNode.class);
-            Message<JsonNode> msg = ObjectMapper.readValue(new ByteBufInputStream(in, remainingLength), type);
-            out.add(msg);
-        } catch (IOException e) {
-            in.clear();
-            throw new DecoderException(e);
+        // payload
+        if (b5 == Const.PROTOCOL_TYPE_JSON) {
+            try {
+                JavaType type = ObjectMapper.getTypeFactory().constructParametricType(Message.class, JsonNode.class);
+                Message<JsonNode> msg = ObjectMapper.readValue(new ByteBufInputStream(in, remainingLength), type);
+                msg.setPv(b4);
+                msg.setPt(b5);
+                out.add(msg);
+            } catch (IOException e) {
+                in.clear();
+                throw new DecoderException(e);
+            }
         }
     }
 }

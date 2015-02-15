@@ -59,6 +59,7 @@ public class MessageFactory {
         connect.setAttributes(attributes);
         Message<Connect> msg = newMessage(MessageType.CONNECT, QoS.LEAST_ONCE, deviceType, from, to, connect);
         msg.setPv(Const.PROTOCOL_VERSION_1_0);
+        msg.setPt(Const.PROTOCOL_TYPE_JSON);
         msg.setDescId(descId);
         msg.setUserId(userId);
         return msg;

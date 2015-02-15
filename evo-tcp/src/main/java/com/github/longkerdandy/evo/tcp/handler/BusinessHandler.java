@@ -35,7 +35,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
 
     private final Map<String, String> authMap;   // Authorized device - user map in this connection
     private final Map<String, String> descMap;   // Authorized device - description map in this connection
-    private final Map<String, String> pvMap;     // Authorized device - protocol version map in this connection
+    private final Map<String, Integer> pvMap;     // Authorized device - protocol version map in this connection
     private final ArangoStorage storage;         // Storage
     private final ChannelRepository channelRepository;         // Connection Repository
 
@@ -71,15 +71,15 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
             logger.trace("Exception when parse message's payload as ConnectMessage: {}", ExceptionUtils.getMessage(e));
             return;
         }
-        String did = msg.getFrom();
-        String pv = connect.getProtocolVersion();
-        String desc = connect.getDescription();
-        String uid = connect.getUser();
+        int pv = msg.getPv();
+        String deviceId = msg.getFrom();
+        String descId = msg.getDescId();
+        String userId = msg.getUserId();
         String token = connect.getToken();
         // auth succeed?
         boolean auth = false;
         // prepare ConnAck message
-        Message<ConnAck> msgConnAck = MessageFactory.newConnAckMessage(did, msg.getMsgId());
+        Message<ConnAck> msgConnAck = MessageFactory.newConnAckMessage(deviceId, msg.getMsgId(), ConnAck.SUCCESS);
 
         // protocol version
         if (!isProtocolVersionAcceptable(pv)) {
@@ -87,23 +87,23 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
             msgConnAck.getPayload().setReturnCode(ConnAck.PROTOCOL_VERSION_UNACCEPTABLE);
         }
         // description
-        else if (!isDescriptionRegistered(desc)) {
-            logger.trace("Description {} not registered", desc);
+        else if (!isDescriptionRegistered(descId)) {
+            logger.trace("Description {} not registered", descId);
             msgConnAck.getPayload().setReturnCode(ConnAck.DESCRIPTION_NOT_REGISTERED);
         }
         // auth as device
-        else if (StringUtils.isEmpty(uid)) {
+        else if (StringUtils.isEmpty(userId)) {
             auth = true;
         }
         // auth as user
         else {
             // empty user or token
-            if (StringUtils.isBlank(uid) || StringUtils.isBlank(token)) {
+            if (StringUtils.isBlank(userId) || StringUtils.isBlank(token)) {
                 logger.trace("Empty user id or token");
                 msgConnAck.getPayload().setReturnCode(ConnAck.EMPTY_USER_OR_TOKEN);
             }
             // user token incorrect
-            else if (!isUserTokenCorrect(uid, did, token)) {
+            else if (!isUserTokenCorrect(userId, deviceId, token)) {
                 logger.trace("User id & token incorrect");
                 msgConnAck.getPayload().setReturnCode(ConnAck.USER_TOKEN_INCORRECT);
             }
@@ -121,20 +121,20 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
         }
 
         // save connection mapping
-        this.authMap.put(did, uid);
-        this.descMap.put(did, desc);
-        this.pvMap.put(did, pv);
-        this.channelRepository.saveConn(did, ctx);
+        this.authMap.put(deviceId, userId);
+        this.descMap.put(deviceId, descId);
+        this.pvMap.put(deviceId, pv);
+        this.channelRepository.saveConn(deviceId, ctx);
 
         // notify user device online
         try {
-            Set<String> controllers = this.storage.getDeviceFollowedControllerId(did, Permission.READ, Permission.OWNER);
+            Set<String> controllers = this.storage.getDeviceFollowedControllerId(deviceId, Permission.READ, Permission.OWNER);
             for (String controller : controllers) {
-                Message<OnlineMessage> msgOnline = MessageFactory.newOnlineMessage(did, controller, pv, desc, connect.getAttributes());
-                this.channelRepository.sendMessage(controller, msgOnline);
+                //Message<OnlineMessage> msgOnline = MessageFactory.newOnlineMessage(deviceId, controller, pv, descId, connect.getAttributes());
+                //this.channelRepository.sendMessage(controller, msgOnline);
             }
         } catch (ArangoException e) {
-            logger.error("Try to get device {} followers with exception: {}", did, ExceptionUtils.getMessage(e));
+            logger.error("Try to get device {} followers with exception: {}", deviceId, ExceptionUtils.getMessage(e));
         }
     }
 
@@ -146,8 +146,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
             try {
                 Set<String> controllers = this.storage.getDeviceFollowedControllerId(did, Permission.READ, Permission.OWNER);
                 for (String controller : controllers) {
-                    Message<OfflineMessage> msgOffline = MessageFactory.newOfflineMessage(did, controller, this.pvMap.get(did), this.descMap.get(did));
-                    this.channelRepository.sendMessage(controller, msgOffline);
+                    //Message<OfflineMessage> msgOffline = MessageFactory.newOfflineMessage(did, controller, this.pvMap.get(did), this.descMap.get(did));
+                    //this.channelRepository.sendMessage(controller, msgOffline);
                 }
             } catch (ArangoException e) {
                 logger.error("Try to get device {} followers with exception: {}", did, ExceptionUtils.getMessage(e));
@@ -176,8 +176,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
      *
      * @param pv Protocol Version
      */
-    protected boolean isProtocolVersionAcceptable(String pv) {
-        return pv.equals(Const.PROTOCOL_VERSION_1_0);
+    protected boolean isProtocolVersionAcceptable(int pv) {
+        return pv == Const.PROTOCOL_VERSION_1_0;
     }
 
     /**
