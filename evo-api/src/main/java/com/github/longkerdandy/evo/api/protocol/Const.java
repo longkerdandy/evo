@@ -14,4 +14,7 @@ public class Const {
 
     // Platform Id
     public static final String PLATFORM_ID = "t4a06cp26kom";
+
+    private Const() {
+    }
 }
