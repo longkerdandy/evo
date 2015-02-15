@@ -15,8 +15,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
 import static com.github.longkerdandy.evo.arangodb.converter.Converter.*;
+import static com.github.longkerdandy.evo.arangodb.scheme.Scheme.*;
 
 /**
  * Arango Database Access Layer

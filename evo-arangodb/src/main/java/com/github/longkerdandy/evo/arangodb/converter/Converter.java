@@ -11,6 +11,9 @@ import com.github.longkerdandy.evo.arangodb.entity.Relation;
 @SuppressWarnings("unused")
 public class Converter {
 
+    private Converter() {
+    }
+
     /**
      * ArangoDB DocumentEntity to Document
      */
