@@ -314,7 +314,8 @@ public class ArangoStorage {
             this.arango.checkDocument(collection, documentKey);
             return true;
         } catch (ArangoException e) {
-            if (e.getCode() == 0 && e.getErrorNumber() == 404) {
+            // This behavior seems changed during version update
+            if (e.getCode() == 404 || e.getErrorNumber() == 404) {
                 return false;
             } else {
                 throw e;
