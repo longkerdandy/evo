@@ -20,7 +20,7 @@ import io.netty.util.concurrent.DefaultEventExecutorGroup;
 public class TCPServer {
 
     private static final String STORAGE_HOST = "0.0.0.0";
-    private static final int STORAGE_PORT = 6379;
+    private static final int STORAGE_PORT = 8529;
     private static final String STORAGE_PASSWORD = "";
 
     private static final String HOST = "0.0.0.0";
