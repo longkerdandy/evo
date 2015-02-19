@@ -19,6 +19,10 @@ public class Const {
     // Platform Id
     public static final String PLATFORM_ID = "t4a06cp26kom";
 
+    // Common Trigger
+    public static final String TRIGGER_ONLINE = "online";
+    public static final String TRIGGER_OFFLINE = "offline";
+
     private Const() {
     }
 }

@@ -1,20 +1,17 @@
 package com.github.longkerdandy.evo.tcp.codec;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.github.longkerdandy.evo.api.message.Connect;
 import com.github.longkerdandy.evo.api.message.Message;
 import com.github.longkerdandy.evo.api.message.MessageFactory;
+import com.github.longkerdandy.evo.api.protocol.Const;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.protocol.MessageType;
-import com.github.longkerdandy.evo.api.protocol.Const;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
 
 /**
  * Decoder & Encoder Test
@@ -37,7 +34,7 @@ public class DecoderEncoderTest {
         Decoder decoder = new Decoder();
         List<Object> out = new ArrayList<>();
         decoder.decode(null, buf, out);
-        Message<JsonNode> msgIn = (Message<JsonNode>) out.get(0);
+        Message msgIn = (Message) out.get(0);
         buf.release();
 
         assert msgIn.getMsgId().equals(msgOut.getMsgId());
@@ -51,7 +48,7 @@ public class DecoderEncoderTest {
         assert msgIn.getTimestamp() > 0;
         assert msgIn.getPayload() != null;
 
-        Connect connect = ObjectMapper.treeToValue(msgIn.getPayload(), Connect.class);
+        Connect connect = (Connect) msgIn.getPayload();
         assert connect.getToken().equals("Token 1");
     }
 }

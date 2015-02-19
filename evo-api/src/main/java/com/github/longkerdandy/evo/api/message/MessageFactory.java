@@ -4,15 +4,44 @@ import com.github.longkerdandy.evo.api.protocol.Const;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.protocol.MessageType;
 import com.github.longkerdandy.evo.api.protocol.QoS;
+import com.github.longkerdandy.evo.api.util.UuidUtils;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Message Factory
  */
 @SuppressWarnings("unused")
 public class MessageFactory {
+
+    private MessageFactory() {
+    }
+
+    /**
+     * Create a new message based on a exist message and replace the payload
+     *
+     * @param msg     Exist Message, fields will be copied
+     * @param payload Payload will be replaced
+     * @param <T>     Payload Message Class
+     * @return Message with replaced Payload
+     */
+    public static <T> Message<T> newMessage(Message msg, T payload) {
+        Message<T> m = new Message<>();
+        m.setPv(msg.getPv());
+        m.setPt(msg.getPt());
+        m.setMsgType(msg.getMsgType());
+        m.setQos(msg.getQos());
+        m.setDuplicate(msg.isDuplicate());
+        m.setDeviceType(msg.getDeviceType());
+        m.setMsgId(msg.getMsgId());
+        m.setFrom(msg.getFrom());
+        m.setTo(msg.getTo());
+        m.setDescId(msg.getDescId());
+        m.setUserId(msg.getUserId());
+        m.setTimestamp(msg.getTimestamp());
+        m.setPayload(payload);
+        return m;
+    }
 
     /**
      * Create a default message
@@ -28,11 +57,13 @@ public class MessageFactory {
      */
     protected static <T> Message<T> newMessage(int msgType, int qos, int deviceType, String from, String to, T payload) {
         Message<T> msg = new Message<>();
+        msg.setPv(Const.PROTOCOL_VERSION_1_0);          // Default protocol version 1.0
+        msg.setPt(Const.PROTOCOL_TYPE_JSON);            // Default protocol type JSON
         msg.setMsgType(msgType);                        // Message Type
         msg.setQos(qos);                                // QoS
+        msg.setDuplicate(false);                        // Default not duplicated
         msg.setDeviceType(deviceType);                  // Device Type
-        msg.setDuplicate(false);                        // Default mark as not duplicate
-        msg.setMsgId(UUID.randomUUID().toString());     // Random UUID as Message Id
+        msg.setMsgId(UuidUtils.shortUuid());            // Random UUID as Message Id
         msg.setFrom(from);                              // Device ID (who sends this message)
         msg.setTo(to);                                  // Device ID (who receives this message)
         msg.setTimestamp(System.currentTimeMillis());   // Current time as Timestamp
@@ -58,8 +89,6 @@ public class MessageFactory {
         connect.setToken(token);
         connect.setAttributes(attributes);
         Message<Connect> msg = newMessage(MessageType.CONNECT, QoS.LEAST_ONCE, deviceType, from, to, connect);
-        msg.setPv(Const.PROTOCOL_VERSION_1_0);
-        msg.setPt(Const.PROTOCOL_TYPE_JSON);
         msg.setDescId(descId);
         msg.setUserId(userId);
         return msg;

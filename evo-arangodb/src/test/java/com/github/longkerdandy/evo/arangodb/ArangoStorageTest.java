@@ -95,7 +95,7 @@ public class ArangoStorageTest {
         deviceA.setUpdateTime(System.currentTimeMillis());
 
         // create device
-        Document<Device> d = arango.createOrReplaceDevice(deviceA);
+        Document<Device> d = arango.createDevice(deviceA);
         d = arango.getDeviceById(d.getId());
         assert d.getEntity().getId().equals(deviceA.getId());
         assert d.getEntity().getAttributes().get("model").equals("Hue");
@@ -104,19 +104,25 @@ public class ArangoStorageTest {
 
         // replace device
         deviceA.getAttributes().put("switch", 0);
-        d = arango.createOrReplaceDevice(deviceA);
+        deviceA.setUpdateTime(System.currentTimeMillis());
+        d = arango.replaceDevice(deviceA, true);
         d = arango.getDeviceById(d.getId());
         assert (double) d.getEntity().getAttributes().get("switch") == 0;
 
         // update device
         Device deviceB = new Device();
+        deviceB.setId("d0000001");
         Map<String, Object> fieldsB = new HashMap<>();
         fieldsB.put("model", "Sonos");
         deviceB.setAttributes(fieldsB);
-        d = arango.updateDevice(d.getId(), deviceB);
+        deviceB.setUpdateTime(System.currentTimeMillis());
+        d = arango.updateDevice(deviceB, true);
         d = arango.getDeviceById(d.getId());
         assert d.getEntity().getAttributes().get("model").equals("Sonos");
         assert (double) d.getEntity().getAttributes().get("switch") == 0;
+
+        // device exist
+        assert arango.isDeviceExist("d0000001");
     }
 
     @Test
@@ -140,7 +146,7 @@ public class ArangoStorageTest {
 
         // create user device relation
         Document<User> du = arango.createUser(userA);
-        Document<Device> dd = arango.createOrReplaceDevice(deviceA);
+        Document<Device> dd = arango.createDevice(deviceA);
         Relation<UserFollowDevice> rud = arango.createOrReplaceUserFollowDevice(du.getId(), dd.getId(), relationA);
         assert rud.getFrom().equals(du.getId());
         assert rud.getTo().equals(dd.getId());
@@ -171,8 +177,8 @@ public class ArangoStorageTest {
         Device deviceC = new Device();
         deviceC.setId("d0000003");
         deviceC.setUpdateTime(System.currentTimeMillis());
-        Document<Device> ddB = arango.createOrReplaceDevice(deviceB);
-        Document<Device> ddC = arango.createOrReplaceDevice(deviceC);
+        Document<Device> ddB = arango.createDevice(deviceB);
+        Document<Device> ddC = arango.createDevice(deviceC);
         arango.createOrReplaceDeviceRegisterUser(ddB.getId(), du.getId(), new DeviceRegisterUser());
         arango.createOrReplaceDeviceRegisterUser(ddC.getId(), du.getId(), new DeviceRegisterUser());
         devices = arango.getDeviceFollowedControllerId(dd.getId(), permission1, permission2);
@@ -204,7 +210,7 @@ public class ArangoStorageTest {
 
         // create device user relation
         Document<User> duA = arango.createUser(userA);
-        Document<Device> dd = arango.createOrReplaceDevice(deviceA);
+        Document<Device> dd = arango.createDevice(deviceA);
         Relation<DeviceRegisterUser> rdu = arango.createOrReplaceDeviceRegisterUser(dd.getId(), duA.getId(), relationA);
         assert rdu.getFrom().equals(dd.getId());
         assert rdu.getTo().equals(duA.getId());

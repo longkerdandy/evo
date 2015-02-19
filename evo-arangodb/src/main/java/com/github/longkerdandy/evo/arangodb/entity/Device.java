@@ -11,12 +11,14 @@ import java.util.Map;
 public class Device {
 
     @DocumentKey
-    private String id;                      // id
-    private int deviceType;                 // Device Type
-    private String descId;                  // Device Description Id
+    private String id;                      // Id
+    private int type;                       // Type
+    private String descId;                  // Description Id
     private boolean connected;              // connected?
-    private Map<String, Object> attributes; // attributes
-    private long updateTime;                // update timestamp
+    private int pv;                         // Protocol Version
+    private int pt;                         // Protocol Type
+    private Map<String, Object> attributes; // Attributes
+    private long updateTime;                // Update Timestamp
 
     public String getId() {
         return id;
@@ -26,12 +28,12 @@ public class Device {
         this.id = id;
     }
 
-    public int getDeviceType() {
-        return deviceType;
+    public int getType() {
+        return type;
     }
 
-    public void setDeviceType(int deviceType) {
-        this.deviceType = deviceType;
+    public void setType(int type) {
+        this.type = type;
     }
 
     public String getDescId() {
@@ -50,6 +52,22 @@ public class Device {
         this.connected = connected;
     }
 
+    public int getPv() {
+        return pv;
+    }
+
+    public void setPv(int pv) {
+        this.pv = pv;
+    }
+
+    public int getPt() {
+        return pt;
+    }
+
+    public void setPt(int pt) {
+        this.pt = pt;
+    }
+
     public Map<String, Object> getAttributes() {
         return attributes;
     }
@@ -64,5 +82,20 @@ public class Device {
 
     public void setUpdateTime(long updateTime) {
         this.updateTime = updateTime;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Device device = (Device) o;
+
+        return id.equals(device.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

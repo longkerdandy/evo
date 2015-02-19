@@ -2,8 +2,9 @@ package com.github.longkerdandy.evo.tcp.codec;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.longkerdandy.evo.api.message.Message;
+import com.github.longkerdandy.evo.api.message.*;
 import com.github.longkerdandy.evo.api.protocol.Const;
+import com.github.longkerdandy.evo.api.protocol.MessageType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.ChannelHandlerContext;
@@ -74,7 +75,7 @@ public class Decoder extends ByteToMessageDecoder {
 
         in.markReaderIndex();
 
-        // header
+        // header 1-3 signature
         short b1 = in.readUnsignedByte();
         short b2 = in.readUnsignedByte();
         short b3 = in.readUnsignedByte();
@@ -82,18 +83,21 @@ public class Decoder extends ByteToMessageDecoder {
             in.clear();
             throw new DecoderException("Wrong message signature");
         }
+        // header 4 protocol version
         short b4 = in.readUnsignedByte();
         if (b4 != Const.PROTOCOL_VERSION_1_0) {
             in.clear();
             throw new DecoderException("Unsupported protocol version " + b4);
         }
+        // header 5 protocol type
         short b5 = in.readUnsignedByte();
         if (b5 != Const.PROTOCOL_TYPE_JSON && b5 != Const.PROTOCOL_TYPE_AVRO) {
             in.clear();
             throw new DecoderException("Unsupported protocol type " + b5);
         }
-        @SuppressWarnings("unused")
-        short b6 = in.readUnsignedByte();
+        // header 6 reserved
+        in.readUnsignedByte();
+        // header 7-10 remaining length
         int remainingLength = decodeRemainingLength(in);
         if (remainingLength > Const.MESSAGE_MAX_BYTES) {
             in.clear();
@@ -107,13 +111,43 @@ public class Decoder extends ByteToMessageDecoder {
         }
 
         // payload
+        // json
         if (b5 == Const.PROTOCOL_TYPE_JSON) {
             try {
                 JavaType type = ObjectMapper.getTypeFactory().constructParametricType(Message.class, JsonNode.class);
-                Message<JsonNode> msg = ObjectMapper.readValue(new ByteBufInputStream(in, remainingLength), type);
-                msg.setPv(b4);
-                msg.setPt(b5);
-                out.add(msg);
+                Message<JsonNode> m = ObjectMapper.readValue(new ByteBufInputStream(in, remainingLength), type);
+                m.setPv(b4);    // save protocol version from header to message
+                m.setPt(b5);    // save protocol type from header to message
+                if (m.getTimestamp() <= 0) m.setTimestamp(System.currentTimeMillis());  // if timestamp not provided
+                switch (m.getMsgType()) {
+                    case MessageType.CONNECT:
+                        Message<Connect> c = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Connect.class));
+                        out.add(c);
+                        break;
+                    case MessageType.DISCONNECT:
+                        Message<Disconnect> d = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Disconnect.class));
+                        out.add(d);
+                        break;
+                    case MessageType.TRIGGER:
+                        Message<Trigger> t = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Trigger.class));
+                        out.add(t);
+                        break;
+                    case MessageType.TRIGACK:
+                        Message<TrigAck> ta = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), TrigAck.class));
+                        out.add(ta);
+                        break;
+                    case MessageType.ACTION:
+                        Message<Action> a = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Action.class));
+                        out.add(a);
+                        break;
+                    case MessageType.ACTACK:
+                        Message<ActAck> aa = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), ActAck.class));
+                        out.add(aa);
+                        break;
+                    default:
+                        in.clear();
+                        throw new DecoderException("Unexpected message type: " + m.getMsgType());
+                }
             } catch (IOException e) {
                 in.clear();
                 throw new DecoderException(e);

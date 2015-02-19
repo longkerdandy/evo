@@ -87,41 +87,79 @@ public class ArangoStorage {
     }
 
     /**
-     * Create or replace device
-     * Device id must provided.
+     * Is device exist?
+     *
+     * @param deviceId deviceId
+     * @return Device exist?
+     */
+    public boolean isDeviceExist(String deviceId) throws ArangoException {
+        return checkExist(COLLECTION_DEVICES, deviceId);
+    }
+
+    /**
+     * Create a new device
+     * Device id must provided
      *
      * @param device Device Entity
      * @return Document WITHOUT Device entity
+     * @throws ArangoException If the device already exist
      */
-    public Document<Device> createOrReplaceDevice(Device device) throws ArangoException {
-        if (checkExist(COLLECTION_DEVICES, device.getId())) {
-            return toDocument(this.arango.graphReplaceVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device.getId(), device));
+    public Document<Device> createDevice(Device device) throws ArangoException {
+        return toDocument(this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device, false));
+    }
+
+    /**
+     * Replace a exist device
+     * Device id must provided
+     *
+     * @param device    Device entity to be replaced
+     * @param checkTime Check update time and only replace if newer
+     * @return Document (WITHOUT Device entity if succeed, WITH current Device if checkTime failed)
+     * @throws ArangoException If the device not exist
+     */
+    public Document<Device> replaceDevice(Device device, boolean checkTime) throws ArangoException {
+        if (checkTime) {
+            Document<Device> d = toDocument(this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device.getId(), Device.class));
+            if (d.getEntity().getUpdateTime() <= device.getUpdateTime()) {
+                return toDocument(this.arango.graphReplaceVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device.getId(), device));
+            } else {
+                return d;
+            }
         } else {
-            return toDocument(this.arango.graphCreateVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device, false));
+            return toDocument(this.arango.graphReplaceVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device.getId(), device));
         }
     }
 
     /**
      * Get device entity based on device id
      *
-     * @param did    Device Id
-     * @param device Device data to be merged
-     * @return Document WITHOUT Device Entity
-     * @throws ArangoException If device id not exist
+     * @param device Device entity to be updated
+     * @param checkTime Check update time and only update if newer
+     * @return Document (WITHOUT Device entity if succeed, WITH current Device if checkTime failed)
+     * @throws ArangoException If the device not exist
      */
-    public Document<Device> updateDevice(String did, Object device) throws ArangoException {
-        return toDocument(this.arango.graphUpdateVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, did, device, false));
+    public Document<Device> updateDevice(Device device, boolean checkTime) throws ArangoException {
+        if (checkTime) {
+            Document<Device> d = toDocument(this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device.getId(), Device.class));
+            if (d.getEntity().getUpdateTime() <= device.getUpdateTime()) {
+                return toDocument(this.arango.graphUpdateVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device.getId(), device, false));
+            } else {
+                return d;
+            }
+        } else {
+            return toDocument(this.arango.graphUpdateVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, device.getId(), device, false));
+        }
     }
 
     /**
      * Get device entity based on device id
      *
-     * @param did Device Id
+     * @param deviceId Device Id
      * @return Document with Device Entity
      * @throws ArangoException If device id not exist
      */
-    public Document<Device> getDeviceById(String did) throws ArangoException {
-        return toDocument(this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, did, Device.class));
+    public Document<Device> getDeviceById(String deviceId) throws ArangoException {
+        return toDocument(this.arango.graphGetVertex(GRAPH_IOT_RELATION, COLLECTION_DEVICES, deviceId, Device.class));
     }
 
     /**

@@ -1,15 +1,13 @@
 package com.github.longkerdandy.evo.tcp.handler;
 
 import com.arangodb.ArangoException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.longkerdandy.evo.arangodb.entity.DeviceRegisterUser;
-import com.github.longkerdandy.evo.arangodb.entity.Relation;
 import com.github.longkerdandy.evo.api.message.*;
-import com.github.longkerdandy.evo.api.protocol.MessageType;
-import com.github.longkerdandy.evo.api.protocol.Permission;
-import com.github.longkerdandy.evo.api.protocol.Const;
+import com.github.longkerdandy.evo.api.protocol.*;
 import com.github.longkerdandy.evo.arangodb.ArangoStorage;
+import com.github.longkerdandy.evo.arangodb.entity.Device;
+import com.github.longkerdandy.evo.arangodb.entity.DeviceRegisterUser;
+import com.github.longkerdandy.evo.arangodb.entity.EntityFactory;
+import com.github.longkerdandy.evo.arangodb.entity.Relation;
 import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -19,39 +17,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
-
-import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
 
 /**
  * Business Handler
  */
-public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNode>> {
+public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
     // Logger
     private static final Logger logger = LoggerFactory.getLogger(BusinessHandler.class);
 
-    private final Map<String, String> authMap;   // Authorized device - user map in this connection
-    private final Map<String, String> descMap;   // Authorized device - description map in this connection
-    private final Map<String, Integer> pvMap;     // Authorized device - protocol version map in this connection
-    private final ArangoStorage storage;         // Storage
-    private final ChannelRepository channelRepository;         // Connection Repository
+    private final Set<Device> authDevices;          // Authorized devices in this connection
+    private final ArangoStorage storage;            // Storage
+    private final ChannelRepository repository;     // Connection Repository
 
-    public BusinessHandler(ArangoStorage storage, ChannelRepository channelRepository) {
+    public BusinessHandler(ArangoStorage storage, ChannelRepository repository) {
         this.storage = storage;
-        this.channelRepository = channelRepository;
-        this.authMap = new HashMap<>();
-        this.descMap = new HashMap<>();
-        this.pvMap = new HashMap<>();
+        this.repository = repository;
+        this.authDevices = new HashSet<>();
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Message<JsonNode> msg) throws Exception {
+    @SuppressWarnings("unchecked")
+    protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
         switch (msg.getMsgType()) {
             case MessageType.CONNECT:
-                onConnect(ctx, msg);
+                onConnect(ctx, (Message<Connect>) msg);
                 break;
         }
     }
@@ -60,18 +52,13 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
      * Process Connect Message
      *
      * @param ctx ChannelHandlerContext
-     * @param msg Message<JsonNode> which payload should be ConnectMessage
+     * @param msg Message<Connect>
      */
-    protected void onConnect(ChannelHandlerContext ctx, Message<JsonNode> msg) {
+    protected void onConnect(ChannelHandlerContext ctx, Message<Connect> msg) {
         logger.debug("Process Connect message {} from device {}", msg.getMsgId(), msg.getFrom());
-        Connect connect;
-        try {
-            connect = ObjectMapper.treeToValue(msg.getPayload(), Connect.class);
-        } catch (JsonProcessingException e) {
-            logger.trace("Exception when parse message's payload as ConnectMessage: {}", ExceptionUtils.getMessage(e));
-            return;
-        }
+        Connect connect = msg.getPayload();
         int pv = msg.getPv();
+        int deviceType = msg.getDeviceType();
         String deviceId = msg.getFrom();
         String descId = msg.getDescId();
         String userId = msg.getUserId();
@@ -92,11 +79,15 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
             msgConnAck.getPayload().setReturnCode(ConnAck.DESCRIPTION_NOT_REGISTERED);
         }
         // auth as device
-        else if (StringUtils.isEmpty(userId)) {
+        else if (deviceType == DeviceType.DEVICE) {
             auth = true;
         }
-        // auth as user
-        else {
+        // auth as gateway
+        else if (deviceType == DeviceType.GATEWAY) {
+            auth = true;
+        }
+        // auth as controller
+        else if (deviceType == DeviceType.CONTROLLER) {
             // empty user or token
             if (StringUtils.isBlank(userId) || StringUtils.isBlank(token)) {
                 logger.trace("Empty user id or token");
@@ -114,48 +105,61 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
         }
 
         // send connack message back
-        this.channelRepository.sendMessage(ctx, msgConnAck);
+        this.repository.sendMessage(ctx, msgConnAck);
 
         if (!auth) {
             return;
         }
 
         // save connection mapping
-        this.authMap.put(deviceId, userId);
-        this.descMap.put(deviceId, descId);
-        this.pvMap.put(deviceId, pv);
-        this.channelRepository.saveConn(deviceId, ctx);
+        Device d = EntityFactory.newDevice(deviceId, msg.getDeviceType(), msg.getDescId(), msg.getPv(), msg.getPt());
+        this.authDevices.add(d);
+        this.repository.saveConn(deviceId, ctx);
 
         // notify user device online
         try {
             Set<String> controllers = this.storage.getDeviceFollowedControllerId(deviceId, Permission.READ, Permission.OWNER);
             for (String controller : controllers) {
-                //Message<OnlineMessage> msgOnline = MessageFactory.newOnlineMessage(deviceId, controller, pv, descId, connect.getAttributes());
-                //this.channelRepository.sendMessage(controller, msgOnline);
+                Message<Trigger> online = MessageFactory.newTriggerMessage(
+                        deviceType, deviceId, controller, Const.TRIGGER_ONLINE, connect.getPolicy(), connect.getAttributes());
+                this.repository.sendMessage(controller, online);
             }
         } catch (ArangoException e) {
             logger.error("Try to get device {} followers with exception: {}", deviceId, ExceptionUtils.getMessage(e));
+        }
+
+        // update device
+        Device device = EntityFactory.newDevice(deviceId, msg.getDeviceType(), msg.getDescId(), msg.getPv(), msg.getPt());
+        device.setAttributes(connect.getAttributes());
+        device.setUpdateTime(msg.getTimestamp());
+        try {
+            if (!this.storage.isDeviceExist(deviceId)) {
+                this.storage.createDevice(device);
+            } else {
+                updateDevice(device, connect.getPolicy());
+            }
+        } catch (ArangoException e) {
+            logger.error("Try to update device {} with exception: {}", deviceId, ExceptionUtils.getMessage(e));
         }
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         logger.debug("Received channel in-active event from remote peer {}", getRemoteAddress(ctx));
-        this.authMap.keySet().stream().filter(did -> this.channelRepository.removeConn(did, ctx)).forEach(did -> {
+        this.authDevices.stream().filter(device -> this.repository.removeConn(device.getId(), ctx)).forEach(device -> {
             // notify user device offline
             try {
-                Set<String> controllers = this.storage.getDeviceFollowedControllerId(did, Permission.READ, Permission.OWNER);
+                Set<String> controllers = this.storage.getDeviceFollowedControllerId(device.getId(), Permission.READ, Permission.OWNER);
                 for (String controller : controllers) {
-                    //Message<OfflineMessage> msgOffline = MessageFactory.newOfflineMessage(did, controller, this.pvMap.get(did), this.descMap.get(did));
-                    //this.channelRepository.sendMessage(controller, msgOffline);
+                    Message<Trigger> offline = MessageFactory.newTriggerMessage(
+                            device.getType(), device.getId(), controller, Const.TRIGGER_OFFLINE, OverridePolicy.IGNORE, null);
+                    this.repository.sendMessage(controller, offline);
                 }
             } catch (ArangoException e) {
-                logger.error("Try to get device {} followers with exception: {}", did, ExceptionUtils.getMessage(e));
+                logger.error("Try to get device {} followers with exception: {}", device.getId(), ExceptionUtils.getMessage(e));
             }
         });
-        this.authMap.clear();
-        this.descMap.clear();
-        this.pvMap.clear();
+        this.authDevices.clear();
         // ctx.close();
         ctx.fireChannelInactive();
     }
@@ -205,5 +209,36 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message<JsonNod
         } catch (ArangoException e) {
             return false;
         }
+    }
+
+    /**
+     * Update device entity based on override policy
+     *
+     * @param device Device Entity
+     * @param policy Override Policy
+     * @return Update succeed?
+     * @throws ArangoException If device not exist
+     */
+    protected boolean updateDevice(Device device, int policy) throws ArangoException {
+        boolean result = false;
+        switch (policy) {
+            case OverridePolicy.IGNORE:
+                break;
+            case OverridePolicy.REPLACE:
+                this.storage.replaceDevice(device, false);
+                result = true;
+                break;
+            case OverridePolicy.REPLACE_IF_NEWER:
+                if (this.storage.replaceDevice(device, true) == null) result = true;
+                break;
+            case OverridePolicy.UPDATE:
+                this.storage.updateDevice(device, false);
+                result = true;
+                break;
+            case OverridePolicy.UPDATE_IF_NEWER:
+                if (this.storage.updateDevice(device, true) == null) result = true;
+                break;
+        }
+        return result;
     }
 }

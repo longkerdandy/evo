@@ -10,6 +10,7 @@ import java.util.Map;
 public class Connect {
 
     private String token;                   // Token
+    private int policy;                     // Attributes Override Policy
     private Map<String, Object> attributes; // Attributes
 
     public String getToken() {
@@ -18,6 +19,14 @@ public class Connect {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public int getPolicy() {
+        return policy;
+    }
+
+    public void setPolicy(int policy) {
+        this.policy = policy;
     }
 
     public Map<String, Object> getAttributes() {
