@@ -14,7 +14,7 @@ public class Device {
     private String id;                      // Id
     private int type;                       // Type
     private String descId;                  // Description Id
-    private boolean connected;              // connected?
+    private String connected;               // Connected TCP Node
     private int pv;                         // Protocol Version
     private int pt;                         // Protocol Type
     private Map<String, Object> attributes; // Attributes
@@ -44,11 +44,11 @@ public class Device {
         this.descId = descId;
     }
 
-    public boolean isConnected() {
+    public String getConnected() {
         return connected;
     }
 
-    public void setConnected(boolean connected) {
+    public void setConnected(String connected) {
         this.connected = connected;
     }
 

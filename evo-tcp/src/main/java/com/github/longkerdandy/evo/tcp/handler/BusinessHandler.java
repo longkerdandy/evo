@@ -17,7 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -28,14 +29,14 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
     // Logger
     private static final Logger logger = LoggerFactory.getLogger(BusinessHandler.class);
 
-    private final Set<Device> authDevices;          // Authorized devices in this connection
+    private final Map<String, Device> authDevices;          // Authorized devices in this connection
     private final ArangoStorage storage;            // Storage
     private final ChannelRepository repository;     // Connection Repository
 
     public BusinessHandler(ArangoStorage storage, ChannelRepository repository) {
         this.storage = storage;
         this.repository = repository;
-        this.authDevices = new HashSet<>();
+        this.authDevices = new HashMap<>();
     }
 
     @Override
@@ -44,6 +45,21 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         switch (msg.getMsgType()) {
             case MessageType.CONNECT:
                 onConnect(ctx, (Message<Connect>) msg);
+                break;
+            case MessageType.DISCONNECT:
+                onDisconnect(ctx, (Message<Disconnect>) msg);
+                break;
+            case MessageType.TRIGGER:
+                onTrigger(ctx, (Message<Trigger>) msg);
+                break;
+            case MessageType.TRIGACK:
+                onTrigAck(ctx, (Message<TrigAck>) msg);
+                break;
+            case MessageType.ACTION:
+                onAction(ctx, (Message<Action>) msg);
+                break;
+            case MessageType.ACTACK:
+                onActAck(ctx, (Message<ActAck>) msg);
                 break;
         }
     }
@@ -113,7 +129,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         // save connection mapping
         Device d = EntityFactory.newDevice(deviceId, msg.getDeviceType(), msg.getDescId(), msg.getPv(), msg.getPt());
-        this.authDevices.add(d);
+        this.authDevices.put(deviceId, d);
         this.repository.saveConn(deviceId, ctx);
 
         // notify user device online
@@ -143,20 +159,105 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         }
     }
 
+    /**
+     * Process Disconnect Message
+     *
+     * @param ctx ChannelHandlerContext
+     * @param msg Message<Disconnect>
+     */
+    protected void onDisconnect(ChannelHandlerContext ctx, Message<Disconnect> msg) {
+        logger.debug("Process Disconnect message {} from device {}", msg.getMsgId(), msg.getFrom());
+        Disconnect disconnect = msg.getPayload();
+        String deviceId = msg.getFrom();
+        Device d = this.authDevices.get(deviceId);
+
+        // not auth
+        if (d == null) {
+            logger.trace("Not authorized device {}, disconnect message ignored");
+            return;
+        }
+
+        // notify users
+        Message<Trigger> offline = MessageFactory.newTriggerMessage(
+                d.getType(), deviceId, null, Const.TRIGGER_OFFLINE, disconnect.getPolicy(), disconnect.getAttributes());
+        notifyUsers(deviceId, Permission.READ, Permission.OWNER, offline);
+
+        int returnCode;
+        if (this.repository.removeConn(deviceId, ctx)) {
+            // update device status
+            Device device = EntityFactory.newDevice(deviceId);
+            device.setAttributes(disconnect.getAttributes());
+            device.setUpdateTime(msg.getTimestamp());
+            try {
+                returnCode = updateDevice(device, disconnect.getPolicy()) ?
+                        DisconnAck.SUCCESS : DisconnAck.TIMESTAMP_FAIL;
+            } catch (ArangoException e) {
+                logger.error("Try to update device {} with exception: {}", deviceId, ExceptionUtils.getMessage(e));
+                return;
+            }
+        } else {
+            returnCode = DisconnAck.ALREADY_RECONNECTED;
+        }
+
+        // send diconnack
+        Message<DisconnAck> disconnAck = MessageFactory.newDisconnAckMessage(deviceId, msg.getMsgId(), returnCode);
+        this.repository.sendMessage(ctx, disconnAck);
+    }
+
+    /**
+     * Process Trigger Message
+     *
+     * @param ctx ChannelHandlerContext
+     * @param msg Message<Trigger>
+     */
+    protected void onTrigger(ChannelHandlerContext ctx, Message<Trigger> msg) {
+
+    }
+
+    /**
+     * Process TrigAck Message
+     *
+     * @param ctx ChannelHandlerContext
+     * @param msg Message<TrigAck>
+     */
+    protected void onTrigAck(ChannelHandlerContext ctx, Message<TrigAck> msg) {
+
+    }
+
+    /**
+     * Process Action Message
+     *
+     * @param ctx ChannelHandlerContext
+     * @param msg Message<Action>
+     */
+    protected void onAction(ChannelHandlerContext ctx, Message<Action> msg) {
+
+    }
+
+    /**
+     * Process ActAck Message
+     *
+     * @param ctx ChannelHandlerContext
+     * @param msg Message<ActAck>
+     */
+    protected void onActAck(ChannelHandlerContext ctx, Message<ActAck> msg) {
+
+    }
+
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         logger.debug("Received channel in-active event from remote peer {}", getRemoteAddress(ctx));
-        this.authDevices.stream().filter(device -> this.repository.removeConn(device.getId(), ctx)).forEach(device -> {
-            // notify user device offline
+        this.authDevices.keySet().stream().filter(deviceId -> this.repository.removeConn(deviceId, ctx)).forEach(deviceId -> {
+            // notify users
             try {
-                Set<String> controllers = this.storage.getDeviceFollowedControllerId(device.getId(), Permission.READ, Permission.OWNER);
+                Set<String> controllers = this.storage.getDeviceFollowedControllerId(deviceId, Permission.READ, Permission.OWNER);
                 for (String controller : controllers) {
                     Message<Trigger> offline = MessageFactory.newTriggerMessage(
-                            device.getType(), device.getId(), controller, Const.TRIGGER_OFFLINE, OverridePolicy.IGNORE, null);
+                            this.authDevices.get(deviceId).getType(), deviceId, controller, Const.TRIGGER_OFFLINE, OverridePolicy.IGNORE, null);
                     this.repository.sendMessage(controller, offline);
                 }
             } catch (ArangoException e) {
-                logger.error("Try to get device {} followers with exception: {}", device.getId(), ExceptionUtils.getMessage(e));
+                logger.error("Try to get device {} followers with exception: {}", deviceId, ExceptionUtils.getMessage(e));
             }
         });
         this.authDevices.clear();
@@ -229,16 +330,36 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                 result = true;
                 break;
             case OverridePolicy.REPLACE_IF_NEWER:
-                if (this.storage.replaceDevice(device, true) == null) result = true;
+                if (this.storage.replaceDevice(device, true).getEntity() == null) result = true;
                 break;
             case OverridePolicy.UPDATE:
                 this.storage.updateDevice(device, false);
                 result = true;
                 break;
             case OverridePolicy.UPDATE_IF_NEWER:
-                if (this.storage.updateDevice(device, true) == null) result = true;
+                if (this.storage.updateDevice(device, true).getEntity() == null) result = true;
                 break;
         }
         return result;
+    }
+
+    /**
+     * Notify Users/Controllers who followed the Device
+     *
+     * @param deviceId Device Id
+     * @param min Permission Minimum
+     * @param max Permission Maximum
+     * @param msg Message to be sent
+     */
+    protected void notifyUsers(String deviceId, int min, int max, Message msg) {
+        try {
+            Set<String> controllers = this.storage.getDeviceFollowedControllerId(deviceId, min, max);
+            for (String controller : controllers) {
+                msg.setTo(controller);
+                this.repository.sendMessage(controller, msg);
+            }
+        } catch (ArangoException e) {
+            logger.error("Try to get device {} followers with exception: {}", deviceId, ExceptionUtils.getMessage(e));
+        }
     }
 }

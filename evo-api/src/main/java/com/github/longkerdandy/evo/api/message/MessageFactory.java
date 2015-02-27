@@ -129,11 +129,13 @@ public class MessageFactory {
      *
      * @param to           Device ID (who receives this message)
      * @param disconnMsgId Disconnect Message Id
+     * @param returnCode   Return Code
      * @return Message<DisconnAck>
      */
-    public static Message<DisconnAck> newDisconnAckMessage(String to, String disconnMsgId) {
+    public static Message<DisconnAck> newDisconnAckMessage(String to, String disconnMsgId, int returnCode) {
         DisconnAck disconnAck = new DisconnAck();
         disconnAck.setDisconnMsgId(disconnMsgId);
+        disconnAck.setReturnCode(returnCode);
         return newMessage(MessageType.DISCONNACK, QoS.MOST_ONCE, DeviceType.PLATFORM, Const.PLATFORM_ID, to, disconnAck);
     }
 
