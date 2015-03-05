@@ -22,22 +22,14 @@ public class EntityFactory {
     }
 
     /**
-     * Create a new Device
+     * Create a new User
      *
-     * @param deviceId   Device Id
-     * @param deviceType Device Type
-     * @param descId     Description File Id
-     * @param pv         Protocol Version
-     * @param pt         Protocol Type
-     * @return Device
+     * @param userId User Id
+     * @return User
      */
-    public static Device newDevice(String deviceId, int deviceType, String descId, int pv, int pt) {
-        Device device = new Device();
-        device.setId(deviceId);
-        device.setType(deviceType);
-        device.setDescId(descId);
-        device.setPv(pv);
-        device.setPt(pt);
-        return device;
+    public static User newUser(String userId) {
+        User user = new User();
+        user.setId(userId);
+        return user;
     }
 }

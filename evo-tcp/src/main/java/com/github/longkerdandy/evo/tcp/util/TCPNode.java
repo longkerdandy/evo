@@ -10,16 +10,16 @@ import java.net.URISyntaxException;
 /**
  * Constant
  */
-public class Const {
+public class TCPNode {
 
-    private static String NODE_ID;
+    private static String ID;
 
     /**
      * Get TCP Node Id
      */
-    public static String getNodeId() {
-        if (StringUtils.isNoneBlank(NODE_ID)) {
-            return NODE_ID;
+    public static String id() {
+        if (StringUtils.isNoneBlank(ID)) {
+            return ID;
         }
 
         // get local hardware(mac) address
@@ -28,13 +28,13 @@ public class Const {
 
         try {
             URI uri = new URI("https://github.com/longkerdandy/evo/tcp?mac=" + ea.toString());
-            NODE_ID = UuidUtils.shortUuid(uri);
+            ID = UuidUtils.shortUuid(uri);
         } catch (URISyntaxException ignore) {
             // never happens
         }
-        return NODE_ID;
+        return ID;
     }
 
-    private Const() {
+    private TCPNode() {
     }
 }

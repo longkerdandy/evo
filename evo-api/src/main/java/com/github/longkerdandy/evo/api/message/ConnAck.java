@@ -7,12 +7,13 @@ package com.github.longkerdandy.evo.api.message;
 @SuppressWarnings("unused")
 public class ConnAck {
 
-    // Return Codes
-    public static final int SUCCESS = 100;
-    public static final int EMPTY_USER_OR_TOKEN = 101;
-    public static final int USER_TOKEN_INCORRECT = 102;
-    public static final int PROTOCOL_VERSION_UNACCEPTABLE = 103;
-    public static final int DESCRIPTION_NOT_REGISTERED = 104;
+    // Return Codes, from Platform to Device
+    public static final int RECEIVED = 100;                         // Message received and re-directed to followers
+    public static final int TIMESTAMP_NOT_SATISFIED = 105;          // Message received but device status not updated due to policy
+    public static final int EMPTY_USER_OR_TOKEN = 110;              // Empty user or token
+    public static final int USER_TOKEN_INCORRECT = 111;             // User token incorrect
+    public static final int PROTOCOL_VERSION_UNACCEPTABLE = 115;    // Protocol version is not unacceptable
+    public static final int DESCRIPTION_NOT_REGISTERED = 117;       // Device description is not registered
 
     private String connMsgId;       // ConnectMessage's message id
     private int returnCode;         // Return Code

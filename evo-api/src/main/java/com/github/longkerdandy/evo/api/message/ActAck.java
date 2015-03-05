@@ -1,7 +1,5 @@
 package com.github.longkerdandy.evo.api.message;
 
-import java.util.Map;
-
 /**
  * ActAck Message
  * Acknowledge for Action Message
@@ -9,15 +7,17 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class ActAck {
 
-    // Return Codes
-    public static final int SUCCESS = 100;
-    public static final int SUCCESS_WITH_TRIGGER = 101;
+    // Return Codes, from Platform to Controller
+    public static final int RECEIVED = 100;                 // Message received and re-directed to the target device
+    public static final int RECEIVED_CACHED = 101;          // Message received but target device is offline, message has been cached
+    public static final int PERMISSION_INSUFFICIENT = 110;  // User doesn't has enough permission do execute the action
+
+    // Return Codes, from Device to Platform/Controller
+    public static final int SUCCESS = 200;                  // Message received and executed
+    public static final int FAIL = 210;                     // Message received but failed to execute
 
     private String actMsgId;                // ActionMessage's message id
     private int returnCode;                 // Return Code
-    private String triggerId;               // Trigger Id
-    private int policy;                     // Attributes Override Policy
-    private Map<String, Object> attributes; // Attributes
 
     public String getActMsgId() {
         return actMsgId;
@@ -33,29 +33,5 @@ public class ActAck {
 
     public void setReturnCode(int returnCode) {
         this.returnCode = returnCode;
-    }
-
-    public String getTriggerId() {
-        return triggerId;
-    }
-
-    public void setTriggerId(String triggerId) {
-        this.triggerId = triggerId;
-    }
-
-    public int getPolicy() {
-        return policy;
-    }
-
-    public void setPolicy(int policy) {
-        this.policy = policy;
-    }
-
-    public Map<String, Object> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Map<String, Object> attributes) {
-        this.attributes = attributes;
     }
 }
