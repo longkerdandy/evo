@@ -1,12 +1,10 @@
 rootProject.name = 'evo'
 
-include 'evo-redis'
-
 include 'evo-api'
 
-include 'evo-tcp'
-
 include 'evo-arangodb'
+
+include 'evo-tcp'
 
 include 'evo-weather'
 

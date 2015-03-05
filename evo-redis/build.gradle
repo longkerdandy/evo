@@ -1,7 +1,0 @@
-// Project Version
-version = '1.0.0'
-
-dependencies {
-    // Jedis
-    compile 'redis.clients:jedis:2.6.1'
-}
