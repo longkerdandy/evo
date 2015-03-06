@@ -1,8 +1,10 @@
-package com.github.longkerdandy.evo.tcp.codec;
+package com.github.longkerdandy.evo.api.netty;
 
 import com.github.longkerdandy.evo.api.message.Connect;
 import com.github.longkerdandy.evo.api.message.Message;
 import com.github.longkerdandy.evo.api.message.MessageFactory;
+import com.github.longkerdandy.evo.api.netty.Decoder;
+import com.github.longkerdandy.evo.api.netty.Encoder;
 import com.github.longkerdandy.evo.api.protocol.Const;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.protocol.MessageType;

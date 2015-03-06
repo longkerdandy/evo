@@ -1,4 +1,4 @@
-package com.github.longkerdandy.evo.tcp.codec;
+package com.github.longkerdandy.evo.api.netty;
 
 import com.github.longkerdandy.evo.api.message.Message;
 import com.github.longkerdandy.evo.api.protocol.Const;

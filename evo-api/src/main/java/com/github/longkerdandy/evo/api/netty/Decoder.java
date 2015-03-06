@@ -1,4 +1,4 @@
-package com.github.longkerdandy.evo.tcp.codec;
+package com.github.longkerdandy.evo.api.netty;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;

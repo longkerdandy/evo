@@ -1,8 +1,8 @@
 package com.github.longkerdandy.evo.tcp;
 
 import com.github.longkerdandy.evo.arangodb.ArangoStorage;
-import com.github.longkerdandy.evo.tcp.codec.Decoder;
-import com.github.longkerdandy.evo.tcp.codec.Encoder;
+import com.github.longkerdandy.evo.api.netty.Decoder;
+import com.github.longkerdandy.evo.api.netty.Encoder;
 import com.github.longkerdandy.evo.tcp.handler.BusinessHandler;
 import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
 import io.netty.bootstrap.ServerBootstrap;
@@ -32,7 +32,8 @@ public class TCPServer {
     public static void main(String[] args) throws Exception {
         ArangoStorage storage = new ArangoStorage(STORAGE_HOST, STORAGE_PORT, STORAGE_PASSWORD);
         ChannelRepository repository = new ChannelRepository();
-        // Configure the server.
+
+        // configure the server
         InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup(THREADS);
@@ -55,13 +56,13 @@ public class TCPServer {
                         }
                     });
 
-            // Start the server.
+            // start the server
             ChannelFuture f = b.bind(HOST, PORT).sync();
 
-            // Wait until the server socket is closed.
+            // wait until the server socket is closed
             f.channel().closeFuture().sync();
         } finally {
-            // Shut down all event loops to terminate all threads.
+            // shut down all event loops to terminate all threads
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
