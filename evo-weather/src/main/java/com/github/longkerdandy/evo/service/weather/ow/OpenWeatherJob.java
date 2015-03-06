@@ -6,10 +6,11 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
@@ -63,35 +64,29 @@ public class OpenWeatherJob implements Job {
             return;
         }
 
-        DefaultHttpClient hc = new DefaultHttpClient();
-        String date = new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
-        String url = getUrl(areaId, date);
-        // The underlying HTTP connection is still held by the response object
-        // to allow the response content to be streamed directly from the network socket.
-        // In order to ensure correct de-allocation of system resources
-        // the user MUST either fully consume the response content  or abort request
-        // execution by calling HttpGet#releaseConnection().
-        HttpGet httpGet = new HttpGet(url);
-        try {
-            HttpResponse response = hc.execute(httpGet);
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != 200) {
-                logger.warn("Http error when getting weather information from OpenWeather, status code:{}", statusCode);
+        // fetch with http client
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            // forge url
+            String date = new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
+            String url = getUrl(areaId, date);
+            // http get
+            HttpGet httpGet = new HttpGet(url);
+            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+                int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode != 200) {
+                    logger.warn("Http error when getting weather information from OpenWeather, status code:{}", statusCode);
+                }
+                HttpEntity entity = response.getEntity();
+                String content = EntityUtils.toString(entity, "UTF-8");
+                ForecastResult forecast = JsonUtils.ObjectMapper.readValue(content, ForecastResult.class);
+                logger.debug(content);
+            } catch (ClientProtocolException e) {
+                logger.error("Http error when getting weather information from OpenWeather: {}", ExceptionUtils.getMessage(e));
+            } catch (IOException e) {
+                logger.error("IO error when dealing with weather information: {}", ExceptionUtils.getMessage(e));
             }
-            HttpEntity entity = response.getEntity();
-            String content = EntityUtils.toString(entity, "UTF-8");
-            ForecastResult forecast = JsonUtils.ObjectMapper.readValue(content, ForecastResult.class);
-            logger.debug(content);
-        } catch (ClientProtocolException e) {
-            logger.error("Http error when getting weather information from OpenWeather: {}", ExceptionUtils.getMessage(e));
-        } catch (IOException e) {
-            logger.error("IO error when dealing with weather information: {}", ExceptionUtils.getMessage(e));
-        } finally {
-            httpGet.releaseConnection();
-        }
 
-        // delay 1 second to avoid flooding OpenWeather's server
-        try {
+            // delay 1 second to avoid flooding OpenWeather's server
             Thread.sleep(1000);
         } catch (Exception ignore) {
         }

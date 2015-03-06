@@ -32,7 +32,7 @@ public class WeatherService {
             for (String areaId : areaIds) {
                 Trigger trigger = newTrigger()
                         .withIdentity(areaId, "evo.service.weather")
-                        .withSchedule(cronSchedule("0 30 18 * * ?"))
+                        .withSchedule(cronSchedule("0 35 13 * * ?"))
                         .build();
                 JobDetail job = newJob(OpenWeatherJob.class)
                         .withIdentity(areaId, "evo.service.weather")
