@@ -35,7 +35,7 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
  * ---------------------------------------
  * | 7-10| Remaining Length              |
  * ---------------------------------------
- * |       Message Payload               |
+ * |       Message Data                  |
  * ---------------------------------------
  */
 @SuppressWarnings("unused")
@@ -59,7 +59,7 @@ public class Encoder extends MessageToByteEncoder<Message> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message msg, ByteBuf out) throws Exception {
-        // payload
+        // prepare message data
         byte[] bytes;
         try {
             bytes = ObjectMapper.writeValueAsBytes(msg);
@@ -80,7 +80,7 @@ public class Encoder extends MessageToByteEncoder<Message> {
         out.writeByte(0);
         encodeRemainingLength(out, remainingLength);
 
-        // write message
+        // write message data
         out.writeBytes(bytes);
     }
 }

@@ -25,50 +25,50 @@ public class ChannelRepository {
     /**
      * Save device connection
      *
-     * @param did Device Id
-     * @param ctx ChannelHandlerContext
+     * @param deviceId Device Id
+     * @param ctx      ChannelHandlerContext
      */
-    public void saveConn(String did, ChannelHandlerContext ctx) {
-        this.repo.put(did, ctx);
+    public void saveConn(String deviceId, ChannelHandlerContext ctx) {
+        this.repo.put(deviceId, ctx);
     }
 
     /**
      * Save device connection
      *
-     * @param did Device Id
+     * @param deviceId Device Id
      * @return ChannelHandlerContext
      */
-    public ChannelHandlerContext getConn(String did) {
-        return this.repo.get(did);
+    public ChannelHandlerContext getConn(String deviceId) {
+        return this.repo.get(deviceId);
     }
 
     /**
      * Remove device connection only if currently
      * mapped to the specified ChannelHandlerContext
      *
-     * @param did Device Id
-     * @param ctx ChannelHandlerContext
+     * @param deviceId Device Id
+     * @param ctx      ChannelHandlerContext
      * @return Removed?
      */
-    public boolean removeConn(String did, ChannelHandlerContext ctx) {
-        return this.repo.remove(did, ctx);
+    public boolean removeConn(String deviceId, ChannelHandlerContext ctx) {
+        return this.repo.remove(deviceId, ctx);
     }
 
     /**
      * Send message to specific device
      *
-     * @param did     Device Id
-     * @param message Message to be sent
+     * @param deviceId Device Id
+     * @param message  Message to be sent
      */
-    public void sendMessage(String did, Message message) {
-        ChannelHandlerContext ctx = this.getConn(did);
+    public void sendMessage(String deviceId, Message message) {
+        ChannelHandlerContext ctx = this.getConn(deviceId);
         if (ctx != null) {
             sendMessage(ctx, message);
         } else {
             logger.trace("Message {} {} has not been sent because device {} is not connected",
                     message.getMsgType(),
                     message.getMsgId(),
-                    did);
+                    deviceId);
         }
     }
 

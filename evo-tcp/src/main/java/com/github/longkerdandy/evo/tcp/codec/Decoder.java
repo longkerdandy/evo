@@ -26,7 +26,7 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
  * Byte 5 is protocol type.
  * Byte 6 is reserved at the moment.
  * Bytes 7 ~ 10 represent payload length.
- * Payload is payload and will be parsed into Message, passed to Handler.
+ * Message Data will be parsed into Message, passed to Handler.
  * ---------------------------------------
  * | Bit | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
  * ---------------------------------------
@@ -40,7 +40,7 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
  * ---------------------------------------
  * | 7-10| Remaining Length              |
  * ---------------------------------------
- * |       Message Payload               |
+ * |       Message Data                  |
  * ---------------------------------------
  */
 public class Decoder extends ByteToMessageDecoder {
@@ -110,7 +110,7 @@ public class Decoder extends ByteToMessageDecoder {
             return;
         }
 
-        // payload
+        // message data
         // json
         if (b5 == Const.PROTOCOL_TYPE_JSON) {
             try {
