@@ -1,4 +1,4 @@
-package com.github.longkerdandy.evo.service.weather.ow;
+package com.github.longkerdandy.evo.service.weather.quartz;
 
 import com.github.longkerdandy.evo.api.util.JsonUtils;
 import com.github.longkerdandy.evo.service.weather.entity.ForecastResult;

@@ -1,6 +1,6 @@
 package com.github.longkerdandy.evo.service.weather;
 
-import com.github.longkerdandy.evo.service.weather.ow.OpenWeatherJob;
+import com.github.longkerdandy.evo.service.weather.quartz.OpenWeatherJob;
 import com.github.longkerdandy.evo.service.weather.util.ExcelUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.quartz.*;

@@ -1,4 +1,4 @@
-package com.github.longkerdandy.evo.service.weather.ow;
+package com.github.longkerdandy.evo.service.weather.quartz;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
