@@ -13,6 +13,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.internal.logging.InternalLoggerFactory;
+import io.netty.util.internal.logging.Slf4JLoggerFactory;
 
 /**
  * TCP Server
@@ -31,6 +33,7 @@ public class TCPServer {
         ArangoStorage storage = new ArangoStorage(STORAGE_HOST, STORAGE_PORT, STORAGE_PASSWORD);
         ChannelRepository repository = new ChannelRepository();
         // Configure the server.
+        InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup(THREADS);
         try {
