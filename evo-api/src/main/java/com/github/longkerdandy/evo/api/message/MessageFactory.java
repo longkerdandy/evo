@@ -86,9 +86,10 @@ public class MessageFactory {
      * @return Message<Connect>
      */
     public static Message<Connect> newConnectMessage(int pv, int deviceType, String from, String to, String descId, String userId,
-                                                     String token, Map<String, Object> attributes) {
+                                                     String token, int policy, Map<String, Object> attributes) {
         Connect connect = new Connect();
         connect.setToken(token);
+        connect.setPolicy(policy);
         connect.setAttributes(attributes);
         Message<Connect> msg = newMessage(pv, MessageType.CONNECT, QoS.LEAST_ONCE, deviceType, from, to, connect);
         msg.setDescId(descId);

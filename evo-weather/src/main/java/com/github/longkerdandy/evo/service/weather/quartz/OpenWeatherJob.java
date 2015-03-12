@@ -1,7 +1,18 @@
 package com.github.longkerdandy.evo.service.weather.quartz;
 
+import com.github.longkerdandy.evo.api.message.Message;
+import com.github.longkerdandy.evo.api.message.MessageFactory;
+import com.github.longkerdandy.evo.api.message.Trigger;
+import com.github.longkerdandy.evo.api.protocol.Const;
+import com.github.longkerdandy.evo.api.protocol.DeviceType;
+import com.github.longkerdandy.evo.api.protocol.OverridePolicy;
 import com.github.longkerdandy.evo.api.util.JsonUtils;
+import com.github.longkerdandy.evo.service.weather.desc.Description;
+import com.github.longkerdandy.evo.service.weather.entity.Area;
+import com.github.longkerdandy.evo.service.weather.entity.Forecast;
 import com.github.longkerdandy.evo.service.weather.entity.ForecastResult;
+import com.github.longkerdandy.evo.service.weather.tcp.TCPClientHandler;
+import com.github.longkerdandy.evo.service.weather.util.IdUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -28,6 +39,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * OpenWeather Client
@@ -78,8 +92,17 @@ public class OpenWeatherJob implements Job {
                 }
                 HttpEntity entity = response.getEntity();
                 String content = EntityUtils.toString(entity, "UTF-8");
-                ForecastResult forecast = JsonUtils.ObjectMapper.readValue(content, ForecastResult.class);
-                logger.debug(content);
+                if (content.equals("data error")) {
+                    // TODO: handle error
+                } else {
+                    // parse json
+                    ForecastResult forecast = JsonUtils.ObjectMapper.readValue(content, ForecastResult.class);
+                    // send trigger message
+                    Map<String, Object> attr = forgeAttributes(forecast);
+                    Message<Trigger> trigger = MessageFactory.newTriggerMessage(
+                            Const.PROTOCOL_VERSION_1_0, DeviceType.DEVICE, IdUtils.getWeatherDeviceId(areaId), null, Description.TRIGGER_FORECAST, OverridePolicy.UPDATE_IF_NEWER, attr);
+                    TCPClientHandler.getInstance().sendMessage(trigger);
+                }
             } catch (ClientProtocolException e) {
                 logger.error("Http error when getting weather information from OpenWeather: {}", ExceptionUtils.getMessage(e));
             } catch (IOException e) {
@@ -128,5 +151,65 @@ public class OpenWeatherJob implements Job {
      */
     protected String getPublicKey(String areaId, String date) {
         return "http://open.weather.com.cn/data/?areaid=" + areaId + "&type=forecast_f&date=" + date + "&appid=" + APP_ID;
+    }
+
+    /**
+     * Forge attributes from forecast result
+     */
+    protected Map<String, Object> forgeAttributes(ForecastResult forecast) {
+        Map<String, Object> attr = new HashMap<>();
+        // area
+        Area area = forecast.getArea();
+        attr.put(Description.ATTR_AREA_ID, area.getAreaId());
+        attr.put(Description.ATTR_AREA_CN, area.getAreaCn());
+        attr.put(Description.ATTR_AREA_EN, area.getAreaEn());
+        attr.put(Description.ATTR_CITY_CN, area.getCityCn());
+        attr.put(Description.ATTR_CITY_EN, area.getCityEn());
+        attr.put(Description.ATTR_STATE_CN, area.getStateCn());
+        attr.put(Description.ATTR_STATE_EN, area.getStateEn());
+        attr.put(Description.ATTR_COUNTRY_CN, area.getCountryCn());
+        attr.put(Description.ATTR_COUNTRY_EN, area.getCountryEn());
+        // forecast
+        List<Forecast> forecasts = forecast.getForecast3Day().getForecast3d();
+        int i = 1;
+        for (Forecast f : forecasts) {
+            switch (i) {
+                case 1:
+                    attr.put(Description.ATTR_DAY_1_DAY_WEATHER, f.getDayWeather());
+                    attr.put(Description.ATTR_DAY_1_NIGHT_WEATHER, f.getNightWeather());
+                    attr.put(Description.ATTR_DAY_1_DAY_TEMPRATURE, f.getDayTemp());
+                    attr.put(Description.ATTR_DAY_1_NIGHT_TEMPRATURE, f.getNightTemp());
+                    attr.put(Description.ATTR_DAY_1_DAY_WIND_DIRECTION, f.getDayWindDirection());
+                    attr.put(Description.ATTR_DAY_1_NIGHT_WIND_DIRECTION, f.getNightWindDirection());
+                    attr.put(Description.ATTR_DAY_1_DAY_WIND_FORCE, f.getDayWindForce());
+                    attr.put(Description.ATTR_DAY_1_NIGHT_WIND_FORCE, f.getNightWindForce());
+                    attr.put(Description.ATTR_DAY_1_SUNRISE, f.getSunrise());
+                    break;
+                case 2:
+                    attr.put(Description.ATTR_DAY_2_DAY_WEATHER, f.getDayWeather());
+                    attr.put(Description.ATTR_DAY_2_NIGHT_WEATHER, f.getNightWeather());
+                    attr.put(Description.ATTR_DAY_2_DAY_TEMPRATURE, f.getDayTemp());
+                    attr.put(Description.ATTR_DAY_2_NIGHT_TEMPRATURE, f.getNightTemp());
+                    attr.put(Description.ATTR_DAY_2_DAY_WIND_DIRECTION, f.getDayWindDirection());
+                    attr.put(Description.ATTR_DAY_2_NIGHT_WIND_DIRECTION, f.getNightWindDirection());
+                    attr.put(Description.ATTR_DAY_2_DAY_WIND_FORCE, f.getDayWindForce());
+                    attr.put(Description.ATTR_DAY_2_NIGHT_WIND_FORCE, f.getNightWindForce());
+                    attr.put(Description.ATTR_DAY_2_SUNRISE, f.getSunrise());
+                    break;
+                case 3:
+                    attr.put(Description.ATTR_DAY_3_DAY_WEATHER, f.getDayWeather());
+                    attr.put(Description.ATTR_DAY_3_NIGHT_WEATHER, f.getNightWeather());
+                    attr.put(Description.ATTR_DAY_3_DAY_TEMPRATURE, f.getDayTemp());
+                    attr.put(Description.ATTR_DAY_3_NIGHT_TEMPRATURE, f.getNightTemp());
+                    attr.put(Description.ATTR_DAY_3_DAY_WIND_DIRECTION, f.getDayWindDirection());
+                    attr.put(Description.ATTR_DAY_3_NIGHT_WIND_DIRECTION, f.getNightWindDirection());
+                    attr.put(Description.ATTR_DAY_3_DAY_WIND_FORCE, f.getDayWindForce());
+                    attr.put(Description.ATTR_DAY_3_NIGHT_WIND_FORCE, f.getNightWindForce());
+                    attr.put(Description.ATTR_DAY_3_SUNRISE, f.getSunrise());
+                    break;
+            }
+            i++;
+        }
+        return attr;
     }
 }

@@ -8,6 +8,7 @@ import com.github.longkerdandy.evo.api.netty.Encoder;
 import com.github.longkerdandy.evo.api.protocol.Const;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.protocol.MessageType;
+import com.github.longkerdandy.evo.api.protocol.OverridePolicy;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.Test;
@@ -24,7 +25,7 @@ public class DecoderEncoderTest {
     @SuppressWarnings("unchecked")
     public void decoderEncoderTest() throws Exception {
         // Message, payload is ConnectMessage
-        Message<Connect> msgOut = MessageFactory.newConnectMessage(Const.PROTOCOL_VERSION_1_0, DeviceType.CONTROLLER, "Device 1", null, "Desc 1", "User 1", "Token 1", null);
+        Message<Connect> msgOut = MessageFactory.newConnectMessage(Const.PROTOCOL_VERSION_1_0, DeviceType.CONTROLLER, "Device 1", null, "Desc 1", "User 1", "Token 1", OverridePolicy.IGNORE, null);
 
         // encoding
         Encoder encoder = new Encoder();

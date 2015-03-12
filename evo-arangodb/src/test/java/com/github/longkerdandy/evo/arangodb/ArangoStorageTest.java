@@ -184,6 +184,8 @@ public class ArangoStorageTest {
         devices = arango.getDeviceFollowedControllerId(dd.getId(), permission1, permission2);
         assert devices.contains(ddB.getId());
         assert devices.contains(ddC.getId());
+        devices = arango.getDeviceFollowedControllerId("d0000004", permission1, permission2);
+        assert devices.isEmpty();
 
         // delete user device relation
         assert arango.deleteUserFollowDevice(du.getId(), dd.getId());

@@ -11,6 +11,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Set;
+
 /**
  * TCP Client
  */
@@ -23,10 +25,11 @@ public class TCPClient implements Runnable {
     private int port;
     private TCPClientHandler handler;
 
-    public TCPClient(String host, int port) {
+    public TCPClient(String host, int port, Set<String> areaIds) {
         this.host = host;
         this.port = port;
-        this.handler = new TCPClientHandler();
+        this.handler = TCPClientHandler.getInstance();
+        this.handler.setAreaIds(areaIds);
     }
 
     @Override

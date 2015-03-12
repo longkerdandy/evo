@@ -124,9 +124,17 @@ public class Decoder extends ByteToMessageDecoder {
                         Message<Connect> c = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Connect.class));
                         out.add(c);
                         break;
+                    case MessageType.CONNACK:
+                        Message<ConnAck> ca = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), ConnAck.class));
+                        out.add(ca);
+                        break;
                     case MessageType.DISCONNECT:
                         Message<Disconnect> d = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Disconnect.class));
                         out.add(d);
+                        break;
+                    case MessageType.DISCONNACK:
+                        Message<DisconnAck> da = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), DisconnAck.class));
+                        out.add(da);
                         break;
                     case MessageType.TRIGGER:
                         Message<Trigger> t = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Trigger.class));

@@ -21,9 +21,9 @@ import io.netty.util.internal.logging.Slf4JLoggerFactory;
  */
 public class TCPServer {
 
-    private static final String STORAGE_HOST = "0.0.0.0";
+    private static final String STORAGE_HOST = "127.0.0.1";
     private static final int STORAGE_PORT = 8529;
-    private static final String STORAGE_PASSWORD = "";
+    private static final String STORAGE_PASSWORD = null;
 
     private static final String HOST = "0.0.0.0";
     private static final int PORT = 1883;
@@ -31,6 +31,7 @@ public class TCPServer {
 
     public static void main(String[] args) throws Exception {
         ArangoStorage storage = new ArangoStorage(STORAGE_HOST, STORAGE_PORT, STORAGE_PASSWORD);
+        storage.init();
         ChannelRepository repository = new ChannelRepository();
 
         // configure the server

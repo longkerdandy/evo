@@ -1,6 +1,7 @@
 package com.github.longkerdandy.evo.service.weather;
 
 import com.github.longkerdandy.evo.service.weather.quartz.OpenWeatherJob;
+import com.github.longkerdandy.evo.service.weather.tcp.TCPClient;
 import com.github.longkerdandy.evo.service.weather.util.ExcelUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.quartz.*;
@@ -26,13 +27,18 @@ public class WeatherService {
         // load area ids
         Set<String> areaIds = ExcelUtils.loadAreaIds();
 
+        // start tcp client
+        TCPClient tcp = new TCPClient("localhost", 1883, areaIds);
+        Thread thread = new Thread(tcp);
+        thread.start();
+
         // start quartz
         Scheduler scheduler = new StdSchedulerFactory().getScheduler();
         try {
             for (String areaId : areaIds) {
                 Trigger trigger = newTrigger()
                         .withIdentity(areaId, "evo.service.weather")
-                        .withSchedule(cronSchedule("0 35 13 * * ?"))
+                        .withSchedule(cronSchedule("0 46 17 * * ?"))
                         .build();
                 JobDetail job = newJob(OpenWeatherJob.class)
                         .withIdentity(areaId, "evo.service.weather")
