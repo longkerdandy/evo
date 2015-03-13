@@ -2,6 +2,8 @@ rootProject.name = 'evo'
 
 include 'evo-api'
 
+include 'evo-aerospike'
+
 include 'evo-arangodb'
 
 include 'evo-tcp'
