@@ -2,6 +2,8 @@ package com.github.longkerdandy.evo.aerospike;
 
 import com.aerospike.client.*;
 import com.aerospike.client.policy.ClientPolicy;
+import com.aerospike.client.policy.RecordExistsAction;
+import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
@@ -49,12 +51,14 @@ public class AerospikeStorage {
     }
 
     /**
-     * Create new user
+     * Create or Update new user
      * Validate before invoking this method!
      *
      * @param user User
      */
-    public void createUser(User user) {
+    public void updateUser(User user) {
+        WritePolicy p = new WritePolicy();
+        p.recordExistsAction = RecordExistsAction.UPDATE;
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_USER, user.getId());
         this.ac.put(null, k, Converter.userToBins(user));
     }
@@ -88,7 +92,7 @@ public class AerospikeStorage {
     }
 
     /**
-     * Is user mobile already exist
+     * Is user mobile already exist?
      *
      * @param mobile Mobile
      * @return True if already exist
@@ -103,6 +107,14 @@ public class AerospikeStorage {
         }
     }
 
+    /**
+     * Is user id and password correct?
+     * Password must be encoded
+     *
+     * @param userId User Id
+     * @param password Password (Encoded)
+     * @return True if correct
+     */
     public boolean isUserPasswordCorrect(String userId, String password) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_USER, userId);
         Record r = this.ac.get(null, k, Scheme.BIN_USER_PASSWORD);

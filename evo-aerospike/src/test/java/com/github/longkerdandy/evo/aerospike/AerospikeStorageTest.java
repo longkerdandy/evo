@@ -38,7 +38,7 @@ public class AerospikeStorageTest {
         userA.setEmail("usera@example.com");
         userA.setMobile("18600000000");
         userA.setPassword("passwr0d");
-        storage.createUser(userA);
+        storage.updateUser(userA);
 
         // get user
         userA = storage.getUserById("u000001");
