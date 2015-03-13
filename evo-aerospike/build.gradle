@@ -1,0 +1,10 @@
+// Project Version
+version = '1.0.0'
+
+dependencies {
+    // Evo
+    compile project(':evo-api')
+
+    // Aerospike
+    compile "com.aerospike:aerospike-client:3.0.35"
+}
