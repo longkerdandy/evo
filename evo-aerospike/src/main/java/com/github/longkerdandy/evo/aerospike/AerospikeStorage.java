@@ -1,16 +1,21 @@
 package com.github.longkerdandy.evo.aerospike;
 
-import com.aerospike.client.*;
+import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.Host;
+import com.aerospike.client.Key;
+import com.aerospike.client.Record;
 import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
-import com.github.longkerdandy.evo.aerospike.entity.EntityFactory;
+import com.github.longkerdandy.evo.aerospike.entity.Device;
 import com.github.longkerdandy.evo.aerospike.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 /**
  * Aerospike Database Access Layer
@@ -51,7 +56,7 @@ public class AerospikeStorage {
     }
 
     /**
-     * Create or Update new user
+     * Create or Update user
      * Validate before invoking this method!
      *
      * @param user User
@@ -59,8 +64,8 @@ public class AerospikeStorage {
     public void updateUser(User user) {
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
-        Key k = new Key(Scheme.NS_EVO, Scheme.SET_USER, user.getId());
-        this.ac.put(null, k, Converter.userToBins(user));
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_USERS, user.getId());
+        this.ac.put(p, k, Converter.userToBins(user));
     }
 
     /**
@@ -70,7 +75,7 @@ public class AerospikeStorage {
      * @return User
      */
     public User getUserById(String userId) {
-        Key k = new Key(Scheme.NS_EVO, Scheme.SET_USER, userId);
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record r = this.ac.get(null, k);
         return Converter.recordToUser(r);
     }
@@ -84,8 +89,8 @@ public class AerospikeStorage {
     public boolean isUserEmailExist(String email) {
         Statement stmt = new Statement();
         stmt.setNamespace(Scheme.NS_EVO);
-        stmt.setSetName(Scheme.SET_USER);
-        stmt.setFilters(Filter.equal(Scheme.BIN_USER_EMAIL, email));
+        stmt.setSetName(Scheme.SET_USERS);
+        stmt.setFilters(Filter.equal(Scheme.BIN_U_EMAIL, email));
         try (RecordSet rs = this.ac.query(null, stmt)) {
             return rs.next();
         }
@@ -100,8 +105,8 @@ public class AerospikeStorage {
     public boolean isUserMobileExist(String mobile) {
         Statement stmt = new Statement();
         stmt.setNamespace(Scheme.NS_EVO);
-        stmt.setSetName(Scheme.SET_USER);
-        stmt.setFilters(Filter.equal(Scheme.BIN_USER_MOBILE, mobile));
+        stmt.setSetName(Scheme.SET_USERS);
+        stmt.setFilters(Filter.equal(Scheme.BIN_U_MOBILE, mobile));
         try (RecordSet rs = this.ac.query(null, stmt)) {
             return rs.next();
         }
@@ -111,13 +116,76 @@ public class AerospikeStorage {
      * Is user id and password correct?
      * Password must be encoded
      *
-     * @param userId User Id
+     * @param userId   User Id
      * @param password Password (Encoded)
      * @return True if correct
      */
     public boolean isUserPasswordCorrect(String userId, String password) {
-        Key k = new Key(Scheme.NS_EVO, Scheme.SET_USER, userId);
-        Record r = this.ac.get(null, k, Scheme.BIN_USER_PASSWORD);
-        return r != null && password.equals(r.getValue(Scheme.BIN_USER_PASSWORD));
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
+        Record r = this.ac.get(null, k, Scheme.BIN_U_PASSWORD);
+        return r != null && password.equals(r.getValue(Scheme.BIN_U_PASSWORD));
+    }
+
+    /**
+     * Create or Update device
+     * Validate before invoking this method!
+     *
+     * @param device Device
+     */
+    public void updateDevice(Device device) {
+        WritePolicy p = new WritePolicy();
+        p.recordExistsAction = RecordExistsAction.UPDATE;
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, device.getId());
+        this.ac.put(p, k, Converter.deviceToBins(device));
+    }
+
+    /**
+     * Get device by id
+     *
+     * @param deviceId Device Id
+     * @return Device
+     */
+    public Device getDeviceById(String deviceId) {
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
+        Record r = this.ac.get(null, k);
+        return Converter.recordToDevice(r);
+    }
+
+    /**
+     * Create or Update device attribute
+     *
+     * @param deviceId Device Id
+     * @param attr     Device Attribute
+     */
+    public void updateDeviceAttr(String deviceId, Map<String, Object> attr) {
+        WritePolicy p = new WritePolicy();
+        p.recordExistsAction = RecordExistsAction.UPDATE;
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES_ATTR, deviceId);
+        this.ac.put(p, k, Converter.mapToBins(attr));
+    }
+
+    /**
+     * Create or Replace device attribute
+     *
+     * @param deviceId Device Id
+     * @param attr     Device Attribute
+     */
+    public void replaceDeviceAttr(String deviceId, Map<String, Object> attr) {
+        WritePolicy p = new WritePolicy();
+        p.recordExistsAction = RecordExistsAction.REPLACE;
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES_ATTR, deviceId);
+        this.ac.put(p, k, Converter.mapToBins(attr));
+    }
+
+    /**
+     * Get device attributes by id
+     *
+     * @param deviceId Device Id
+     * @return Device Attribute
+     */
+    public Map<String, Object> getDeviceAttr(String deviceId) {
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES_ATTR, deviceId);
+        Record r = this.ac.get(null, k);
+        return Converter.recordToMap(r);
     }
 }

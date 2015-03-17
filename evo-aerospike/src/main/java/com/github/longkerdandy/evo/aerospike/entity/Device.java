@@ -9,8 +9,8 @@ public class Device {
     private String id;                      // Id
     private int type;                       // Type
     private String descId;                  // Description Id
-    private String connected;               // Connected Node
     private int pv;                         // Protocol Version
+    private String connected;               // Connected Node
 
     protected Device() {
     }
@@ -39,19 +39,19 @@ public class Device {
         this.descId = descId;
     }
 
-    public String getConnected() {
-        return connected;
-    }
-
-    public void setConnected(String connected) {
-        this.connected = connected;
-    }
-
     public int getPv() {
         return pv;
     }
 
     public void setPv(int pv) {
         this.pv = pv;
+    }
+
+    public String getConnected() {
+        return connected;
+    }
+
+    public void setConnected(String connected) {
+        this.connected = connected;
     }
 }
