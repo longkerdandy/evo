@@ -1,16 +1,20 @@
 package com.github.longkerdandy.evo.aerospike.entity;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Device Entity
  */
 @SuppressWarnings("unused")
 public class Device {
 
-    private String id;                      // Id
-    private int type;                       // Type
-    private String descId;                  // Description Id
-    private int pv;                         // Protocol Version
-    private String connected;               // Connected Node
+    private String id;                          // Id
+    private int type;                           // Type
+    private String descId;                      // Description Id
+    private int pv;                             // Protocol Version
+    private String connected;                   // Connected Node
+    private List<Map<String, Object>> own;      // Own Relations
 
     protected Device() {
     }
@@ -53,5 +57,13 @@ public class Device {
 
     public void setConnected(String connected) {
         this.connected = connected;
+    }
+
+    public List<Map<String, Object>> getOwn() {
+        return own;
+    }
+
+    public void setOwn(List<Map<String, Object>> own) {
+        this.own = own;
     }
 }

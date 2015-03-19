@@ -10,7 +10,7 @@ public class EntityFactory {
     }
 
     /**
-     * Create a new Device
+     * Create a new Device Entity
      *
      * @param deviceId Device Id
      * @return Device
@@ -22,7 +22,7 @@ public class EntityFactory {
     }
 
     /**
-     * Create a new User
+     * Create a new User Entity
      *
      * @param userId User Id
      * @return User

@@ -8,12 +8,15 @@ import com.github.longkerdandy.evo.aerospike.entity.EntityFactory;
 import com.github.longkerdandy.evo.aerospike.entity.User;
 import com.github.longkerdandy.evo.api.protocol.Const;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
+import com.github.longkerdandy.evo.api.protocol.Permission;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,6 +48,13 @@ public class AerospikeStorageTest {
         userA.setEmail("usera@example.com");
         userA.setMobile("18600000000");
         userA.setPassword("passwr0d");
+        List<Map<String, Object>> l = new ArrayList<>();
+        l.add(new HashMap<String, Object>() {{
+            put(Scheme.OWN_USER, "u000001");
+            put(Scheme.OWN_DEVICE, "d000001");
+            put(Scheme.OWN_PERMISSION, Permission.READ_WRITE);
+        }});
+        userA.setOwn(l);
         storage.updateUser(userA);
 
         // get user
@@ -53,6 +63,7 @@ public class AerospikeStorageTest {
         assert userA.getAlias().equals("UserA");
         assert userA.getEmail().equals("usera@example.com");
         assert userA.getMobile().equals("18600000000");
+        assert userA.getOwn().get(0).get(Scheme.OWN_DEVICE).equals("d000001");
         assert storage.getUserById("u000002") == null;
 
         // email exist
@@ -80,7 +91,18 @@ public class AerospikeStorageTest {
         deviceA.setDescId("Desc1");
         deviceA.setPv(Const.PROTOCOL_VERSION_1_0);
         deviceA.setConnected("Node1");
+        List<Map<String, Object>> l = new ArrayList<>();
+        l.add(new HashMap<String, Object>() {{
+            put(Scheme.OWN_USER, "u000001");
+            put(Scheme.OWN_DEVICE, "d000001");
+            put(Scheme.OWN_PERMISSION, Permission.READ_WRITE);
+        }});
+        deviceA.setOwn(l);
         storage.updateDevice(deviceA);
+
+        // exist
+        assert storage.isDeviceExist("d000001");
+        assert !storage.isDeviceExist("d000002");
 
         // get device
         deviceA = storage.getDeviceById("d000001");
@@ -89,6 +111,8 @@ public class AerospikeStorageTest {
         assert deviceA.getDescId().equals("Desc1");
         assert deviceA.getPv() == Const.PROTOCOL_VERSION_1_0;
         assert deviceA.getConnected().equals("Node1");
+        assert deviceA.getOwn().get(0).get(Scheme.OWN_USER).equals("u000001");
+        assert storage.getDeviceById("d000002") == null;
 
         // update device attribute
         Map<String, Object> attrA = new HashMap<>();
@@ -120,6 +144,63 @@ public class AerospikeStorageTest {
         assert attrA.get("Field3") == null;
 
         // clear
+        storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, "d000001"));
+        storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_DEVICES_ATTR, "d000001"));
+    }
+
+    @Test
+    public void userOwnDeviceTest() {
+        // create new user
+        User userA = EntityFactory.newUser("u000001");
+        userA.setAlias("UserA");
+        userA.setEmail("usera@example.com");
+        userA.setMobile("18600000000");
+        userA.setPassword("passwr0d");
+        storage.updateUser(userA);
+
+        // create new device
+        Device deviceA = EntityFactory.newDevice("d000001");
+        deviceA.setType(DeviceType.DEVICE);
+        deviceA.setDescId("Desc1");
+        deviceA.setPv(Const.PROTOCOL_VERSION_1_0);
+        deviceA.setConnected("Node1");
+        storage.updateDevice(deviceA);
+
+        // update own
+        storage.updateUserOwnDevice("u000001", "d000001", Permission.READ);
+        userA = storage.getUserById("u000001");
+        assert userA.getOwn().get(0).get(Scheme.OWN_DEVICE).equals("d000001");
+        assert NumberUtils.toInt(String.valueOf(userA.getOwn().get(0).get(Scheme.OWN_PERMISSION))) == Permission.READ;
+        deviceA = storage.getDeviceById("d000001");
+        assert deviceA.getOwn().get(0).get(Scheme.OWN_USER).equals("u000001");
+        assert NumberUtils.toInt(String.valueOf(deviceA.getOwn().get(0).get(Scheme.OWN_PERMISSION))) == Permission.READ;
+
+        // update own again
+        storage.updateUserOwnDevice("u000001", "d000001", Permission.READ_WRITE);
+        userA = storage.getUserById("u000001");
+        assert userA.getOwn().get(0).get(Scheme.OWN_DEVICE).equals("d000001");
+        assert NumberUtils.toInt(String.valueOf(userA.getOwn().get(0).get(Scheme.OWN_PERMISSION))) == Permission.READ_WRITE;
+        deviceA = storage.getDeviceById("d000001");
+        assert deviceA.getOwn().get(0).get(Scheme.OWN_USER).equals("u000001");
+        assert NumberUtils.toInt(String.valueOf(deviceA.getOwn().get(0).get(Scheme.OWN_PERMISSION))) == Permission.READ_WRITE;
+
+        // get own
+        List<Map<String, Object>> ownA = storage.getUserOwnee("u000001");
+        assert ownA.get(0).get(Scheme.OWN_DEVICE).equals("d000001");
+        assert NumberUtils.toInt(String.valueOf(ownA.get(0).get(Scheme.OWN_PERMISSION))) == Permission.READ_WRITE;
+        ownA = storage.getDeviceOwner("d000001");
+        assert ownA.get(0).get(Scheme.OWN_USER).equals("u000001");
+        assert NumberUtils.toInt(String.valueOf(ownA.get(0).get(Scheme.OWN_PERMISSION))) == Permission.READ_WRITE;
+
+        // remove own
+        storage.removeUserOwnDevice("u000001", "d000001");
+        userA = storage.getUserById("u000001");
+        assert userA.getOwn() == null || userA.getOwn().isEmpty();
+        deviceA = storage.getDeviceById("d000001");
+        assert deviceA.getOwn() == null || deviceA.getOwn().isEmpty();
+
+        // clear
+        storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_USERS, "u000001"));
         storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, "d000001"));
     }
 }
