@@ -3,6 +3,7 @@ package com.github.longkerdandy.evo.aerospike;
 /**
  * Aerospike Database Scheme
  */
+@SuppressWarnings("unused")
 public class Scheme {
 
     // namespace
@@ -12,6 +13,7 @@ public class Scheme {
     public static final String OWN_USER = "user";
     public static final String OWN_DEVICE = "dev";
     public static final String OWN_PERMISSION = "perm";
+    public static final String CTRL_DEVICE = "dev";
 
     // set - users
     public static final String SET_USERS = "users";
@@ -21,6 +23,7 @@ public class Scheme {
     public static final String BIN_U_MOBILE = "mobile";
     public static final String BIN_U_PASSWORD = "pwd";
     public static final String BIN_U_OWN = "own";
+    public static final String BIN_U_CTRL = "ctrl";
 
     // set - devices
     public static final String SET_DEVICES = "devs";
@@ -30,6 +33,7 @@ public class Scheme {
     public static final String BIN_D_PV = "pv";
     public static final String BIN_D_CONN = "conn";
     public static final String BIN_D_OWN = "own";
+    public static final String BIN_D_CTRL_USER = "ctrlU";
 
     // set - devices attribute
     public static final String SET_DEVICES_ATTR = "devs_attr";

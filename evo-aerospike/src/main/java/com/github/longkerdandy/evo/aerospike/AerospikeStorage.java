@@ -12,10 +12,8 @@ import com.github.longkerdandy.evo.aerospike.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Aerospike Database Access Layer
@@ -213,7 +211,7 @@ public class AerospikeStorage {
         Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record ru = this.ac.get(null, ku, Scheme.BIN_U_OWN);
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
-        Record rd = this.ac.get(null, kd);
+        Record rd = this.ac.get(null, kd, Scheme.BIN_D_OWN);
         if (ru == null || rd == null) {
             logger.debug("User {} or device {} not existed, update failed", userId, deviceId);
             return;
@@ -237,7 +235,7 @@ public class AerospikeStorage {
         Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record ru = this.ac.get(null, ku, Scheme.BIN_U_OWN);
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
-        Record rd = this.ac.get(null, kd);
+        Record rd = this.ac.get(null, kd, Scheme.BIN_D_OWN);
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
         if (ru != null) {
@@ -276,8 +274,105 @@ public class AerospikeStorage {
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getDeviceOwner(String deviceId) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
-        Record r = this.ac.get(null, k);
+        Record r = this.ac.get(null, k, Scheme.BIN_D_OWN);
         return r != null ? (List<Map<String, Object>>) r.getValue(Scheme.BIN_D_OWN) : null;
+    }
+
+    /**
+     * Update user control device relation
+     * Make sure user and device exist before invoking this method!
+     *
+     * @param userId   User Id
+     * @param deviceId Device Id
+     */
+    @SuppressWarnings("unchecked")
+    public void updateUserControlDevice(String userId, String deviceId) {
+        Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
+        Record ru = this.ac.get(null, ku, Scheme.BIN_U_CTRL);
+        Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
+        Record rd = this.ac.get(null, kd, Scheme.BIN_D_CTRL_USER);
+        if (ru == null || rd == null) {
+            logger.debug("User {} or device {} not existed, update failed", userId, deviceId);
+            return;
+        }
+        List<String> cu = (List<String>) ru.getValue(Scheme.BIN_U_CTRL);
+        if (cu == null) cu = new ArrayList<>();
+        if (!cu.contains(deviceId)) cu.add(deviceId);
+        WritePolicy p = new WritePolicy();
+        p.recordExistsAction = RecordExistsAction.UPDATE;
+        this.ac.put(p, ku, new Bin(Scheme.BIN_U_CTRL, Value.getAsList(cu)));
+        this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL_USER, userId));
+    }
+
+    /**
+     * Remove user control device relation
+     *
+     * @param userId   User Id
+     * @param deviceId Device Id
+     */
+    @SuppressWarnings("unchecked")
+    public void removeUserControlDevice(String userId, String deviceId) {
+        Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
+        Record ru = this.ac.get(null, ku, Scheme.BIN_U_CTRL);
+        Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
+        Record rd = this.ac.get(null, kd, Scheme.BIN_D_CTRL_USER);
+        if (ru == null || rd == null) {
+            logger.debug("User {} or device {} not existed, update failed", userId, deviceId);
+            return;
+        }
+        List<String> cu = (List<String>) ru.getValue(Scheme.BIN_U_CTRL);
+        if (cu != null) cu.removeAll(Collections.singleton(deviceId));
+        WritePolicy p = new WritePolicy();
+        p.recordExistsAction = RecordExistsAction.UPDATE;
+        this.ac.put(p, ku, new Bin(Scheme.BIN_U_CTRL, Value.getAsList(cu)));
+        this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL_USER, Value.getAsNull()));
+    }
+
+    /**
+     * Get user's controlled devices
+     *
+     * @param userId User Id
+     * @return List of Device
+     */
+    @SuppressWarnings("unchecked")
+    public List<String> getUserControllee(String userId) {
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
+        Record r = this.ac.get(null, k, Scheme.BIN_U_CTRL);
+        return r != null ? (List<String>) r.getValue(Scheme.BIN_U_CTRL) : null;
+    }
+
+    /**
+     * Get device's owned user's controllee devices
+     *
+     * @param deviceId Device Id
+     * @param min      Minimal Permission
+     * @param max      Maximal Permission
+     * @return List of Device
+     */
+    @SuppressWarnings("unchecked")
+    public Set<String> getDeviceOwnerControllee(String deviceId, int min, int max) {
+        Set<String> set = new HashSet<>();
+        Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
+        Record r = this.ac.get(null, kd, Scheme.BIN_D_OWN);
+        if (r == null) {
+            return null;
+        }
+        List<Map<String, Object>> o = (List<Map<String, Object>>) r.getValue(Scheme.BIN_D_OWN);
+        for (Map<String, Object> m : o) {
+            long p = (long) m.get(Scheme.OWN_PERMISSION);
+            if (p >= min && p <= max) {
+                String u = (String) m.get(Scheme.OWN_USER);
+                Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, u);
+                Record ru = this.ac.get(null, ku, Scheme.BIN_U_CTRL);
+                if (ru != null) {
+                    List<String> cu = (List<String>) ru.getValue(Scheme.BIN_U_CTRL);
+                    if (cu != null) {
+                        set.addAll(cu.stream().collect(Collectors.toList()));
+                    }
+                }
+            }
+        }
+        return set;
     }
 
     /**
@@ -313,10 +408,11 @@ public class AerospikeStorage {
         if (own == null) {
             return null;
         }
-        for (Map<String, Object> map : own) {
-            if (map.get(Scheme.OWN_USER).equals(userId) && map.get(Scheme.OWN_DEVICE).equals(deviceId)) {
-                own.remove(map);
-                break;
+        Iterator<Map<String, Object>> i = own.iterator();
+        while (i.hasNext()) {
+            Map<String, Object> m = i.next();
+            if (m.get(Scheme.OWN_USER).equals(userId) && m.get(Scheme.OWN_DEVICE).equals(deviceId)) {
+                i.remove();
             }
         }
         return own;

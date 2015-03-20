@@ -14,10 +14,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * AerospikeStorage Test
@@ -202,5 +199,64 @@ public class AerospikeStorageTest {
         // clear
         storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_USERS, "u000001"));
         storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, "d000001"));
+    }
+
+    @Test
+    public void userControlDeviceTest() {
+        // create new user
+        User userA = EntityFactory.newUser("u000001");
+        userA.setAlias("UserA");
+        userA.setEmail("usera@example.com");
+        userA.setMobile("18600000000");
+        userA.setPassword("passwr0d");
+        storage.updateUser(userA);
+
+        // create new devices
+        Device deviceA = EntityFactory.newDevice("d000001");
+        deviceA.setType(DeviceType.DEVICE);
+        deviceA.setDescId("Desc1");
+        deviceA.setPv(Const.PROTOCOL_VERSION_1_0);
+        deviceA.setConnected("Node1");
+        storage.updateDevice(deviceA);
+        Device deviceB = EntityFactory.newDevice("d000002");
+        deviceB.setType(DeviceType.DEVICE);
+        deviceB.setDescId("Desc1");
+        deviceB.setPv(Const.PROTOCOL_VERSION_1_0);
+        deviceB.setConnected("Node1");
+        storage.updateDevice(deviceB);
+        Device deviceC = EntityFactory.newDevice("d000003");
+        deviceC.setType(DeviceType.DEVICE);
+        deviceC.setDescId("Desc1");
+        deviceC.setPv(Const.PROTOCOL_VERSION_1_0);
+        deviceC.setConnected("Node1");
+        storage.updateDevice(deviceC);
+
+        // update control
+        storage.updateUserControlDevice("u000001", "d000002");
+        List<String> ctrlA = storage.getUserControllee("u000001");
+        assert ctrlA.contains("d000002");
+        storage.updateUserControlDevice("u000001", "d000003");
+        ctrlA = storage.getUserControllee("u000001");
+        assert ctrlA.contains("d000002");
+        assert ctrlA.contains("d000003");
+
+        // remove control
+        storage.removeUserControlDevice("u000001", "d000002");
+        ctrlA = storage.getUserControllee("u000001");
+        assert !ctrlA.contains("d000002");
+        assert ctrlA.contains("d000003");
+
+        // get own with control
+        storage.updateUserOwnDevice("u000001", "d000001", Permission.READ);
+        storage.updateUserControlDevice("u000001", "d000002");
+        Set<String> setA = storage.getDeviceOwnerControllee("d000001", Permission.READ, Permission.OWNER);
+        assert setA.contains("d000002");
+        assert setA.contains("d000003");
+
+        // clear
+        storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_USERS, "u000001"));
+        storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, "d000001"));
+        storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, "d000002"));
+        storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, "d000003"));
     }
 }
