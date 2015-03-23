@@ -9,12 +9,14 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class Device {
 
-    private String id;                          // Id
-    private int type;                           // Type
-    private String descId;                      // Description Id
-    private int pv;                             // Protocol Version
-    private String connected;                   // Connected Node
-    private List<Map<String, Object>> own;      // Own Relations
+    private String id;                          // id
+    private int type;                           // type
+    private String descId;                      // description id
+    private int pv;                             // protocol version
+    private String connected;                   // connected node
+    private List<Map<String, Object>> own;      // own relations
+    private String ctrl;                        // control relation
+    private String ctrlToken;                   // control user's token
 
     protected Device() {
     }
@@ -65,5 +67,21 @@ public class Device {
 
     public void setOwn(List<Map<String, Object>> own) {
         this.own = own;
+    }
+
+    public String getCtrl() {
+        return ctrl;
+    }
+
+    public void setCtrl(String ctrl) {
+        this.ctrl = ctrl;
+    }
+
+    public String getCtrlToken() {
+        return ctrlToken;
+    }
+
+    public void setCtrlToken(String ctrlToken) {
+        this.ctrlToken = ctrlToken;
     }
 }

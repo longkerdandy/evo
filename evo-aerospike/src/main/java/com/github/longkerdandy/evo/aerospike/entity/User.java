@@ -14,7 +14,8 @@ public class User {
     private String email;                       // email
     private String mobile;                      // mobile phone
     private String password;                    // password (encoded before saving to db)
-    private List<Map<String, Object>> own;      // Own Relations
+    private List<Map<String, Object>> own;      // own relations
+    private List<String> ctrl;                  // control relations
 
     protected User() {
     }
@@ -65,5 +66,13 @@ public class User {
 
     public void setOwn(List<Map<String, Object>> own) {
         this.own = own;
+    }
+
+    public List<String> getCtrl() {
+        return ctrl;
+    }
+
+    public void setCtrl(List<String> ctrl) {
+        this.ctrl = ctrl;
     }
 }

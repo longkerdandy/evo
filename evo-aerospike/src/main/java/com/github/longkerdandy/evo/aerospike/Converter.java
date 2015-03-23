@@ -31,7 +31,8 @@ public class Converter {
                 new Bin(Scheme.BIN_U_EMAIL, user.getEmail()),
                 new Bin(Scheme.BIN_U_MOBILE, user.getMobile()),
                 new Bin(Scheme.BIN_U_PASSWORD, user.getPassword()),
-                new Bin(Scheme.BIN_U_OWN, Value.getAsList(user.getOwn()))
+                new Bin(Scheme.BIN_U_OWN, Value.get(user.getOwn())),
+                new Bin(Scheme.BIN_U_CTRL, Value.get(user.getCtrl())),
         };
     }
 
@@ -45,10 +46,11 @@ public class Converter {
     public static User recordToUser(Record record) {
         if (record == null) return null;
         User u = EntityFactory.newUser((String) record.getValue(Scheme.BIN_U_ID));
-        u.setAlias((String) record.getValue(Scheme.BIN_U_ALIAS));
-        u.setEmail((String) record.getValue(Scheme.BIN_U_EMAIL));
-        u.setMobile((String) record.getValue(Scheme.BIN_U_MOBILE));
+        u.setAlias(record.getString(Scheme.BIN_U_ALIAS));
+        u.setEmail(record.getString(Scheme.BIN_U_EMAIL));
+        u.setMobile(record.getString(Scheme.BIN_U_MOBILE));
         u.setOwn((List<Map<String, Object>>) record.getValue(Scheme.BIN_U_OWN));
+        u.setCtrl((List<String>) record.getValue(Scheme.BIN_U_CTRL));
         return u;
     }
 
@@ -65,7 +67,9 @@ public class Converter {
                 new Bin(Scheme.BIN_D_DESC_ID, device.getDescId()),
                 new Bin(Scheme.BIN_D_PV, device.getPv()),
                 new Bin(Scheme.BIN_D_CONN, device.getConnected()),
-                new Bin(Scheme.BIN_D_OWN, Value.getAsList(device.getOwn()))
+                new Bin(Scheme.BIN_D_OWN, Value.get(device.getOwn())),
+                new Bin(Scheme.BIN_D_CTRL, device.getCtrl()),
+                new Bin(Scheme.BIN_D_CTRL_TOKEN, device.getCtrlToken()),
         };
     }
 
@@ -80,10 +84,11 @@ public class Converter {
         if (record == null) return null;
         Device d = EntityFactory.newDevice((String) record.getValue(Scheme.BIN_D_ID));
         d.setType(record.getInt(Scheme.BIN_D_TYPE));
-        d.setDescId((String) record.getValue(Scheme.BIN_D_DESC_ID));
+        d.setDescId(record.getString(Scheme.BIN_D_DESC_ID));
         d.setPv(record.getInt(Scheme.BIN_D_PV));
-        d.setConnected((String) record.getValue(Scheme.BIN_D_CONN));
+        d.setConnected(record.getString(Scheme.BIN_D_CONN));
         d.setOwn((List<Map<String, Object>>) record.getValue(Scheme.BIN_D_OWN));
+        d.setCtrl(record.getString(Scheme.BIN_D_CTRL));
         return d;
     }
 

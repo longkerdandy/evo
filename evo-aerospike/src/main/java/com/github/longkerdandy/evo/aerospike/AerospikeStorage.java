@@ -161,6 +161,20 @@ public class AerospikeStorage {
     }
 
     /**
+     * Is User's token correct (on specific controller)
+     *
+     * @param userId   User Id
+     * @param deviceId Device Id (Controller)
+     * @param token    Token
+     * @return True if token is correct
+     */
+    public boolean isUserDeviceTokenCorrect(String userId, String deviceId, String token) {
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
+        Record r = this.ac.get(null, k, Scheme.BIN_D_CTRL, Scheme.BIN_D_CTRL_TOKEN);
+        return r != null && userId.equals(r.getString(Scheme.BIN_D_CTRL)) && token.equals(r.getString(Scheme.BIN_D_CTRL_TOKEN));
+    }
+
+    /**
      * Create or Update device attribute
      *
      * @param deviceId Device Id
@@ -220,8 +234,8 @@ public class AerospikeStorage {
         List<Map<String, Object>> od = (List<Map<String, Object>>) rd.getValue(Scheme.BIN_D_OWN);
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
-        this.ac.put(p, ku, new Bin(Scheme.BIN_U_OWN, Value.getAsList(updateOwn(ou, userId, deviceId, permission))));
-        this.ac.put(p, kd, new Bin(Scheme.BIN_D_OWN, Value.getAsList(updateOwn(od, userId, deviceId, permission))));
+        this.ac.put(p, ku, new Bin(Scheme.BIN_U_OWN, Value.get(updateOwn(ou, userId, deviceId, permission))));
+        this.ac.put(p, kd, new Bin(Scheme.BIN_D_OWN, Value.get(updateOwn(od, userId, deviceId, permission))));
     }
 
     /**
@@ -241,13 +255,13 @@ public class AerospikeStorage {
         if (ru != null) {
             List<Map<String, Object>> ou = (List<Map<String, Object>>) ru.getValue(Scheme.BIN_U_OWN);
             if (ou != null) {
-                this.ac.put(p, ku, new Bin(Scheme.BIN_U_OWN, Value.getAsList(removeOwn(ou, userId, deviceId))));
+                this.ac.put(p, ku, new Bin(Scheme.BIN_U_OWN, Value.get(removeOwn(ou, userId, deviceId))));
             }
         }
         if (rd != null) {
             List<Map<String, Object>> od = (List<Map<String, Object>>) rd.getValue(Scheme.BIN_D_OWN);
             if (od != null) {
-                this.ac.put(p, kd, new Bin(Scheme.BIN_D_OWN, Value.getAsList(removeOwn(od, userId, deviceId))));
+                this.ac.put(p, kd, new Bin(Scheme.BIN_D_OWN, Value.get(removeOwn(od, userId, deviceId))));
             }
         }
     }
@@ -290,7 +304,7 @@ public class AerospikeStorage {
         Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record ru = this.ac.get(null, ku, Scheme.BIN_U_CTRL);
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
-        Record rd = this.ac.get(null, kd, Scheme.BIN_D_CTRL_USER);
+        Record rd = this.ac.get(null, kd, Scheme.BIN_D_CTRL);
         if (ru == null || rd == null) {
             logger.debug("User {} or device {} not existed, update failed", userId, deviceId);
             return;
@@ -300,8 +314,8 @@ public class AerospikeStorage {
         if (!cu.contains(deviceId)) cu.add(deviceId);
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
-        this.ac.put(p, ku, new Bin(Scheme.BIN_U_CTRL, Value.getAsList(cu)));
-        this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL_USER, userId));
+        this.ac.put(p, ku, new Bin(Scheme.BIN_U_CTRL, Value.get(cu)));
+        this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, userId));
     }
 
     /**
@@ -315,7 +329,7 @@ public class AerospikeStorage {
         Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record ru = this.ac.get(null, ku, Scheme.BIN_U_CTRL);
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
-        Record rd = this.ac.get(null, kd, Scheme.BIN_D_CTRL_USER);
+        Record rd = this.ac.get(null, kd, Scheme.BIN_D_CTRL);
         if (ru == null || rd == null) {
             logger.debug("User {} or device {} not existed, update failed", userId, deviceId);
             return;
@@ -324,8 +338,8 @@ public class AerospikeStorage {
         if (cu != null) cu.removeAll(Collections.singleton(deviceId));
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
-        this.ac.put(p, ku, new Bin(Scheme.BIN_U_CTRL, Value.getAsList(cu)));
-        this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL_USER, Value.getAsNull()));
+        this.ac.put(p, ku, new Bin(Scheme.BIN_U_CTRL, Value.get(cu)));
+        this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, Value.getAsNull()));
     }
 
     /**

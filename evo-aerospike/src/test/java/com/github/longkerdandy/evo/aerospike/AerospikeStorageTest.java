@@ -95,6 +95,8 @@ public class AerospikeStorageTest {
             put(Scheme.OWN_PERMISSION, Permission.READ_WRITE);
         }});
         deviceA.setOwn(l);
+        deviceA.setCtrl("u000001");
+        deviceA.setCtrlToken("1234567890");
         storage.updateDevice(deviceA);
 
         // exist
@@ -110,6 +112,10 @@ public class AerospikeStorageTest {
         assert deviceA.getConnected().equals("Node1");
         assert deviceA.getOwn().get(0).get(Scheme.OWN_USER).equals("u000001");
         assert storage.getDeviceById("d000002") == null;
+
+        // token
+        assert storage.isUserDeviceTokenCorrect("u000001", "d000001", "1234567890");
+        assert !storage.isUserDeviceTokenCorrect("u000002", "d000001", "1234567890");
 
         // update device attribute
         Map<String, Object> attrA = new HashMap<>();
