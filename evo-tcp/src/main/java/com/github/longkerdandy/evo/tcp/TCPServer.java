@@ -1,6 +1,8 @@
 package com.github.longkerdandy.evo.tcp;
 
-import com.github.longkerdandy.evo.arangodb.ArangoStorage;
+import com.aerospike.client.Host;
+import com.aerospike.client.policy.ClientPolicy;
+import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
 import com.github.longkerdandy.evo.api.netty.Decoder;
 import com.github.longkerdandy.evo.api.netty.Encoder;
 import com.github.longkerdandy.evo.tcp.handler.BusinessHandler;
@@ -21,17 +23,19 @@ import io.netty.util.internal.logging.Slf4JLoggerFactory;
  */
 public class TCPServer {
 
-    private static final String STORAGE_HOST = "127.0.0.1";
-    private static final int STORAGE_PORT = 8529;
-    private static final String STORAGE_PASSWORD = null;
+    private static final String STORAGE_HOST = "172.16.1.227";
+    private static final int STORAGE_PORT = 3000;
 
     private static final String HOST = "0.0.0.0";
     private static final int PORT = 1883;
     private static final int THREADS = Runtime.getRuntime().availableProcessors() * 2;
 
     public static void main(String[] args) throws Exception {
-        ArangoStorage storage = new ArangoStorage(STORAGE_HOST, STORAGE_PORT, STORAGE_PASSWORD);
-        storage.init();
+        ClientPolicy policy = new ClientPolicy();
+        Host[] hosts = new Host[]{
+                new Host(STORAGE_HOST, STORAGE_PORT),
+        };
+        AerospikeStorage storage = new AerospikeStorage(policy, hosts);
         ChannelRepository repository = new ChannelRepository();
 
         // configure the server

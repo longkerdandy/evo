@@ -23,7 +23,7 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
  * Header is 7 bytes ~ 10 bytes long.
  * Bytes 1 ~ 3 signature .
  * Byte 4 is protocol version.
- * Byte 5 is protocol type.
+ * Byte 5 is reserved at the moment.
  * Byte 6 is reserved at the moment.
  * Bytes 7 ~ 10 represent payload length.
  * Message Data will be parsed into Message, passed to Handler.
@@ -34,7 +34,7 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
  * ---------------------------------------
  * | 4   | Protocol Version              |
  * ---------------------------------------
- * | 5   | Protocol Type                 |
+ * | 5   | Reserved                      |
  * ---------------------------------------
  * | 6   | Reserved                      |
  * ---------------------------------------
@@ -89,12 +89,8 @@ public class Decoder extends ByteToMessageDecoder {
             in.clear();
             throw new DecoderException("Unsupported protocol version " + b4);
         }
-        // header 5 protocol type
-        short b5 = in.readUnsignedByte();
-        if (b5 != Const.PROTOCOL_TYPE_JSON && b5 != Const.PROTOCOL_TYPE_AVRO) {
-            in.clear();
-            throw new DecoderException("Unsupported protocol type " + b5);
-        }
+        // header 5 reserved
+        in.readUnsignedByte();
         // header 6 reserved
         in.readUnsignedByte();
         // header 7-10 remaining length
@@ -111,55 +107,51 @@ public class Decoder extends ByteToMessageDecoder {
         }
 
         // message data
-        // json
-        if (b5 == Const.PROTOCOL_TYPE_JSON) {
-            try {
-                JavaType type = ObjectMapper.getTypeFactory().constructParametricType(Message.class, JsonNode.class);
-                Message<JsonNode> m = ObjectMapper.readValue(new ByteBufInputStream(in, remainingLength), type);
-                m.setPv(b4);    // save protocol version from header to message
-                m.setPt(b5);    // save protocol type from header to message
-                if (m.getTimestamp() <= 0) m.setTimestamp(System.currentTimeMillis());  // if timestamp not provided
-                switch (m.getMsgType()) {
-                    case MessageType.CONNECT:
-                        Message<Connect> c = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Connect.class));
-                        out.add(c);
-                        break;
-                    case MessageType.CONNACK:
-                        Message<ConnAck> ca = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), ConnAck.class));
-                        out.add(ca);
-                        break;
-                    case MessageType.DISCONNECT:
-                        Message<Disconnect> d = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Disconnect.class));
-                        out.add(d);
-                        break;
-                    case MessageType.DISCONNACK:
-                        Message<DisconnAck> da = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), DisconnAck.class));
-                        out.add(da);
-                        break;
-                    case MessageType.TRIGGER:
-                        Message<Trigger> t = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Trigger.class));
-                        out.add(t);
-                        break;
-                    case MessageType.TRIGACK:
-                        Message<TrigAck> ta = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), TrigAck.class));
-                        out.add(ta);
-                        break;
-                    case MessageType.ACTION:
-                        Message<Action> a = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Action.class));
-                        out.add(a);
-                        break;
-                    case MessageType.ACTACK:
-                        Message<ActAck> aa = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), ActAck.class));
-                        out.add(aa);
-                        break;
-                    default:
-                        in.clear();
-                        throw new DecoderException("Unexpected message type: " + m.getMsgType());
-                }
-            } catch (IOException e) {
-                in.clear();
-                throw new DecoderException(e);
+        try {
+            JavaType type = ObjectMapper.getTypeFactory().constructParametricType(Message.class, JsonNode.class);
+            Message<JsonNode> m = ObjectMapper.readValue(new ByteBufInputStream(in, remainingLength), type);
+            m.setPv(b4);    // save protocol version from header to message
+            if (m.getTimestamp() <= 0) m.setTimestamp(System.currentTimeMillis());  // if timestamp not provided
+            switch (m.getMsgType()) {
+                case MessageType.CONNECT:
+                    Message<Connect> c = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Connect.class));
+                    out.add(c);
+                    break;
+                case MessageType.CONNACK:
+                    Message<ConnAck> ca = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), ConnAck.class));
+                    out.add(ca);
+                    break;
+                case MessageType.DISCONNECT:
+                    Message<Disconnect> d = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Disconnect.class));
+                    out.add(d);
+                    break;
+                case MessageType.DISCONNACK:
+                    Message<DisconnAck> da = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), DisconnAck.class));
+                    out.add(da);
+                    break;
+                case MessageType.TRIGGER:
+                    Message<Trigger> t = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Trigger.class));
+                    out.add(t);
+                    break;
+                case MessageType.TRIGACK:
+                    Message<TrigAck> ta = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), TrigAck.class));
+                    out.add(ta);
+                    break;
+                case MessageType.ACTION:
+                    Message<Action> a = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Action.class));
+                    out.add(a);
+                    break;
+                case MessageType.ACTACK:
+                    Message<ActAck> aa = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), ActAck.class));
+                    out.add(aa);
+                    break;
+                default:
+                    in.clear();
+                    throw new DecoderException("Unexpected message type: " + m.getMsgType());
             }
+        } catch (IOException e) {
+            in.clear();
+            throw new DecoderException(e);
         }
     }
 }

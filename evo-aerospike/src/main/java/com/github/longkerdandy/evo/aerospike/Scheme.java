@@ -36,6 +36,7 @@ public class Scheme {
 
     // set - devices attribute
     public static final String SET_DEVICES_ATTR = "devices:attr";
+    public static final String BIN_D_A_UPDATE_TIME = "timestamp";
 
     private Scheme() {
     }

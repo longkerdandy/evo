@@ -9,7 +9,6 @@ public class ActAck {
 
     // Return Codes, from Platform to Controller
     public static final int RECEIVED = 100;                 // Message received and re-directed to the target device
-    public static final int RECEIVED_CACHED = 101;          // Message received but target device is offline, message has been cached
     public static final int PERMISSION_INSUFFICIENT = 110;  // User doesn't has enough permission do execute the action
 
     // Return Codes, from Device to Platform/Controller

@@ -122,7 +122,7 @@ public class AerospikeStorageTest {
         attrA.put("Field1", "1");
         attrA.put("Field2", 2);
         attrA.put("Field3", "3");
-        storage.updateDeviceAttr("d000001", attrA);
+        storage.updateDeviceAttr("d000001", attrA, true);
         attrA = storage.getDeviceAttr("d000001");
         assert attrA.get("Field1").equals("1");
         assert NumberUtils.toInt(String.valueOf(attrA.get("Field2"))) == 2;
@@ -130,7 +130,7 @@ public class AerospikeStorageTest {
 
         // update device attribute again
         attrA.put("Field1", "1Mod");
-        storage.updateDeviceAttr("d000001", attrA);
+        storage.updateDeviceAttr("d000001", attrA, true);
         attrA = storage.getDeviceAttr("d000001");
         assert attrA.get("Field1").equals("1Mod");
         assert NumberUtils.toInt(String.valueOf(attrA.get("Field2"))) == 2;
@@ -140,7 +140,7 @@ public class AerospikeStorageTest {
         attrA.put("Field1", "10");
         attrA.put("Field2", 20);
         attrA.remove("Field3");
-        storage.replaceDeviceAttr("d000001", attrA);
+        storage.replaceDeviceAttr("d000001", attrA, true);
         attrA = storage.getDeviceAttr("d000001");
         assert attrA.get("Field1").equals("10");
         assert NumberUtils.toInt(String.valueOf(attrA.get("Field2"))) == 20;
@@ -177,6 +177,8 @@ public class AerospikeStorageTest {
         deviceA = storage.getDeviceById("d000001");
         assert deviceA.getOwn().get(0).get(Scheme.OWN_USER).equals("u000001");
         assert NumberUtils.toInt(String.valueOf(deviceA.getOwn().get(0).get(Scheme.OWN_PERMISSION))) == Permission.READ;
+        assert storage.isUserOwnDevice("u000001", "d000001", Permission.READ);
+        assert !storage.isUserOwnDevice("u000001", "d000001", Permission.READ_WRITE);
 
         // update own again
         storage.updateUserOwnDevice("u000001", "d000001", Permission.READ_WRITE);
@@ -186,6 +188,8 @@ public class AerospikeStorageTest {
         deviceA = storage.getDeviceById("d000001");
         assert deviceA.getOwn().get(0).get(Scheme.OWN_USER).equals("u000001");
         assert NumberUtils.toInt(String.valueOf(deviceA.getOwn().get(0).get(Scheme.OWN_PERMISSION))) == Permission.READ_WRITE;
+        assert storage.isUserOwnDevice("u000001", "d000001", Permission.READ);
+        assert storage.isUserOwnDevice("u000001", "d000001", Permission.READ_WRITE);
 
         // get own
         List<Map<String, Object>> ownA = storage.getUserOwnee("u000001");

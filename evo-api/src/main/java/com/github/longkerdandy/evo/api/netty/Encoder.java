@@ -18,7 +18,7 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
  * Header is 7 bytes ~ 10 bytes long.
  * Bytes 1 ~ 3 signature .
  * Byte 4 is protocol version.
- * Byte 5 is protocol type.
+ * Byte 5 is reserved at the moment.
  * Byte 6 is reserved at the moment.
  * Bytes 7 ~ 10 represent payload length.
  * Payload is payload and will be parsed into Message, passed to Handler.
@@ -29,7 +29,7 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
  * ---------------------------------------
  * | 4   | Protocol Version              |
  * ---------------------------------------
- * | 5   | Protocol Type                 |
+ * | 5   | Reserved                      |
  * ---------------------------------------
  * | 6   | Reserved                      |
  * ---------------------------------------
@@ -76,7 +76,7 @@ public class Encoder extends MessageToByteEncoder<Message> {
         out.writeByte(0x56);
         out.writeByte(0x4F);
         out.writeByte((short) msg.getPv());
-        out.writeByte((short) msg.getPt());
+        out.writeByte(0);
         out.writeByte(0);
         encodeRemainingLength(out, remainingLength);
 

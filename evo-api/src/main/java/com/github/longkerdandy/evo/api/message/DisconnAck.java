@@ -9,7 +9,6 @@ public class DisconnAck {
 
     // Return Codes, from Platform to Device
     public static final int RECEIVED = 100;                 // Message received and re-directed to followers
-    public static final int TIMESTAMP_NOT_SATISFIED = 105;  // Message received but device status not updated due to policy
 
     private String disconnMsgId;       // DisconnectMessage's message id
     private int returnCode;            // Return Code

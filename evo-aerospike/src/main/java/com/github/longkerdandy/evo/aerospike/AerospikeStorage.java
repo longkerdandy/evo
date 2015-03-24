@@ -9,8 +9,7 @@ import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
 import com.github.longkerdandy.evo.aerospike.entity.Device;
 import com.github.longkerdandy.evo.aerospike.entity.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.github.longkerdandy.evo.api.protocol.Permission;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,7 +25,6 @@ public class AerospikeStorage {
      * Connections are cached with a connection pool for each server node.
      */
     protected final AerospikeClient ac;
-    private final Logger logger = LoggerFactory.getLogger(AerospikeStorage.class);
 
     /**
      * Constructor
@@ -125,6 +123,17 @@ public class AerospikeStorage {
     }
 
     /**
+     * Is description exist?
+     *
+     * @param descId Description Id
+     * @return True if exist
+     */
+    public boolean isDescriptionExist(String descId) {
+        // TODO: add real logic
+        return true;
+    }
+
+    /**
      * Is device exist?
      *
      * @param deviceId Device Id
@@ -146,6 +155,27 @@ public class AerospikeStorage {
         p.recordExistsAction = RecordExistsAction.UPDATE;
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, device.getId());
         this.ac.put(p, k, Converter.deviceToBins(device));
+    }
+
+    /**
+     * Try to mark device as disconnect
+     *
+     * @param deviceId Device Id
+     * @param node     Node Device disconnect from
+     * @return True if successes
+     */
+    public boolean updateDeviceDisconnect(String deviceId, String node) {
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
+        Record r = this.ac.get(null, k, Scheme.BIN_D_CONN);
+        // mark as disconnect if node name match
+        if (r != null && node.equals(r.getString(Scheme.BIN_D_CONN))) {
+            WritePolicy p = new WritePolicy();
+            p.recordExistsAction = RecordExistsAction.UPDATE;
+            this.ac.put(p, k, new Bin(Scheme.BIN_D_CONN, Value.getAsNull()));
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -176,28 +206,52 @@ public class AerospikeStorage {
 
     /**
      * Create or Update device attribute
+     * Make sure device exist before invoking this method!
      *
-     * @param deviceId Device Id
-     * @param attr     Device Attribute
+     * @param deviceId        Device Id
+     * @param attr            Device Attribute
+     * @param checkUpdateTime Check Update Timestamp?
      */
-    public void updateDeviceAttr(String deviceId, Map<String, Object> attr) {
+    public void updateDeviceAttr(String deviceId, Map<String, Object> attr, boolean checkUpdateTime) {
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES_ATTR, deviceId);
-        this.ac.put(p, k, Converter.mapToBins(attr));
+        if (!isTimestampValid((Long) attr.get(Scheme.BIN_D_A_UPDATE_TIME))) {
+            attr.put(Scheme.BIN_D_A_UPDATE_TIME, System.currentTimeMillis());
+        }
+        if (checkUpdateTime) {
+            Record r = this.ac.get(null, k, Scheme.BIN_D_A_UPDATE_TIME);
+            if (r == null || (Long) attr.get(Scheme.BIN_D_A_UPDATE_TIME) >= r.getLong(Scheme.BIN_D_A_UPDATE_TIME)) {
+                this.ac.put(p, k, Converter.mapToBins(attr));
+            }
+        } else {
+            this.ac.put(p, k, Converter.mapToBins(attr));
+        }
     }
 
     /**
      * Create or Replace device attribute
+     * Make sure device exist before invoking this method!
      *
-     * @param deviceId Device Id
-     * @param attr     Device Attribute
+     * @param deviceId        Device Id
+     * @param attr            Device Attribute
+     * @param checkUpdateTime Check Update Timestamp?
      */
-    public void replaceDeviceAttr(String deviceId, Map<String, Object> attr) {
+    public void replaceDeviceAttr(String deviceId, Map<String, Object> attr, boolean checkUpdateTime) {
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.REPLACE;
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES_ATTR, deviceId);
-        this.ac.put(p, k, Converter.mapToBins(attr));
+        if (!isTimestampValid((Long) attr.get(Scheme.BIN_D_A_UPDATE_TIME))) {
+            attr.put(Scheme.BIN_D_A_UPDATE_TIME, System.currentTimeMillis());
+        }
+        if (checkUpdateTime) {
+            Record r = this.ac.get(null, k, Scheme.BIN_D_A_UPDATE_TIME);
+            if (r == null || (Long) attr.get(Scheme.BIN_D_A_UPDATE_TIME) >= r.getLong(Scheme.BIN_D_A_UPDATE_TIME)) {
+                this.ac.put(p, k, Converter.mapToBins(attr));
+            }
+        } else {
+            this.ac.put(p, k, Converter.mapToBins(attr));
+        }
     }
 
     /**
@@ -226,16 +280,19 @@ public class AerospikeStorage {
         Record ru = this.ac.get(null, ku, Scheme.BIN_U_OWN);
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
         Record rd = this.ac.get(null, kd, Scheme.BIN_D_OWN);
-        if (ru == null || rd == null) {
-            logger.debug("User {} or device {} not existed, update failed", userId, deviceId);
-            return;
+
+        if (ru != null && rd != null) {
+            WritePolicy p = new WritePolicy();
+            p.recordExistsAction = RecordExistsAction.UPDATE;
+            List<Map<String, Object>> ou = (List<Map<String, Object>>) ru.getValue(Scheme.BIN_U_OWN);
+            if (!hasOwn(ou, userId, deviceId, permission, permission)) {
+                this.ac.put(p, ku, new Bin(Scheme.BIN_U_OWN, Value.get(updateOwn(ou, userId, deviceId, permission))));
+            }
+            List<Map<String, Object>> od = (List<Map<String, Object>>) rd.getValue(Scheme.BIN_D_OWN);
+            if (!hasOwn(od, userId, deviceId, permission, permission)) {
+                this.ac.put(p, kd, new Bin(Scheme.BIN_D_OWN, Value.get(updateOwn(od, userId, deviceId, permission))));
+            }
         }
-        List<Map<String, Object>> ou = (List<Map<String, Object>>) ru.getValue(Scheme.BIN_U_OWN);
-        List<Map<String, Object>> od = (List<Map<String, Object>>) rd.getValue(Scheme.BIN_D_OWN);
-        WritePolicy p = new WritePolicy();
-        p.recordExistsAction = RecordExistsAction.UPDATE;
-        this.ac.put(p, ku, new Bin(Scheme.BIN_U_OWN, Value.get(updateOwn(ou, userId, deviceId, permission))));
-        this.ac.put(p, kd, new Bin(Scheme.BIN_D_OWN, Value.get(updateOwn(od, userId, deviceId, permission))));
     }
 
     /**
@@ -252,18 +309,39 @@ public class AerospikeStorage {
         Record rd = this.ac.get(null, kd, Scheme.BIN_D_OWN);
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
+
         if (ru != null) {
             List<Map<String, Object>> ou = (List<Map<String, Object>>) ru.getValue(Scheme.BIN_U_OWN);
-            if (ou != null) {
+            if (hasOwn(ou, userId, deviceId, Permission.NONE, Permission.OWNER)) {
                 this.ac.put(p, ku, new Bin(Scheme.BIN_U_OWN, Value.get(removeOwn(ou, userId, deviceId))));
             }
         }
+
         if (rd != null) {
             List<Map<String, Object>> od = (List<Map<String, Object>>) rd.getValue(Scheme.BIN_D_OWN);
-            if (od != null) {
+            if (hasOwn(od, userId, deviceId, Permission.NONE, Permission.OWNER)) {
                 this.ac.put(p, kd, new Bin(Scheme.BIN_D_OWN, Value.get(removeOwn(od, userId, deviceId))));
             }
         }
+    }
+
+    /**
+     * Is user owns device with at least permission
+     *
+     * @param userId   User Id
+     * @param deviceId Device Id
+     * @param min      Minimal Permission
+     * @return True if owns
+     */
+    @SuppressWarnings("unchecked")
+    public boolean isUserOwnDevice(String userId, String deviceId, int min) {
+        Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
+        Record rd = this.ac.get(null, kd, Scheme.BIN_D_OWN);
+        if (rd != null) {
+            List<Map<String, Object>> od = (List<Map<String, Object>>) rd.getValue(Scheme.BIN_D_OWN);
+            return hasOwn(od, userId, deviceId, min, Permission.OWNER);
+        }
+        return false;
     }
 
     /**
@@ -305,17 +383,23 @@ public class AerospikeStorage {
         Record ru = this.ac.get(null, ku, Scheme.BIN_U_CTRL);
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
         Record rd = this.ac.get(null, kd, Scheme.BIN_D_CTRL);
-        if (ru == null || rd == null) {
-            logger.debug("User {} or device {} not existed, update failed", userId, deviceId);
-            return;
-        }
-        List<String> cu = (List<String>) ru.getValue(Scheme.BIN_U_CTRL);
-        if (cu == null) cu = new ArrayList<>();
-        if (!cu.contains(deviceId)) cu.add(deviceId);
+
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
-        this.ac.put(p, ku, new Bin(Scheme.BIN_U_CTRL, Value.get(cu)));
-        this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, userId));
+
+        if (ru != null && rd != null) {
+            List<String> cu = (List<String>) ru.getValue(Scheme.BIN_U_CTRL);
+            if (cu == null) cu = new ArrayList<>();
+            if (!cu.contains(deviceId)) {
+                cu.add(deviceId);
+                this.ac.put(p, ku, new Bin(Scheme.BIN_U_CTRL, Value.get(cu)));
+            }
+
+            String cd = rd.getString(Scheme.BIN_D_CTRL);
+            // remove old control relation
+            if (cd != null && !cd.equals(userId)) removeUserControlDevice(cd, deviceId);
+            if (cd == null || !cd.equals(userId)) this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, userId));
+        }
     }
 
     /**
@@ -330,16 +414,20 @@ public class AerospikeStorage {
         Record ru = this.ac.get(null, ku, Scheme.BIN_U_CTRL);
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
         Record rd = this.ac.get(null, kd, Scheme.BIN_D_CTRL);
-        if (ru == null || rd == null) {
-            logger.debug("User {} or device {} not existed, update failed", userId, deviceId);
-            return;
-        }
-        List<String> cu = (List<String>) ru.getValue(Scheme.BIN_U_CTRL);
-        if (cu != null) cu.removeAll(Collections.singleton(deviceId));
+
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
-        this.ac.put(p, ku, new Bin(Scheme.BIN_U_CTRL, Value.get(cu)));
-        this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, Value.getAsNull()));
+
+        if (ru != null) {
+            List<String> cu = (List<String>) ru.getValue(Scheme.BIN_U_CTRL);
+            if (cu != null && cu.removeAll(Collections.singleton(deviceId))) {
+                this.ac.put(p, ku, new Bin(Scheme.BIN_U_CTRL, Value.get(cu)));
+            }
+        }
+
+        if (rd != null && userId.equals(rd.getString(Scheme.BIN_D_CTRL))) {
+            this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, Value.getAsNull()));
+        }
     }
 
     /**
@@ -366,27 +454,39 @@ public class AerospikeStorage {
     @SuppressWarnings("unchecked")
     public Set<String> getDeviceOwnerControllee(String deviceId, int min, int max) {
         Set<String> set = new HashSet<>();
+
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
         Record r = this.ac.get(null, kd, Scheme.BIN_D_OWN);
         if (r == null) {
             return null;
         }
+
         List<Map<String, Object>> o = (List<Map<String, Object>>) r.getValue(Scheme.BIN_D_OWN);
-        for (Map<String, Object> m : o) {
-            long p = (long) m.get(Scheme.OWN_PERMISSION);
-            if (p >= min && p <= max) {
-                String u = (String) m.get(Scheme.OWN_USER);
-                Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, u);
-                Record ru = this.ac.get(null, ku, Scheme.BIN_U_CTRL);
-                if (ru != null) {
-                    List<String> cu = (List<String>) ru.getValue(Scheme.BIN_U_CTRL);
-                    if (cu != null) {
-                        set.addAll(cu.stream().collect(Collectors.toList()));
+        if (o != null) {
+            for (Map<String, Object> m : o) {
+                long p = (long) m.getOrDefault(Scheme.OWN_PERMISSION, 0);
+                if (p >= min && p <= max) {
+                    String u = (String) m.get(Scheme.OWN_USER);
+                    Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, u);
+                    Record ru = this.ac.get(null, ku, Scheme.BIN_U_CTRL);
+                    if (ru != null) {
+                        List<String> cu = (List<String>) ru.getValue(Scheme.BIN_U_CTRL);
+                        if (cu != null) {
+                            set.addAll(cu.stream().collect(Collectors.toList()));
+                        }
                     }
                 }
             }
         }
+
         return set;
+    }
+
+    /**
+     * Is timestamp valid
+     */
+    protected boolean isTimestampValid(Long timestamp) {
+        return timestamp != null && timestamp > 0;
     }
 
     /**
@@ -430,5 +530,20 @@ public class AerospikeStorage {
             }
         }
         return own;
+    }
+
+    /**
+     * Has ownership?
+     */
+    protected boolean hasOwn(List<Map<String, Object>> own, String userId, String deviceId, int min, int max) {
+        if (own != null) {
+            for (Map<String, Object> m : own) {
+                if (m.get(Scheme.OWN_USER).equals(userId) && m.get(Scheme.OWN_DEVICE).equals(deviceId)
+                        && (long) m.getOrDefault(Scheme.OWN_PERMISSION, 0) >= min && (long) m.getOrDefault(Scheme.OWN_PERMISSION, 0) <= max) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

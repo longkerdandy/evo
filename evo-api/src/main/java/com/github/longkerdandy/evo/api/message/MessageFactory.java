@@ -28,7 +28,6 @@ public class MessageFactory {
     public static <T> Message<T> newMessage(Message msg, T payload) {
         Message<T> m = new Message<>();
         m.setPv(msg.getPv());
-        m.setPt(msg.getPt());
         m.setMsgType(msg.getMsgType());
         m.setQos(msg.getQos());
         m.setDuplicate(msg.isDuplicate());
@@ -59,7 +58,6 @@ public class MessageFactory {
     protected static <T> Message<T> newMessage(int pv, int msgType, int qos, int deviceType, String from, String to, T payload) {
         Message<T> msg = new Message<>();
         msg.setPv(pv);                                  // Protocol Version
-        msg.setPt(Const.PROTOCOL_TYPE_JSON);            // Default protocol type JSON
         msg.setMsgType(msgType);                        // Message Type
         msg.setQos(qos);                                // QoS
         msg.setDuplicate(false);                        // Default not duplicated
@@ -175,7 +173,7 @@ public class MessageFactory {
      * @param returnCode Return Code
      * @return Message<TrigAck>
      */
-    public static Message<TrigAck> newTrigAckMessage(int pv, int deviceType, String from,String to,
+    public static Message<TrigAck> newTrigAckMessage(int pv, int deviceType, String from, String to,
                                                      String trigMsgId, int returnCode) {
         TrigAck trigAck = new TrigAck();
         trigAck.setTrigMsgId(trigMsgId);

@@ -11,8 +11,6 @@ public class Message<T> {
 
     @JsonIgnore
     private int pv;                 // Protocol Version
-    @JsonIgnore
-    private int pt;                 // Protocol Type
     private int msgType;            // Message Type (payload)
     private int qos;                // QoS Level
     private boolean duplicate;      // Is duplicate?
@@ -31,14 +29,6 @@ public class Message<T> {
 
     public void setPv(int pv) {
         this.pv = pv;
-    }
-
-    public int getPt() {
-        return pt;
-    }
-
-    public void setPt(int pt) {
-        this.pt = pt;
     }
 
     public int getMsgType() {

@@ -4,8 +4,6 @@ include 'evo-api'
 
 include 'evo-aerospike'
 
-include 'evo-arangodb'
-
 include 'evo-tcp'
 
 include 'evo-weather'
