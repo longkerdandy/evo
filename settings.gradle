@@ -6,5 +6,7 @@ include 'evo-aerospike'
 
 include 'evo-tcp'
 
+include 'evo-http'
+
 include 'evo-weather'
 

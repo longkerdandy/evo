@@ -363,8 +363,10 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
      */
     protected void notifyUsers(String deviceId, int min, int max, Message msg) {
         Set<String> controllers = this.storage.getDeviceOwnerControllee(deviceId, min, max);
-        for (String controller : controllers) {
-            notifyDevice(controller, msg);
+        if (controllers != null) {
+            for (String controller : controllers) {
+                notifyDevice(controller, msg);
+            }
         }
     }
 
