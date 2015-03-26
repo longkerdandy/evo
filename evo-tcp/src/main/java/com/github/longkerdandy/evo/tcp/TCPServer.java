@@ -6,7 +6,9 @@ import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
 import com.github.longkerdandy.evo.api.netty.Decoder;
 import com.github.longkerdandy.evo.api.netty.Encoder;
 import com.github.longkerdandy.evo.tcp.handler.BusinessHandler;
+import com.github.longkerdandy.evo.tcp.mq.TCPProducer;
 import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
+import com.github.longkerdandy.evo.tcp.util.TCPNode;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -17,6 +19,10 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
+import org.apache.kafka.clients.producer.ProducerConfig;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * TCP Server
@@ -26,19 +32,30 @@ public class TCPServer {
     private static final String STORAGE_HOST = "172.16.1.227";
     private static final int STORAGE_PORT = 3000;
 
+    private static final String MQ_HOST = "172.16.1.227:9092,172.16.1.227:9093,172.16.1.227:9094";
+
     private static final String HOST = "0.0.0.0";
     private static final int PORT = 1883;
     private static final int THREADS = Runtime.getRuntime().availableProcessors() * 2;
 
     public static void main(String[] args) throws Exception {
+        // storage
         ClientPolicy policy = new ClientPolicy();
         Host[] hosts = new Host[]{
                 new Host(STORAGE_HOST, STORAGE_PORT),
         };
         AerospikeStorage storage = new AerospikeStorage(policy, hosts);
-        ChannelRepository repository = new ChannelRepository();
+
+        // mq
+        Map<String, Object> configs = new HashMap<>();
+        configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, MQ_HOST);
+        configs.put(ProducerConfig.ACKS_CONFIG, 1);
+        configs.put(ProducerConfig.ACKS_CONFIG, 1);
+        configs.put(ProducerConfig.BLOCK_ON_BUFFER_FULL_CONFIG, "false");
+        TCPProducer producer = new TCPProducer(configs);
 
         // configure the server
+        ChannelRepository repository = new ChannelRepository();
         InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup(THREADS);

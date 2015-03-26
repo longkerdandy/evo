@@ -58,16 +58,16 @@ public class ChannelRepository {
      * Send message to specific device
      *
      * @param deviceId Device Id
-     * @param message  Message to be sent
+     * @param msg  Message to be sent
      */
-    public void sendMessage(String deviceId, Message message) {
+    public void sendMessage(String deviceId, Message msg) {
         ChannelHandlerContext ctx = this.getConn(deviceId);
         if (ctx != null) {
-            sendMessage(ctx, message);
+            sendMessage(ctx, msg);
         } else {
             logger.trace("Message {} {} has not been sent because device {} is not connected",
-                    message.getMsgType(),
-                    message.getMsgId(),
+                    msg.getMsgType(),
+                    msg.getMsgId(),
                     deviceId);
         }
     }
@@ -76,23 +76,23 @@ public class ChannelRepository {
      * Send message to specific channel
      *
      * @param ctx     ChannelHandlerContext
-     * @param message Message to be sent
+     * @param msg Message to be sent
      */
-    public void sendMessage(ChannelHandlerContext ctx, Message message) {
-        ChannelFuture future = ctx.writeAndFlush(message);
+    public void sendMessage(ChannelHandlerContext ctx, Message msg) {
+        ChannelFuture future = ctx.writeAndFlush(msg);
         future.addListener(new GenericFutureListener<ChannelFuture>() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
                     logger.trace("Message {} {} has been sent to device {} successfully",
-                            message.getMsgType(),
-                            message.getMsgId(),
-                            StringUtils.defaultIfBlank(message.getTo(), "<default>"));
+                            msg.getMsgType(),
+                            msg.getMsgId(),
+                            StringUtils.defaultIfBlank(msg.getTo(), "<default>"));
                 } else {
                     logger.debug("Message {} {} failed to send to device {}: {}",
-                            message.getMsgType(),
-                            message.getMsgId(),
-                            StringUtils.defaultIfBlank(message.getTo(), "<default>"),
+                            msg.getMsgType(),
+                            msg.getMsgId(),
+                            StringUtils.defaultIfBlank(msg.getTo(), "<default>"),
                             ExceptionUtils.getMessage(future.cause()));
                 }
             }
