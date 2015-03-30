@@ -2,7 +2,6 @@ package com.github.longkerdandy.evo.tcp.mq;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.longkerdandy.evo.api.message.Message;
-import com.github.longkerdandy.evo.api.mq.Topic;
 import com.github.longkerdandy.evo.api.util.JsonUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -47,9 +46,10 @@ public class TCPProducer {
     /**
      * Send message to mq
      *
-     * @param msg Message
+     * @param topic MQ Topic
+     * @param msg   Message
      */
-    public void sendMessage(Message msg) {
+    public void sendMessage(String topic, Message msg) {
         // A key/value pair to be sent to Kafka. This consists of a topic name to which the record is being sent,
         // an optional partition number, and an optional key and value.
         // If a valid partition number is specified that partition will be used when sending the record.
@@ -57,7 +57,7 @@ public class TCPProducer {
         // If neither key nor partition is present a partition will be assigned in a round-robin fashion.
         try {
             String value = JsonUtils.ObjectMapper.writeValueAsString(msg);
-            ProducerRecord<String, String> record = new ProducerRecord<>(Topic.TCP_IN, value);
+            ProducerRecord<String, String> record = new ProducerRecord<>(topic, value);
             this.producer.send(record,
                     (metadata, e) -> {
                         if (e != null)
