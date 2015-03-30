@@ -6,6 +6,7 @@ import com.github.longkerdandy.evo.aerospike.entity.EntityFactory;
 import com.github.longkerdandy.evo.aerospike.entity.User;
 import com.github.longkerdandy.evo.api.message.*;
 import com.github.longkerdandy.evo.api.protocol.*;
+import com.github.longkerdandy.evo.tcp.mq.TCPProducer;
 import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
 import com.github.longkerdandy.evo.tcp.util.TCPNode;
 import io.netty.channel.ChannelHandlerContext;
@@ -31,10 +32,12 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
     private final Map<String, User> authUsers;              // Authorized users in this connection
     private final AerospikeStorage storage;                 // Storage
     private final ChannelRepository repository;             // Connection Repository
+    private final TCPProducer producer;                     // MQ Producer
 
-    public BusinessHandler(AerospikeStorage storage, ChannelRepository repository) {
+    public BusinessHandler(AerospikeStorage storage, ChannelRepository repository, TCPProducer producer) {
         this.storage = storage;
         this.repository = repository;
+        this.producer = producer;
         this.authDevices = new HashMap<>();
         this.authUsers = new HashMap<>();
     }
@@ -150,7 +153,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             // update control relation
             this.storage.updateUserControlDevice(userId, deviceId);
 
-            // TODO: push to mq
+            // push to mq
+            this.producer.sendMessage(msg);
         }
 
         // send connack
@@ -185,7 +189,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             this.repository.sendMessage(ctx, trigAck);
         }
 
-        // TODO: push to mq
+        // push to mq
+        this.producer.sendMessage(msg);
     }
 
     /**
@@ -275,7 +280,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                 // notify users
                 Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getPv(), d.getType(), deviceId, null, Const.TRIGGER_OFFLINE, disconnect.getPolicy(), disconnect.getAttributes());
                 notifyUsers(deviceId, Permission.READ, Permission.OWNER, offline);
-                // TODO: push to mq
+                // push to mq
+                this.producer.sendMessage(msg);
             }
         }
 
@@ -381,9 +387,9 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         if (d != null) {
             if (StringUtils.isNotBlank(d.getConnected())) {
                 if (TCPNode.id().equals(d.getConnected())) {
-                    this.repository.sendMessage(deviceId, msg);
+                    this.repository.sendMessage(deviceId, msg); // send msg directly
                 } else {
-                    // TODO: push to mq
+                    this.producer.sendMessage(msg); // push to mq
                 }
             } else {
                 // cache or push service

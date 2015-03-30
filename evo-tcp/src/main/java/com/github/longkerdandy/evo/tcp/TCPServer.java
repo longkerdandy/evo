@@ -8,7 +8,6 @@ import com.github.longkerdandy.evo.api.netty.Encoder;
 import com.github.longkerdandy.evo.tcp.handler.BusinessHandler;
 import com.github.longkerdandy.evo.tcp.mq.TCPProducer;
 import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
-import com.github.longkerdandy.evo.tcp.util.TCPNode;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -49,8 +48,7 @@ public class TCPServer {
         // mq
         Map<String, Object> configs = new HashMap<>();
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, MQ_HOST);
-        configs.put(ProducerConfig.ACKS_CONFIG, 1);
-        configs.put(ProducerConfig.ACKS_CONFIG, 1);
+        configs.put(ProducerConfig.ACKS_CONFIG, "1");
         configs.put(ProducerConfig.BLOCK_ON_BUFFER_FULL_CONFIG, "false");
         TCPProducer producer = new TCPProducer(configs);
 
@@ -74,7 +72,7 @@ public class TCPServer {
                             p.addLast(new Decoder());
                             // Business Handler, in separate ExecutorGroup
                             p.addLast(new DefaultEventExecutorGroup(THREADS),
-                                    new BusinessHandler(storage, repository));
+                                    new BusinessHandler(storage, repository, producer));
                         }
                     });
 
