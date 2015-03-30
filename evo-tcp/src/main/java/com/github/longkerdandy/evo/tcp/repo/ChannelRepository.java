@@ -58,7 +58,7 @@ public class ChannelRepository {
      * Send message to specific device
      *
      * @param deviceId Device Id
-     * @param msg  Message to be sent
+     * @param msg      Message to be sent
      */
     public void sendMessage(String deviceId, Message msg) {
         ChannelHandlerContext ctx = this.getConn(deviceId);
@@ -75,7 +75,7 @@ public class ChannelRepository {
     /**
      * Send message to specific channel
      *
-     * @param ctx     ChannelHandlerContext
+     * @param ctx ChannelHandlerContext
      * @param msg Message to be sent
      */
     public void sendMessage(ChannelHandlerContext ctx, Message msg) {

@@ -12,6 +12,7 @@ import com.github.longkerdandy.evo.tcp.util.TCPNode;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,9 +139,12 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             }
             this.repository.saveConn(deviceId, ctx);
 
-            // notify users
             Message<Trigger> online = MessageFactory.newTriggerMessage(pv, deviceType, deviceId, null, Const.TRIGGER_ONLINE, connect.getPolicy(), connect.getAttributes());
-            notifyUsers(deviceId, Permission.READ, Permission.OWNER, online);
+
+            // notify users
+            if (Const.PLATFORM_ID.equals(msg.getTo())) {
+                notifyUsers(deviceId, Permission.READ, Permission.OWNER, online);
+            }
 
             // update device
             Device device = EntityFactory.newDevice(deviceId);
@@ -154,7 +158,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             this.storage.updateUserControlDevice(userId, deviceId);
 
             // push to mq
-            this.producer.sendMessage(msg);
+            this.producer.sendMessage(online);
         }
 
         // send connack
@@ -180,8 +184,14 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             return;
         }
 
+        msg.setDeviceType(d.getType());
+        msg.setDescId(d.getDescId());
+        // msg.setPv(d.getPv());
+
         // notify users
-        notifyUsers(deviceId, Permission.READ, Permission.OWNER, msg);
+        if (Const.PLATFORM_ID.equals(msg.getTo())) {
+            notifyUsers(deviceId, Permission.READ, Permission.OWNER, msg);
+        }
 
         // send trigack
         if (msg.getQos() == QoS.LEAST_ONCE || msg.getQos() == QoS.EXACTLY_ONCE) {
@@ -224,6 +234,11 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             logger.trace("Not authorized controller {}, action message ignored");
             return;
         }
+
+        msg.setDeviceType(d.getType());
+        msg.setDescId(d.getDescId());
+        // msg.setPv(d.getPv());
+        msg.setUserId(u.getId());
 
         int returnCode;
         if (this.storage.isUserOwnDevice(u.getId(), deviceId, Permission.READ_WRITE)) {
@@ -271,17 +286,25 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             return;
         }
 
+        msg.setDeviceType(d.getType());
+        msg.setDescId(d.getDescId());
+        // msg.setPv(d.getPv());
+
         // try to remove from local repository
         if (this.repository.removeConn(deviceId, ctx)) {
             this.authDevices.remove(deviceId);
             this.authUsers.remove(deviceId);
             // try to mark device disconnect
             if (this.storage.updateDeviceDisconnect(deviceId, TCPNode.id())) {
-                // notify users
                 Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getPv(), d.getType(), deviceId, null, Const.TRIGGER_OFFLINE, disconnect.getPolicy(), disconnect.getAttributes());
-                notifyUsers(deviceId, Permission.READ, Permission.OWNER, offline);
+                offline.setDescId(d.getDescId());
+
+                // notify users
+                // at the moment, we don't notify users device offline
+                // notifyUsers(deviceId, Permission.READ, Permission.OWNER, offline);
+
                 // push to mq
-                this.producer.sendMessage(msg);
+                this.producer.sendMessage(offline);
             }
         }
 
@@ -296,21 +319,47 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         logger.debug("Received channel in-active event from remote peer {}", getRemoteAddress(ctx));
 
+        handleConnLost(ctx);
+
+        // ctx.close();
+        ctx.fireChannelInactive();
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        logger.debug("Received exception caught event from remote peer {}: {}", getRemoteAddress(ctx), ExceptionUtils.getMessage(cause));
+
+        handleConnLost(ctx);
+
+        // ctx.close();
+        ctx.fireExceptionCaught(cause);
+    }
+
+    /**
+     * Handle connection lost event
+     *
+     * @param ctx ChannelHandlerContext
+     */
+    protected void handleConnLost(ChannelHandlerContext ctx) {
         // try to remove from local repository
         this.authDevices.keySet().stream().filter(deviceId -> this.repository.removeConn(deviceId, ctx)).forEach(deviceId -> {
             // try to mark device disconnect
             if (this.storage.updateDeviceDisconnect(deviceId, TCPNode.id())) {
-                // notify users
                 Device d = this.authDevices.get(deviceId);
                 Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getPv(), d.getType(), deviceId, null, Const.TRIGGER_OFFLINE, OverridePolicy.IGNORE, null);
-                notifyUsers(deviceId, Permission.READ, Permission.OWNER, offline);
+                offline.setDescId(d.getDescId());
+
+                // notify users
+                // at the moment, we don't notify users device offline
+                // notifyUsers(deviceId, Permission.READ, Permission.OWNER, offline);
+
+                // push to mq
+                this.producer.sendMessage(offline);
             }
         });
 
         this.authDevices.clear();
         this.authUsers.clear();
-        // ctx.close();
-        ctx.fireChannelInactive();
     }
 
     /**

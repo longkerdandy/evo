@@ -14,6 +14,9 @@ public class TCPNode {
 
     private static String ID;
 
+    private TCPNode() {
+    }
+
     /**
      * Get TCP Node Id
      */
@@ -33,8 +36,5 @@ public class TCPNode {
             // never happens
         }
         return ID;
-    }
-
-    private TCPNode() {
     }
 }
