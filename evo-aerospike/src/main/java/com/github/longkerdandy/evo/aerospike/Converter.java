@@ -45,7 +45,7 @@ public class Converter {
     @SuppressWarnings("unchecked")
     public static User recordToUser(Record record) {
         if (record == null) return null;
-        User u = EntityFactory.newUser((String) record.getValue(Scheme.BIN_U_ID));
+        User u = EntityFactory.newUser(record.getString(Scheme.BIN_U_ID));
         u.setAlias(record.getString(Scheme.BIN_U_ALIAS));
         u.setEmail(record.getString(Scheme.BIN_U_EMAIL));
         u.setMobile(record.getString(Scheme.BIN_U_MOBILE));
@@ -82,7 +82,7 @@ public class Converter {
     @SuppressWarnings("unchecked")
     public static Device recordToDevice(Record record) {
         if (record == null) return null;
-        Device d = EntityFactory.newDevice((String) record.getValue(Scheme.BIN_D_ID));
+        Device d = EntityFactory.newDevice(record.getString(Scheme.BIN_D_ID));
         d.setType(record.getInt(Scheme.BIN_D_TYPE));
         d.setDescId(record.getString(Scheme.BIN_D_DESC_ID));
         d.setPv(record.getInt(Scheme.BIN_D_PV));
