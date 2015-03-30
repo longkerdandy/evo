@@ -7,13 +7,9 @@ package com.github.longkerdandy.evo.api.message;
 @SuppressWarnings("unused")
 public class ActAck {
 
-    // Return Codes, from Platform to Controller
+    // Return Code
     public static final int RECEIVED = 100;                 // Message received and re-directed to the target device
-    public static final int PERMISSION_INSUFFICIENT = 110;  // User doesn't has enough permission do execute the action
-
-    // Return Codes, from Device to Platform/Controller
-    public static final int SUCCESS = 200;                  // Message received and executed
-    public static final int FAIL = 210;                     // Message received but failed to execute
+    public static final int PERMISSION_INSUFFICIENT = 110;  // User doesn't has enough permission to execute the action
 
     private String actMsgId;                // ActionMessage's message id
     private int returnCode;                 // Return Code

@@ -108,7 +108,7 @@ public class Decoder extends ByteToMessageDecoder {
 
         // message data
         try {
-            JavaType type = ObjectMapper.getTypeFactory().constructParametricType(Message.class, JsonNode.class);
+            JavaType type = ObjectMapper.getTypeFactory().constructParametrizedType(Message.class, Message.class, JsonNode.class);
             Message<JsonNode> m = ObjectMapper.readValue(new ByteBufInputStream(in, remainingLength), type);
             m.setPv(b4);    // save protocol version from header to message
             if (m.getTimestamp() <= 0) m.setTimestamp(System.currentTimeMillis());  // if timestamp not provided

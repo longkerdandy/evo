@@ -7,7 +7,7 @@ package com.github.longkerdandy.evo.api.message;
 @SuppressWarnings("unused")
 public class TrigAck {
 
-    // Return Codes, from Platform to Device
+    // Return Code
     public static final int RECEIVED = 100;                 // Message received and re-directed to followers
 
     private String trigMsgId;       // TriggerMessage's message id

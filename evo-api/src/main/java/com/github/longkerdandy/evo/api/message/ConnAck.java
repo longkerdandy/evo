@@ -7,7 +7,7 @@ package com.github.longkerdandy.evo.api.message;
 @SuppressWarnings("unused")
 public class ConnAck {
 
-    // Return Codes, from Platform to Device
+    // Return Codes
     public static final int RECEIVED = 100;                         // Message received and re-directed to followers
     public static final int EMPTY_USER_OR_TOKEN = 110;              // Empty user or token
     public static final int USER_TOKEN_INCORRECT = 111;             // User token incorrect

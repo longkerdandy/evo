@@ -33,7 +33,7 @@ public class MessageTest {
         String json = ObjectMapper.writeValueAsString(out);
 
         // Deserialization (raw message)
-        JavaType type = ObjectMapper.getTypeFactory().constructParametricType(Message.class, JsonNode.class);
+        JavaType type = ObjectMapper.getTypeFactory().constructParametrizedType(Message.class, Message.class, JsonNode.class);
         Message<JsonNode> in = ObjectMapper.readValue(json, type);
         // assert in.getPv() == Const.PROTOCOL_VERSION_1_0;
         assert in.getUserId().equals("User 1");

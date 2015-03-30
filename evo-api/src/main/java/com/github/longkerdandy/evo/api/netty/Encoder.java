@@ -38,7 +38,6 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
  * |       Message Data                  |
  * ---------------------------------------
  */
-@SuppressWarnings("unused")
 public class Encoder extends MessageToByteEncoder<Message> {
 
     /**
