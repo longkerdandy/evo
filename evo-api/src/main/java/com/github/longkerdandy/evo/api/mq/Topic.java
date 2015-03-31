@@ -6,6 +6,7 @@ package com.github.longkerdandy.evo.api.mq;
 public class Topic {
 
     public static final String TCP_IN = "tcp-in";       // TCP incoming messages
+    public static final String SMS = "sms";             // SMS service
 
     private Topic() {
     }

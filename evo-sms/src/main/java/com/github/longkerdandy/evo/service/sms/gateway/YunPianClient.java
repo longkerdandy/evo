@@ -34,6 +34,9 @@ public class YunPianClient {
     private static String URI_GET_USER_INFO = BASE_URI + "/" + VERSION + "/user/get.json" + "?apikey=" + API_KEY;
     private static String URI_SEND_SMS = BASE_URI + "/" + VERSION + "/sms/send.json";
 
+    private YunPianClient() {
+    }
+
     /**
      * Get user information
      *

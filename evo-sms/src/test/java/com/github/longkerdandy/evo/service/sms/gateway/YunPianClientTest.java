@@ -15,6 +15,7 @@ public class YunPianClientTest {
 
     @Test
     public void sendSmsTest() {
+        // TODO: use production ready template
         assert YunPianClient.sendSms("18616862881", "【正泰网络】您的验证码是0000");
     }
 }
