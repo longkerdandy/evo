@@ -1,0 +1,13 @@
+// Project Version
+version = '1.0.0'
+
+dependencies {
+    // Evo
+    compile project(':evo-api')
+
+    // Http Client
+    compile('org.apache.httpcomponents:httpclient:4.4.1') {
+        exclude module: 'commons-logging'
+    }
+    compile 'org.slf4j:jcl-over-slf4j:1.7.12'
+}

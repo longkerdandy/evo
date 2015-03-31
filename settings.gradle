@@ -10,3 +10,5 @@ include 'evo-http'
 
 include 'evo-weather'
 
+include 'evo-sms'
+
