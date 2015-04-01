@@ -64,9 +64,8 @@ public class YunPianClient {
      *
      * @param mobile Mobile Number
      * @param text   Sms Message
-     * @return True if success
      */
-    public static boolean sendSms(String mobile, String text) {
+    public static void sendSms(String mobile, String text) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPost httpPost = new HttpPost(URI_SEND_SMS);
 
@@ -79,21 +78,17 @@ public class YunPianClient {
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode != 200) {
                     logger.warn("Http error when getting user information from YunPian, status code:{}", statusCode);
-                    return false;
                 }
                 HttpEntity entity = response.getEntity();
                 YunPianResult result = JsonUtils.ObjectMapper.readValue(EntityUtils.toString(entity, ENCODING), YunPianResult.class);
                 if ("0".equals(result.getCode())) {
                     logger.trace("Successful send sms {} to mobile {}", text, mobile);
-                    return true;
                 } else {
                     logger.debug("Failed to send sms {} to mobile {}, error: {} {}", text, mobile, result.getCode(), result.getMsg());
-                    return false;
                 }
             }
         } catch (IOException e) {
             logger.warn("Http error when getting user information from YunPian: {}", ExceptionUtils.getMessage(e));
         }
-        return false;
     }
 }
