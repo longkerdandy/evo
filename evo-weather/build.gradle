@@ -13,7 +13,7 @@ dependencies {
     compile('org.apache.httpcomponents:httpclient:4.4.1') {
         exclude module: 'commons-logging'
     }
-    compile 'org.slf4j:jcl-over-slf4j:1.7.12'
+    compile 'org.slf4j:jcl-over-slf4j:1.7.10'
 
     // Quartz
     compile "org.quartz-scheduler:quartz:2.2.1"
