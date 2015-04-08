@@ -29,6 +29,7 @@ public class Scheme {
     public static final String BIN_D_TYPE = "type";
     public static final String BIN_D_DESC_ID = "desc";
     public static final String BIN_D_PV = "pv";
+    public static final String BIN_D_TOKEN = "token";
     public static final String BIN_D_CONN = "conn";
     public static final String BIN_D_OWN = "own";
     public static final String BIN_D_CTRL = "ctrl";

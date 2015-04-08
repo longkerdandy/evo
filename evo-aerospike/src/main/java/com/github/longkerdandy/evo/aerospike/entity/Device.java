@@ -13,6 +13,7 @@ public class Device {
     private int type;                           // type
     private String descId;                      // description id
     private int pv;                             // protocol version
+    private String token;                       // token
     private String connected;                   // connected node
     private List<Map<String, Object>> own;      // own relations
     private String ctrl;                        // control relation
@@ -51,6 +52,14 @@ public class Device {
 
     public void setPv(int pv) {
         this.pv = pv;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public String getConnected() {

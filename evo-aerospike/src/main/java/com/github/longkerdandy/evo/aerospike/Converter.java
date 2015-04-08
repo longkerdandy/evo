@@ -66,6 +66,7 @@ public class Converter {
                 new Bin(Scheme.BIN_D_TYPE, device.getType()),
                 new Bin(Scheme.BIN_D_DESC_ID, device.getDescId()),
                 new Bin(Scheme.BIN_D_PV, device.getPv()),
+                new Bin(Scheme.BIN_D_TOKEN, device.getToken()),
                 new Bin(Scheme.BIN_D_CONN, device.getConnected()),
                 new Bin(Scheme.BIN_D_OWN, Value.get(device.getOwn())),
                 new Bin(Scheme.BIN_D_CTRL, device.getCtrl()),
