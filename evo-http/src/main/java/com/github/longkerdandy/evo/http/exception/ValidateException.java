@@ -1,6 +1,6 @@
 package com.github.longkerdandy.evo.http.exception;
 
-import com.github.longkerdandy.evo.http.entity.ResponseEntity;
+import com.github.longkerdandy.evo.http.entity.ErrorEntity;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -23,7 +23,7 @@ public class ValidateException extends WebApplicationException {
      *
      * @param entity the error response entity
      */
-    public ValidateException(ResponseEntity entity) {
+    public ValidateException(ErrorEntity entity) {
         super(Response.status(400).entity(entity).type("application/json").build());
     }
 }

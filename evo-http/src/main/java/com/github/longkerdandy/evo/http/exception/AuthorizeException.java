@@ -1,6 +1,6 @@
 package com.github.longkerdandy.evo.http.exception;
 
-import com.github.longkerdandy.evo.http.entity.ResponseEntity;
+import com.github.longkerdandy.evo.http.entity.ErrorEntity;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -23,7 +23,7 @@ public class AuthorizeException extends WebApplicationException {
      *
      * @param entity the error response entity
      */
-    public AuthorizeException(ResponseEntity entity) {
+    public AuthorizeException(ErrorEntity entity) {
         super(Response.status(401).entity(entity).type("application/json").build());
     }
 }
