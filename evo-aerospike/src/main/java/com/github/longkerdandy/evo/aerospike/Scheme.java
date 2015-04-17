@@ -17,8 +17,8 @@ public class Scheme {
     public static final String SET_USERS = "users";
     public static final String BIN_U_ID = "id";
     public static final String BIN_U_ALIAS = "alias";
-    public static final String BIN_U_EMAIL = "email";
-    public static final String BIN_U_MOBILE = "mobile";
+    public static final String BIN_U_EMAIL = "email";       // Index
+    public static final String BIN_U_MOBILE = "mobile";     // Index
     public static final String BIN_U_PASSWORD = "pwd";
     public static final String BIN_U_OWN = "own";
     public static final String BIN_U_CTRL = "ctrl";
