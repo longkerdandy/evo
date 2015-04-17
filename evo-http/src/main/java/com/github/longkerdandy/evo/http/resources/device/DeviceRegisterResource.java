@@ -5,7 +5,7 @@ import com.github.longkerdandy.evo.aerospike.entity.Device;
 import com.github.longkerdandy.evo.aerospike.entity.EntityFactory;
 import com.github.longkerdandy.evo.http.entity.ResponseCode;
 import com.github.longkerdandy.evo.http.entity.ResponseEntity;
-import com.github.longkerdandy.evo.http.entity.device.DeviceRegisterEntity;
+import com.github.longkerdandy.evo.http.entity.device.DeviceEntity;
 import com.github.longkerdandy.evo.http.exception.ValidateException;
 import com.github.longkerdandy.evo.http.resources.AbstractResource;
 
@@ -29,11 +29,11 @@ public class DeviceRegisterResource extends AbstractResource {
      * Register new device
      * If the device already exist, exception will be throw
      *
-     * @param d DeviceRegisterEntity
+     * @param d DeviceEntity
      */
     @Path("/register")
     @POST
-    public void register(@HeaderParam("Accept-Language") String lang, @Valid DeviceRegisterEntity d) {
+    public void register(@HeaderParam("Accept-Language") String lang, @Valid DeviceEntity d) {
         // exist?
         if (this.storage.isDeviceExist(d.getId())) {
             throw new ValidateException(new ResponseEntity(ResponseEntity.ERROR, ResponseCode.DEVICE_ALREADY_EXIST, lang));
@@ -43,7 +43,7 @@ public class DeviceRegisterResource extends AbstractResource {
         Device device = EntityFactory.newDevice(d.getId());
         d.setType(d.getType());
         d.setDescId(d.getDescId());
-        d.setPv(d.getPv());
+        d.setProtocol(d.getProtocol());
         d.setToken(d.getToken());
         this.storage.updateDevice(device);
     }

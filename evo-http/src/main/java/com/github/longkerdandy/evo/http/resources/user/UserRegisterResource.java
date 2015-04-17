@@ -1,24 +1,17 @@
 package com.github.longkerdandy.evo.http.resources.user;
 
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
-import com.github.longkerdandy.evo.aerospike.entity.EntityFactory;
-import com.github.longkerdandy.evo.aerospike.entity.User;
-import com.github.longkerdandy.evo.api.util.UuidUtils;
-import com.github.longkerdandy.evo.http.entity.HttpConst;
-import com.github.longkerdandy.evo.http.entity.user.UserRegisterEntity;
+import com.github.longkerdandy.evo.http.entity.ResponseEntity;
 import com.github.longkerdandy.evo.http.resources.AbstractResource;
 
-import javax.validation.Valid;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * User register related resource
  */
-@Path("/api/v1.0/user")
+@Path("/users/register")
 @Produces(MediaType.APPLICATION_JSON)
 public class UserRegisterResource extends AbstractResource {
 
@@ -26,18 +19,14 @@ public class UserRegisterResource extends AbstractResource {
         super(aerospikeStorage);
     }
 
-    @Path("/register")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void register(@QueryParam("appId") String appId, @QueryParam("date") String date, @QueryParam("deviceId") String deviceId, @Valid UserRegisterEntity r) {
-        // validate parameters
-        String uri = HttpConst.BASE_HTTP_URI + "?appId=" + appId + "&date=" + date + "&deviceId=" + deviceId;
-        validateParam(uri, appId, getAppKey(appId));
+    @Path("/exist")
+    @GET
+    public ResponseEntity exist(@QueryParam("mobile") String mobile) {
+        // validate mobile format
 
-        // save new user to storage
-        User user = EntityFactory.newUser(UuidUtils.shortUuid());
-        user.setAlias(r.getAlias());
-        user.setMobile(r.getMobile());
-        user.setPassword(r.getPassword());
-        this.storage.updateUser(user);
+        // is mobile exist in storage
+        boolean b = this.storage.isUserMobileExist(mobile);
+        ResponseEntity<Boolean> e = new ResponseEntity<>(ResponseEntity.SUCCESS, b);
+        return e;
     }
 }

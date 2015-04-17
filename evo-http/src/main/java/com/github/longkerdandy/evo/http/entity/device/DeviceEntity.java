@@ -1,15 +1,15 @@
 package com.github.longkerdandy.evo.http.entity.device;
 
 /**
- * Device register related entity
+ * Device related entity
  */
 @SuppressWarnings("unused")
-public class DeviceRegisterEntity {
+public class DeviceEntity {
 
     private String id;
     private int type;
     private String descId;
-    private int pv;
+    private int protocol;
     private String token;
 
     public String getId() {
@@ -36,12 +36,12 @@ public class DeviceRegisterEntity {
         this.descId = descId;
     }
 
-    public int getPv() {
-        return pv;
+    public int getProtocol() {
+        return protocol;
     }
 
-    public void setPv(int pv) {
-        this.pv = pv;
+    public void setProtocol(int protocol) {
+        this.protocol = protocol;
     }
 
     public String getToken() {
