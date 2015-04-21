@@ -33,6 +33,6 @@ subprojects {
         testCompile 'eu.codearte.catch-exception:catch-exception:1.3.3'
 
         // Mockito
-        testCompile 'org.mockito:mockito-all:1.10.8'
+        testCompile 'org.mockito:mockito-all:1.10.16'
     }
 }

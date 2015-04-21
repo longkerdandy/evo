@@ -12,18 +12,18 @@ import javax.ws.rs.core.Response;
 public class ValidateException extends WebApplicationException {
 
     /**
-     * Create a HTTP 400 (Bad Request) exception.
+     * Create a HTTP 422 (UnProcessable Entity) exception.
      */
     public ValidateException() {
-        super(400);
+        super(422);
     }
 
     /**
-     * Create a HTTP 400 (Bad Request) exception.
+     * Create a HTTP 422 (UnProcessable Entity) exception.
      *
      * @param entity the error response entity
      */
     public ValidateException(ErrorEntity entity) {
-        super(Response.status(400).entity(entity).type("application/json").build());
+        super(Response.status(422).entity(entity).type("application/json").build());
     }
 }

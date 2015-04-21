@@ -6,20 +6,20 @@ package com.github.longkerdandy.evo.http.entity;
 @SuppressWarnings("unused")
 public class ErrorEntity<T> {
 
-    private Integer code;
+    private int code;
     private String message;
     private T data;
 
-    public ErrorEntity(Integer code, String lang) {
+    public ErrorEntity(int code, String lang) {
         this(code, lang, null);
     }
 
-    public ErrorEntity(Integer code, String lang, T data) {
+    public ErrorEntity(int code, String lang, T data) {
         this.code = code;
         this.data = data;
     }
 
-    public Integer getCode() {
+    public int getCode() {
         return code;
     }
 

@@ -29,8 +29,7 @@ public class HTTPApplication extends Application<HTTPConfiguration> {
         AerospikeStorage storage = new AerospikeStorage(policy, hosts);
 
         // register resources
-        final UserRegisterResource userRegisterResource = new UserRegisterResource(storage);
-        environment.jersey().register(userRegisterResource);
+        environment.jersey().register(new UserRegisterResource(storage));
 
         // config jackson
         environment.getObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
