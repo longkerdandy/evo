@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
 import com.github.longkerdandy.evo.http.resources.user.UserRegisterResource;
+import com.github.longkerdandy.evo.http.storage.AerospikeStorageManager;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
 
@@ -22,14 +23,11 @@ public class HTTPApplication extends Application<HTTPConfiguration> {
     @Override
     public void run(HTTPConfiguration configuration, Environment environment) throws Exception {
         // storage
-        ClientPolicy policy = new ClientPolicy();
-        Host[] hosts = new Host[]{
-                new Host(STORAGE_HOST, STORAGE_PORT),
-        };
-        AerospikeStorage storage = new AerospikeStorage(policy, hosts);
+        AerospikeStorageManager storageManager = new AerospikeStorageManager(STORAGE_HOST, STORAGE_PORT);
+        environment.lifecycle().manage(storageManager);
 
         // register resources
-        environment.jersey().register(new UserRegisterResource(storage));
+        environment.jersey().register(new UserRegisterResource(storageManager));
 
         // config jackson
         environment.getObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

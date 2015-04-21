@@ -1,6 +1,7 @@
 package com.github.longkerdandy.evo.http.resources;
 
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
+import com.github.longkerdandy.evo.http.storage.AerospikeStorageManager;
 import org.apache.commons.validator.routines.EmailValidator;
 
 import java.util.regex.Matcher;
@@ -11,10 +12,14 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractResource {
 
-    protected final AerospikeStorage storage;
+    protected final AerospikeStorageManager storageManager;
 
-    protected AbstractResource(AerospikeStorage storage) {
-        this.storage = storage;
+    protected AbstractResource(AerospikeStorageManager storageManager) {
+        this.storageManager = storageManager;
+    }
+
+    protected AerospikeStorage storage() {
+        return this.storageManager.getStorage();
     }
 
     /**
