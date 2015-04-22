@@ -11,10 +11,7 @@ import java.util.Properties;
  */
 public class SmsService {
 
-    // Logger
-    private static final Logger logger = LoggerFactory.getLogger(SmsService.class);
-
-    private static final String ZK_HOST = "172.16.1.227:2181";
+    private static final String ZK_HOST = "192.168.253.68:2181";
 
     public static void main(String args[]) throws Exception {
         // start mq consumer

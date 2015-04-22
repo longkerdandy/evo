@@ -13,6 +13,11 @@ public class Scheme {
     public static final String OWN_DEVICE = "device";
     public static final String OWN_PERMISSION = "perm";
 
+    // set - verify
+    public static final String SET_VERIFY = "verify";
+    public static final String BIN_V_ID = "id";             // mobile or email
+    public static final String BIN_V_CODE = "code";
+
     // set - users
     public static final String SET_USERS = "users";
     public static final String BIN_U_ID = "id";
@@ -28,7 +33,7 @@ public class Scheme {
     public static final String BIN_D_ID = "id";
     public static final String BIN_D_TYPE = "type";
     public static final String BIN_D_DESC_ID = "desc";
-    public static final String BIN_D_PV = "pv";
+    public static final String BIN_D_PROTOCOL = "protocol";
     public static final String BIN_D_TOKEN = "token";
     public static final String BIN_D_CONN = "conn";
     public static final String BIN_D_OWN = "own";

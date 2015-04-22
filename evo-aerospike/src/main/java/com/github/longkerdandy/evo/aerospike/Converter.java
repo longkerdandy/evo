@@ -65,7 +65,7 @@ public class Converter {
                 new Bin(Scheme.BIN_D_ID, device.getId()),
                 new Bin(Scheme.BIN_D_TYPE, device.getType()),
                 new Bin(Scheme.BIN_D_DESC_ID, device.getDescId()),
-                new Bin(Scheme.BIN_D_PV, device.getPv()),
+                new Bin(Scheme.BIN_D_PROTOCOL, device.getProtocol()),
                 new Bin(Scheme.BIN_D_TOKEN, device.getToken()),
                 new Bin(Scheme.BIN_D_CONN, device.getConnected()),
                 new Bin(Scheme.BIN_D_OWN, Value.get(device.getOwn())),
@@ -86,7 +86,7 @@ public class Converter {
         Device d = EntityFactory.newDevice(record.getString(Scheme.BIN_D_ID));
         d.setType(record.getInt(Scheme.BIN_D_TYPE));
         d.setDescId(record.getString(Scheme.BIN_D_DESC_ID));
-        d.setPv(record.getInt(Scheme.BIN_D_PV));
+        d.setProtocol(record.getInt(Scheme.BIN_D_PROTOCOL));
         d.setConnected(record.getString(Scheme.BIN_D_CONN));
         d.setOwn((List<Map<String, Object>>) record.getValue(Scheme.BIN_D_OWN));
         d.setCtrl(record.getString(Scheme.BIN_D_CTRL));

@@ -132,7 +132,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             Device d = EntityFactory.newDevice(deviceId);
             d.setType(deviceType);
             d.setDescId(descId);
-            d.setPv(pv);
+            d.setProtocol(pv);
             this.authDevices.put(deviceId, d);
             if (DeviceType.isController(deviceType)) {
                 User u = EntityFactory.newUser(userId);
@@ -151,7 +151,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             Device device = EntityFactory.newDevice(deviceId);
             device.setType(deviceType);
             device.setDescId(descId);
-            device.setPv(pv);
+            device.setProtocol(pv);
             device.setConnected(TCPNode.id());
             this.storage.updateDevice(device);
 
@@ -187,7 +187,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         msg.setDeviceType(d.getType());
         msg.setDescId(d.getDescId());
-        // msg.setPv(d.getPv());
+        // msg.setProtocol(d.getProtocol());
 
         // notify users
         if (Const.PLATFORM_ID.equals(msg.getTo())) {
@@ -196,7 +196,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         // send trigack
         if (msg.getQos() == QoS.LEAST_ONCE || msg.getQos() == QoS.EXACTLY_ONCE) {
-            Message<TrigAck> trigAck = MessageFactory.newTrigAckMessage(d.getPv(), DeviceType.PLATFORM, Const.PLATFORM_ID, deviceId, msg.getMsgId(), TrigAck.RECEIVED);
+            Message<TrigAck> trigAck = MessageFactory.newTrigAckMessage(d.getProtocol(), DeviceType.PLATFORM, Const.PLATFORM_ID, deviceId, msg.getMsgId(), TrigAck.RECEIVED);
             this.repository.sendMessage(ctx, trigAck);
         }
 
@@ -238,7 +238,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         msg.setDeviceType(d.getType());
         msg.setDescId(d.getDescId());
-        // msg.setPv(d.getPv());
+        // msg.setProtocol(d.getProtocol());
         msg.setUserId(u.getId());
 
         int returnCode;
@@ -251,7 +251,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         // send actack
         if (msg.getQos() == QoS.LEAST_ONCE || msg.getQos() == QoS.EXACTLY_ONCE) {
-            Message<ActAck> actAck = MessageFactory.newActAckMessage(d.getPv(), DeviceType.PLATFORM, Const.PLATFORM_ID, controllerId, msg.getMsgId(), returnCode);
+            Message<ActAck> actAck = MessageFactory.newActAckMessage(d.getProtocol(), DeviceType.PLATFORM, Const.PLATFORM_ID, controllerId, msg.getMsgId(), returnCode);
             this.repository.sendMessage(ctx, actAck);
         }
     }
@@ -289,7 +289,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         msg.setDeviceType(d.getType());
         msg.setDescId(d.getDescId());
-        // msg.setPv(d.getPv());
+        // msg.setProtocol(d.getProtocol());
 
         // try to remove from local repository
         if (this.repository.removeConn(deviceId, ctx)) {
@@ -297,7 +297,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             this.authUsers.remove(deviceId);
             // try to mark device disconnect
             if (this.storage.updateDeviceDisconnect(deviceId, TCPNode.id())) {
-                Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getPv(), d.getType(), deviceId, null, Const.TRIGGER_OFFLINE, disconnect.getPolicy(), disconnect.getAttributes());
+                Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, null, Const.TRIGGER_OFFLINE, disconnect.getPolicy(), disconnect.getAttributes());
                 offline.setDescId(d.getDescId());
 
                 // notify users
@@ -311,7 +311,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         // send diconnack
         if (msg.getQos() == QoS.LEAST_ONCE || msg.getQos() == QoS.EXACTLY_ONCE) {
-            Message<DisconnAck> disconnAck = MessageFactory.newDisconnAckMessage(d.getPv(), deviceId, msg.getMsgId(), DisconnAck.RECEIVED);
+            Message<DisconnAck> disconnAck = MessageFactory.newDisconnAckMessage(d.getProtocol(), deviceId, msg.getMsgId(), DisconnAck.RECEIVED);
             this.repository.sendMessage(ctx, disconnAck);
         }
     }
@@ -347,7 +347,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             // try to mark device disconnect
             if (this.storage.updateDeviceDisconnect(deviceId, TCPNode.id())) {
                 Device d = this.authDevices.get(deviceId);
-                Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getPv(), d.getType(), deviceId, null, Const.TRIGGER_OFFLINE, OverridePolicy.IGNORE, null);
+                Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, null, Const.TRIGGER_OFFLINE, OverridePolicy.IGNORE, null);
                 offline.setDescId(d.getDescId());
 
                 // notify users

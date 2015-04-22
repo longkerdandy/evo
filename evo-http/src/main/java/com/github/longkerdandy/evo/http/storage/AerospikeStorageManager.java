@@ -32,8 +32,6 @@ public class AerospikeStorageManager implements Managed {
 
     @Override
     public void stop() throws Exception {
-        if (this.storage != null) {
-            this.storage.close();
-        }
+        if (this.storage != null) this.storage.close();
     }
 }

@@ -25,4 +25,23 @@ public class AbstractResourceTest {
         assert !r.isEmailValid(null);
         assert !r.isEmailValid("");
     }
+
+    @Test
+    public void aliasValidTest() {
+        AbstractResource r = Mockito.mock(AbstractResource.class, Mockito.CALLS_REAL_METHODS);
+        assert r.isAliasValid("LongkerDandy");
+        assert r.isAliasValid("\u6D6A\u5BA2Dandy");
+        assert !r.isAliasValid("I love LongkerDandy");
+        assert !r.isAliasValid(null);
+        assert !r.isAliasValid("");
+    }
+
+    @Test
+    public void passwordValidTest() {
+        AbstractResource r = Mockito.mock(AbstractResource.class, Mockito.CALLS_REAL_METHODS);
+        assert r.isPasswordValid("Dandy@0516");
+        assert !r.isPasswordValid("1234567890");
+        assert !r.isPasswordValid(null);
+        assert !r.isPasswordValid("");
+    }
 }

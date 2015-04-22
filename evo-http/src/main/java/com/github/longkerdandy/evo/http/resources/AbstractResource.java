@@ -1,6 +1,8 @@
 package com.github.longkerdandy.evo.http.resources;
 
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
+import com.github.longkerdandy.evo.api.mq.Producer;
+import com.github.longkerdandy.evo.http.mq.ProducerManager;
 import com.github.longkerdandy.evo.http.storage.AerospikeStorageManager;
 import org.apache.commons.validator.routines.EmailValidator;
 
@@ -13,13 +15,19 @@ import java.util.regex.Pattern;
 public abstract class AbstractResource {
 
     protected final AerospikeStorageManager storageManager;
+    protected final ProducerManager producerManager;
 
-    protected AbstractResource(AerospikeStorageManager storageManager) {
+    protected AbstractResource(AerospikeStorageManager storageManager, ProducerManager producerManager) {
         this.storageManager = storageManager;
+        this.producerManager = producerManager;
     }
 
     protected AerospikeStorage storage() {
         return this.storageManager.getStorage();
+    }
+
+    protected Producer producer() {
+        return this.producerManager.getProducer();
     }
 
     /**
@@ -45,5 +53,40 @@ public abstract class AbstractResource {
      */
     protected boolean isEmailValid(String email) {
         return email != null && EmailValidator.getInstance().isValid(email);
+    }
+
+    /**
+     * Is given user alias valid
+     * Alias can have unicode characters and '-', length from 3 ~ 15
+     *
+     * @param alias User Alias
+     * @return True if valid
+     */
+    protected boolean isAliasValid(String alias) {
+        if (alias == null) return false;
+        Pattern p = Pattern.compile("^[\\w-]{3,15}$", Pattern.UNICODE_CHARACTER_CLASS);
+        Matcher m = p.matcher(alias);
+        return m.matches();
+    }
+
+    /**
+     * Is given password valid
+     * ^                 # start-of-string
+     * (?=.*[0-9])       # a digit must occur at least once
+     * (?=.*[a-z])       # a lower case letter must occur at least once
+     * (?=.*[A-Z])       # an upper case letter must occur at least once
+     * (?=.*[@#$%^&+=])  # a special character must occur at least once
+     * (?=\S+$)          # no whitespace allowed in the entire string
+     * .{8,}             # anything, at least eight places though
+     * $                 # end-of-string
+     *
+     * @param password Password
+     * @return True if valid
+     */
+    protected boolean isPasswordValid(String password) {
+        if (password == null) return false;
+        Pattern p = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$");
+        Matcher m = p.matcher(password);
+        return m.matches();
     }
 }

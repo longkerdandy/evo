@@ -38,6 +38,17 @@ public class AerospikeStorageTest {
     }
 
     @Test
+    public void verifyTest() throws InterruptedException {
+        // create mobile verify code
+        storage.updateVerify("+86 18600000000", "123456", 1);
+        assert storage.isVerifyCodeCorrect("+86 18600000000", "123456");
+
+        // sleep to wait ttl expire
+        Thread.sleep(1500);
+        assert !storage.isVerifyCodeCorrect("+86 18600000000", "123456");
+    }
+
+    @Test
     public void userTest() {
         // create new user
         User userA = EntityFactory.newUser("u000001");
@@ -86,7 +97,7 @@ public class AerospikeStorageTest {
         Device deviceA = EntityFactory.newDevice("d000001");
         deviceA.setType(DeviceType.DEVICE);
         deviceA.setDescId("Desc1");
-        deviceA.setPv(Const.PROTOCOL_VERSION_1_0);
+        deviceA.setProtocol(Const.PROTOCOL_VERSION_1_0);
         deviceA.setConnected("Node1");
         List<Map<String, Object>> l = new ArrayList<>();
         l.add(new HashMap<String, Object>() {{
@@ -108,7 +119,7 @@ public class AerospikeStorageTest {
         assert deviceA != null;
         assert deviceA.getType() == DeviceType.DEVICE;
         assert deviceA.getDescId().equals("Desc1");
-        assert deviceA.getPv() == Const.PROTOCOL_VERSION_1_0;
+        assert deviceA.getProtocol() == Const.PROTOCOL_VERSION_1_0;
         assert deviceA.getConnected().equals("Node1");
         assert deviceA.getOwn().get(0).get(Scheme.OWN_USER).equals("u000001");
         assert storage.getDeviceById("d000002") == null;
@@ -165,7 +176,7 @@ public class AerospikeStorageTest {
         Device deviceA = EntityFactory.newDevice("d000001");
         deviceA.setType(DeviceType.DEVICE);
         deviceA.setDescId("Desc1");
-        deviceA.setPv(Const.PROTOCOL_VERSION_1_0);
+        deviceA.setProtocol(Const.PROTOCOL_VERSION_1_0);
         deviceA.setConnected("Node1");
         storage.updateDevice(deviceA);
 
@@ -225,19 +236,19 @@ public class AerospikeStorageTest {
         Device deviceA = EntityFactory.newDevice("d000001");
         deviceA.setType(DeviceType.DEVICE);
         deviceA.setDescId("Desc1");
-        deviceA.setPv(Const.PROTOCOL_VERSION_1_0);
+        deviceA.setProtocol(Const.PROTOCOL_VERSION_1_0);
         deviceA.setConnected("Node1");
         storage.updateDevice(deviceA);
         Device deviceB = EntityFactory.newDevice("d000002");
         deviceB.setType(DeviceType.DEVICE);
         deviceB.setDescId("Desc1");
-        deviceB.setPv(Const.PROTOCOL_VERSION_1_0);
+        deviceB.setProtocol(Const.PROTOCOL_VERSION_1_0);
         deviceB.setConnected("Node1");
         storage.updateDevice(deviceB);
         Device deviceC = EntityFactory.newDevice("d000003");
         deviceC.setType(DeviceType.DEVICE);
         deviceC.setDescId("Desc1");
-        deviceC.setPv(Const.PROTOCOL_VERSION_1_0);
+        deviceC.setProtocol(Const.PROTOCOL_VERSION_1_0);
         deviceC.setConnected("Node1");
         storage.updateDevice(deviceC);
 

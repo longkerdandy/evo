@@ -5,6 +5,9 @@ dependencies {
     // Netty
     compile 'io.netty:netty-all:4.0.26.Final'
 
+    // Kafka
+    compile 'org.apache.kafka:kafka-clients:0.8.2.1'
+
     // UUID
     compile 'com.fasterxml.uuid:java-uuid-generator:3.1.4'
 }

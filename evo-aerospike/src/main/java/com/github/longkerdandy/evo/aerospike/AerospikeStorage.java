@@ -52,6 +52,34 @@ public class AerospikeStorage {
     }
 
     /**
+     * Create or Update verify code
+     * Validate before invoking this method!
+     *
+     * @param verifyId Mobile or Email
+     * @param code     Verify Code
+     * @param ttl      Time to live
+     */
+    public void updateVerify(String verifyId, String code, int ttl) {
+        WritePolicy p = new WritePolicy();
+        p.recordExistsAction = RecordExistsAction.UPDATE;
+        p.expiration = ttl;
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_VERIFY, verifyId);
+        this.ac.put(p, k, new Bin(Scheme.BIN_V_ID, verifyId), new Bin(Scheme.BIN_V_CODE, code));
+    }
+
+    /**
+     * Is verify code correct?
+     *
+     * @param verifyId Mobile or Email
+     * @param code     Verify Code
+     */
+    public boolean isVerifyCodeCorrect(String verifyId, String code) {
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_VERIFY, verifyId);
+        Record r = this.ac.get(null, k, Scheme.BIN_V_CODE);
+        return r != null && code.equals(r.getValue(Scheme.BIN_V_CODE));
+    }
+
+    /**
      * Create or Update user
      * Validate before invoking this method!
      *

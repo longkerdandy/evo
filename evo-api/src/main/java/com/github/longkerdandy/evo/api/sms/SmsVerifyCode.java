@@ -3,15 +3,23 @@ package com.github.longkerdandy.evo.api.sms;
 /**
  * Sms used for Verify Code
  */
+@SuppressWarnings("unused")
 public class SmsVerifyCode {
 
-    private int code;   // verify code
+    private String code;   // verify code
 
-    public int getCode() {
-        return code;
+    protected SmsVerifyCode() {
     }
 
-    public void setCode(int code) {
+    public SmsVerifyCode(String code) {
         this.code = code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getCode() {
+        return code;
     }
 }

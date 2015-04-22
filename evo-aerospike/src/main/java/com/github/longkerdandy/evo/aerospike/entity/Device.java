@@ -12,7 +12,7 @@ public class Device {
     private String id;                          // id
     private int type;                           // type
     private String descId;                      // description id
-    private int pv;                             // protocol version
+    private int protocol;                       // protocol
     private String token;                       // token
     private String connected;                   // connected node
     private List<Map<String, Object>> own;      // own relations
@@ -46,12 +46,12 @@ public class Device {
         this.descId = descId;
     }
 
-    public int getPv() {
-        return pv;
+    public int getProtocol() {
+        return protocol;
     }
 
-    public void setPv(int pv) {
-        this.pv = pv;
+    public void setProtocol(int pv) {
+        this.protocol = pv;
     }
 
     public String getToken() {
