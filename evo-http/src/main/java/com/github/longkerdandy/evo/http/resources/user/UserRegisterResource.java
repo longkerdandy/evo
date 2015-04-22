@@ -44,7 +44,7 @@ public class UserRegisterResource extends AbstractResource {
         if (mobile.isPresent()) {
             // validate mobile format
             if (!isMobileValid(mobile.get())) {
-                throw new ValidateException(new ErrorEntity(ErrorCode.VALIDATION_FAILED, lang));
+                throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
             }
             // is mobile exist in storage
             if (!storage().isUserMobileExist(mobile.get())) {
@@ -55,7 +55,7 @@ public class UserRegisterResource extends AbstractResource {
         if (email.isPresent()) {
             // validate email format
             if (!isEmailValid(email.get())) {
-                throw new ValidateException(new ErrorEntity(ErrorCode.VALIDATION_FAILED, lang));
+                throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
             }
             // is email exist in storage
             if (!storage().isUserEmailExist(email.get())) {
@@ -76,26 +76,26 @@ public class UserRegisterResource extends AbstractResource {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
         }
         if (!type.equalsIgnoreCase("mobile") && !type.equalsIgnoreCase("email")) {
-            throw new ValidateException(new ErrorEntity(ErrorCode.VALIDATION_FAILED, lang));
+            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
         }
 
         // validate alias format
         if (!isAliasValid(r.getUser().getAlias())) {
-            throw new ValidateException(new ErrorEntity(ErrorCode.VALIDATION_FAILED, lang));
+            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
         }
         // validate password format
         if (!isPasswordValid(r.getUser().getPassword())) {
-            throw new ValidateException(new ErrorEntity(ErrorCode.VALIDATION_FAILED, lang));
+            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
         }
 
         if (type.equalsIgnoreCase("mobile")) {
             // validate mobile format
             if (!isMobileValid(r.getUser().getMobile())) {
-                throw new ValidateException(new ErrorEntity(ErrorCode.VALIDATION_FAILED, lang));
+                throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
             }
             // is mobile exist in storage
             if (storage().isUserMobileExist(r.getUser().getMobile())) {
-                throw new ValidateException(new ErrorEntity(ErrorCode.ALREADY_EXIST, lang));
+                throw new ValidateException(new ErrorEntity(ErrorCode.ALREADY_EXISTS, lang));
             }
             // create mobile verify code
             String code = RandomStringUtils.randomNumeric(MOBILE_VERIFY_CODE_LENGTH);
