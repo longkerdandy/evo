@@ -2,8 +2,6 @@ package com.github.longkerdandy.evo.http.resources;
 
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
 import com.github.longkerdandy.evo.api.mq.Producer;
-import com.github.longkerdandy.evo.http.mq.ProducerManager;
-import com.github.longkerdandy.evo.http.storage.AerospikeStorageManager;
 import org.apache.commons.validator.routines.EmailValidator;
 
 import java.util.regex.Matcher;
@@ -14,20 +12,12 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractResource {
 
-    protected final AerospikeStorageManager storageManager;
-    protected final ProducerManager producerManager;
+    protected final AerospikeStorage storage;
+    protected final Producer producer;
 
-    protected AbstractResource(AerospikeStorageManager storageManager, ProducerManager producerManager) {
-        this.storageManager = storageManager;
-        this.producerManager = producerManager;
-    }
-
-    protected AerospikeStorage storage() {
-        return this.storageManager.getStorage();
-    }
-
-    protected Producer producer() {
-        return this.producerManager.getProducer();
+    protected AbstractResource(AerospikeStorage storage, Producer producer) {
+        this.storage = storage;
+        this.producer = producer;
     }
 
     /**

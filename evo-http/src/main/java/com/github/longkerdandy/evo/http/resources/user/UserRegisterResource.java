@@ -1,5 +1,7 @@
 package com.github.longkerdandy.evo.http.resources.user;
 
+import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
+import com.github.longkerdandy.evo.api.mq.Producer;
 import com.github.longkerdandy.evo.api.sms.SmsMessage;
 import com.github.longkerdandy.evo.api.sms.SmsVerifyCode;
 import com.github.longkerdandy.evo.http.entity.ErrorCode;
@@ -7,9 +9,7 @@ import com.github.longkerdandy.evo.http.entity.ErrorEntity;
 import com.github.longkerdandy.evo.http.entity.ResultEntity;
 import com.github.longkerdandy.evo.http.entity.user.UserRegisterEntity;
 import com.github.longkerdandy.evo.http.exception.ValidateException;
-import com.github.longkerdandy.evo.http.mq.ProducerManager;
 import com.github.longkerdandy.evo.http.resources.AbstractResource;
-import com.github.longkerdandy.evo.http.storage.AerospikeStorageManager;
 import com.google.common.base.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -26,14 +26,13 @@ import javax.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 public class UserRegisterResource extends AbstractResource {
 
+    protected static final int MOBILE_VERIFY_CODE_LENGTH = 6;
+    protected static final int MOBILE_VERIFY_CODE_TTL = 180;    // seconds
     // Logger
     private static final Logger logger = LoggerFactory.getLogger(UserRegisterResource.class);
 
-    protected static final int MOBILE_VERIFY_CODE_LENGTH = 6;
-    protected static final int MOBILE_VERIFY_CODE_TTL = 180;    // seconds
-
-    public UserRegisterResource(AerospikeStorageManager storageManager, ProducerManager producerManager) {
-        super(storageManager, producerManager);
+    public UserRegisterResource(AerospikeStorage storage, Producer producer) {
+        super(storage, producer);
     }
 
     @Path("/exist")
@@ -53,7 +52,7 @@ public class UserRegisterResource extends AbstractResource {
                 throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
             }
             // is mobile exist in storage
-            if (!storage().isUserMobileExist(mobile.get())) {
+            if (!this.storage.isUserMobileExist(mobile.get())) {
                 return new ResultEntity<>(false);
             }
         }
@@ -64,7 +63,7 @@ public class UserRegisterResource extends AbstractResource {
                 throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
             }
             // is email exist in storage
-            if (!storage().isUserEmailExist(email.get())) {
+            if (!this.storage.isUserEmailExist(email.get())) {
                 return new ResultEntity<>(false);
             }
         }
@@ -101,15 +100,15 @@ public class UserRegisterResource extends AbstractResource {
                 throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
             }
             // is mobile exist in storage
-            if (storage().isUserMobileExist(r.getUser().getMobile())) {
+            if (this.storage.isUserMobileExist(r.getUser().getMobile())) {
                 throw new ValidateException(new ErrorEntity(ErrorCode.ALREADY_EXISTS, lang));
             }
             // create mobile verify code
             String code = RandomStringUtils.randomNumeric(MOBILE_VERIFY_CODE_LENGTH);
-            storage().updateVerify(r.getUser().getMobile(), code, MOBILE_VERIFY_CODE_TTL);
+            this.storage.updateVerify(r.getUser().getMobile(), code, MOBILE_VERIFY_CODE_TTL);
             logger.debug("Created a verify code for mobile {}", r.getUser().getMobile());
             // send to mq
-            producer().sendSmsMessage(new SmsMessage<>(r.getUser().getMobile(), SmsMessage.TYPE_VERIFY_CODE, new SmsVerifyCode(code)));
+            this.producer.sendSmsMessage(new SmsMessage<>(r.getUser().getMobile(), SmsMessage.TYPE_VERIFY_CODE, new SmsVerifyCode(code)));
 
             return new ResultEntity<>("successful");
         } else {

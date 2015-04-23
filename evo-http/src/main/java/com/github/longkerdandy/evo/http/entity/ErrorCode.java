@@ -11,6 +11,6 @@ public class ErrorCode {
 
     public static final int UNSUPPORTED = 21;
 
-    private ErrorCode(){
+    private ErrorCode() {
     }
 }

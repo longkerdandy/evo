@@ -1,6 +1,8 @@
 // Project Version
 version = '1.0.0'
 
+mainClassName = "com.github.longkerdandy.evo.http.HTTPApplication"
+
 dependencies {
     // Evo
     compile project(':evo-api')
