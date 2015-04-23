@@ -1,9 +1,14 @@
 // Project Version
 version = '1.0.0'
 
+mainClassName = "com.github.longkerdandy.evo.service.sms.SmsApplication"
+
 dependencies {
     // Evo
     compile project(':evo-api')
+
+    // Commons Configuration
+    compile 'commons-configuration:commons-configuration:1.10'
 
     // Http Client
     compile('org.apache.httpcomponents:httpclient:4.4.1') {
