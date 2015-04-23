@@ -12,7 +12,8 @@ public class SmsApplication {
 
     public static void main(String args[]) throws Exception {
         // load config
-        PropertiesConfiguration config = new PropertiesConfiguration("config/sms.properties");
+        String f = args.length >= 1 ? args[0] : "config/sms.properties";
+        PropertiesConfiguration config = new PropertiesConfiguration(f);
 
         // start mq consumer
         Properties props = new Properties();
