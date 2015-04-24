@@ -26,7 +26,7 @@ public class Device {
         return id;
     }
 
-    protected void setId(String id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -50,8 +50,8 @@ public class Device {
         return protocol;
     }
 
-    public void setProtocol(int pv) {
-        this.protocol = pv;
+    public void setProtocol(int protocol) {
+        this.protocol = protocol;
     }
 
     public String getToken() {

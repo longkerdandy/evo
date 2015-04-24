@@ -253,10 +253,10 @@ public class AerospikeStorageTest {
         storage.updateDevice(deviceC);
 
         // update control
-        storage.updateUserControlDevice("u000001", "d000002");
+        storage.updateUserControlDevice("u000001", "d000002", "token_abc");
         List<String> ctrlA = storage.getUserControllee("u000001");
         assert ctrlA.contains("d000002");
-        storage.updateUserControlDevice("u000001", "d000003");
+        storage.updateUserControlDevice("u000001", "d000003", "token_abc");
         ctrlA = storage.getUserControllee("u000001");
         assert ctrlA.contains("d000002");
         assert ctrlA.contains("d000003");
@@ -269,7 +269,7 @@ public class AerospikeStorageTest {
 
         // get own with control
         storage.updateUserOwnDevice("u000001", "d000001", Permission.READ);
-        storage.updateUserControlDevice("u000001", "d000002");
+        storage.updateUserControlDevice("u000001", "d000002", "token_abc");
         Set<String> setA = storage.getDeviceOwnerControllee("d000001", Permission.READ, Permission.OWNER);
         assert setA.contains("d000002");
         assert setA.contains("d000003");

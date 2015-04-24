@@ -155,9 +155,6 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             device.setConnected(TCPNode.id());
             this.storage.updateDevice(device);
 
-            // update control relation
-            this.storage.updateUserControlDevice(userId, deviceId);
-
             // push to mq
             this.producer.sendMessage(Topic.TCP_IN, online);
         }

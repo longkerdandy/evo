@@ -406,7 +406,7 @@ public class AerospikeStorage {
      * @param deviceId Device Id
      */
     @SuppressWarnings("unchecked")
-    public void updateUserControlDevice(String userId, String deviceId) {
+    public void updateUserControlDevice(String userId, String deviceId, String ctrlToken) {
         Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record ru = this.ac.get(null, ku, Scheme.BIN_U_CTRL);
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
@@ -426,7 +426,9 @@ public class AerospikeStorage {
             String cd = rd.getString(Scheme.BIN_D_CTRL);
             // remove old control relation
             if (cd != null && !cd.equals(userId)) removeUserControlDevice(cd, deviceId);
-            if (cd == null || !cd.equals(userId)) this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, userId));
+            // always update because of ctrlToken
+            // if (cd == null || !cd.equals(userId)) this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, userId));
+            this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, userId), new Bin(Scheme.BIN_D_CTRL_TOKEN, ctrlToken));
         }
     }
 
@@ -454,7 +456,7 @@ public class AerospikeStorage {
         }
 
         if (rd != null && userId.equals(rd.getString(Scheme.BIN_D_CTRL))) {
-            this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, Value.getAsNull()));
+            this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, Value.getAsNull()), new Bin(Scheme.BIN_D_CTRL_TOKEN, Value.getAsNull()));
         }
     }
 
