@@ -5,6 +5,9 @@ package com.github.longkerdandy.evo.http.entity;
  */
 public class ErrorCode {
 
+    public static final int UNAUTHORIZED = 1;
+    public static final int FORBIDDEN = 2;
+
     public static final int ALREADY_EXISTS = 11;
     public static final int MISSING_FIELD = 12;
     public static final int INVALID = 13;

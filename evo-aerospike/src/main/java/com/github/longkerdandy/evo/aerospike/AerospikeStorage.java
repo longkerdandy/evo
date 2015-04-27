@@ -105,6 +105,22 @@ public class AerospikeStorage {
     }
 
     /**
+     * Get user by mobile
+     *
+     * @param mobile User Mobile
+     * @return user
+     */
+    public User getUserByMobile(String mobile) {
+        Statement stmt = new Statement();
+        stmt.setNamespace(Scheme.NS_EVO);
+        stmt.setSetName(Scheme.SET_USERS);
+        stmt.setFilters(Filter.equal(Scheme.BIN_U_MOBILE, mobile));
+        try (RecordSet rs = this.ac.query(null, stmt)) {
+            return rs.next() ? Converter.recordToUser(rs.getRecord()) : null;
+        }
+    }
+
+    /**
      * Is user email already exist?
      *
      * @param email Mail
@@ -147,7 +163,7 @@ public class AerospikeStorage {
     public boolean isUserPasswordCorrect(String userId, String password) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record r = this.ac.get(null, k, Scheme.BIN_U_PASSWORD);
-        return r != null && password.equals(r.getValue(Scheme.BIN_U_PASSWORD));
+        return r != null && password.equals(r.getString(Scheme.BIN_U_PASSWORD));
     }
 
     /**

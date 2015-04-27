@@ -14,6 +14,7 @@ import com.github.longkerdandy.evo.http.entity.ErrorEntity;
 import com.github.longkerdandy.evo.http.entity.ResultEntity;
 import com.github.longkerdandy.evo.http.entity.device.DeviceEntity;
 import com.github.longkerdandy.evo.http.entity.user.UserRegisterEntity;
+import com.github.longkerdandy.evo.http.exception.AuthorizeException;
 import com.github.longkerdandy.evo.http.exception.ValidateException;
 import com.github.longkerdandy.evo.http.resources.AbstractResource;
 import com.google.common.base.Optional;
@@ -144,6 +145,53 @@ public class UserRegisterResource extends AbstractResource {
         String ctrlToken = UuidUtils.shortUuid();
         this.storage.updateUserControlDevice(u.getId(), d.getId(), ctrlToken);
         logger.debug("Created a new user {} {} on controller {}", u.getId(), u.getAlias(), d.getId());
+
+        return new ResultEntity<>(ctrlToken);
+    }
+
+    @Path("/signin")
+    @POST
+    public ResultEntity<String> signIn(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
+                                       @Valid UserRegisterEntity r) {
+        // validate
+        if (r == null || r.getUser() == null || r.getDevice() == null) {
+            throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
+        }
+        logger.trace("Process signIn request with params: mobile {}", r.getUser().getMobile());
+
+        // validate password format
+        if (!isPasswordValid(r.getUser().getPassword())) {
+            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
+        }
+
+        // validate device
+        if (!isDeviceEntityValid(r.getDevice())) {
+            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
+        }
+
+        User u;
+        if (StringUtils.isBlank(r.getUser().getId())) {
+            // validate mobile format
+            if (!isMobileValid(r.getUser().getMobile())) {
+                throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
+            }
+            // get user record by mobile
+            u = this.storage.getUserByMobile(r.getUser().getMobile());
+        } else {
+            u = Converter.toUser(r.getUser());
+        }
+
+        // is mobile password correct
+        if (this.storage.isUserPasswordCorrect(u.getId(), u.getPassword())) {
+            throw new AuthorizeException(new ErrorEntity(ErrorCode.UNAUTHORIZED, lang));
+        }
+
+        // update token
+        Device d = Converter.toDevice(r.getDevice());
+        this.storage.updateDevice(d);
+        String ctrlToken = UuidUtils.shortUuid();
+        this.storage.updateUserControlDevice(u.getId(), d.getId(), ctrlToken);
+        logger.debug("Updated user's ctrlToken {} on controller {}", u.getId(), d.getId());
 
         return new ResultEntity<>(ctrlToken);
     }
