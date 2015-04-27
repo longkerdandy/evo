@@ -74,6 +74,14 @@ public class AerospikeStorageTest {
         assert userA.getOwn().get(0).get(Scheme.OWN_DEVICE).equals("d000001");
         assert storage.getUserById("u000002") == null;
 
+        // get user by mobile
+        userA = storage.getUserByMobile("18600000000");
+        assert userA != null;
+        assert userA.getAlias().equals("UserA");
+        assert userA.getEmail().equals("usera@example.com");
+        assert userA.getMobile().equals("18600000000");
+        assert userA.getOwn().get(0).get(Scheme.OWN_DEVICE).equals("d000001");
+
         // email exist
         assert storage.isUserEmailExist("usera@example.com");
         assert !storage.isUserEmailExist("userb@example.com");
