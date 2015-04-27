@@ -46,34 +46,20 @@ public class UserRegisterResource extends AbstractResource {
     @Path("/exist")
     @GET
     public ResultEntity<Boolean> exist(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
-                                       @QueryParam("mobile") Optional<String> mobile,
-                                       @QueryParam("email") Optional<String> email) {
-        logger.trace("Process exist request with params: mobile {} email {}", mobile.get(), email.get());
+                                       @QueryParam("mobile") Optional<String> mobile) {
+        logger.trace("Process exist request with params: mobile {}", mobile.get());
         // validate
-        if (!mobile.isPresent() && !email.isPresent()) {
+        if (!mobile.isPresent()) {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
         }
 
-        if (mobile.isPresent()) {
-            // validate mobile format
-            if (!isMobileValid(mobile.get())) {
-                throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-            }
-            // is mobile exist in storage
-            if (!this.storage.isUserMobileExist(mobile.get())) {
-                return new ResultEntity<>(false);
-            }
+        // validate mobile format
+        if (!isMobileValid(mobile.get())) {
+            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
         }
-
-        if (email.isPresent()) {
-            // validate email format
-            if (!isEmailValid(email.get())) {
-                throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-            }
-            // is email exist in storage
-            if (!this.storage.isUserEmailExist(email.get())) {
-                return new ResultEntity<>(false);
-            }
+        // is mobile exist in storage
+        if (!this.storage.isUserMobileExist(mobile.get())) {
+            return new ResultEntity<>(false);
         }
 
         return new ResultEntity<>(true);
@@ -82,49 +68,42 @@ public class UserRegisterResource extends AbstractResource {
     @Path("/verify")
     @POST
     public ResultEntity<String> verify(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
-                                       @QueryParam("mobile") Optional<String> mobile,
-                                       @QueryParam("email") Optional<String> email) {
-        logger.trace("Process verify request with params: mobile {} email {}", mobile.get(), email.get());
+                                       @QueryParam("mobile") Optional<String> mobile) {
+        logger.trace("Process verify request with params: mobile {}", mobile.get());
         // validate
-        if (!mobile.isPresent() && !email.isPresent()) {
+        if (!mobile.isPresent()) {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
         }
 
-        if (mobile.isPresent()) {
-            // validate mobile format
-            if (!isMobileValid(mobile.get())) {
-                throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-            }
-            // is mobile exist in storage
-            if (this.storage.isUserMobileExist(mobile.get())) {
-                throw new ValidateException(new ErrorEntity(ErrorCode.ALREADY_EXISTS, lang));
-            }
-            // create mobile verify code
-            String code = RandomStringUtils.randomNumeric(MOBILE_VERIFY_CODE_LENGTH);
-            this.storage.updateVerify(mobile.get(), code, MOBILE_VERIFY_CODE_TTL);
-            logger.debug("Created a verify code for mobile {}", mobile.get());
-            // send to mq
-            this.producer.sendSmsMessage(new SmsMessage<>(mobile.get(), SmsMessage.TYPE_VERIFY_CODE, new SmsVerifyCode(code)));
-
-            return new ResultEntity<>("successful");
-        } else {
-            throw new ValidateException(new ErrorEntity(ErrorCode.UNSUPPORTED, lang));
+        // validate mobile format
+        if (!isMobileValid(mobile.get())) {
+            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
         }
+        // is mobile exist in storage
+        if (this.storage.isUserMobileExist(mobile.get())) {
+            throw new ValidateException(new ErrorEntity(ErrorCode.ALREADY_EXISTS, lang));
+        }
+
+        // create mobile verify code
+        String code = RandomStringUtils.randomNumeric(MOBILE_VERIFY_CODE_LENGTH);
+        this.storage.updateVerify(mobile.get(), code, MOBILE_VERIFY_CODE_TTL);
+        logger.debug("Created a verify code for mobile {}", mobile.get());
+
+        // send to mq
+        this.producer.sendSmsMessage(new SmsMessage<>(mobile.get(), SmsMessage.TYPE_VERIFY_CODE, new SmsVerifyCode(code)));
+
+        return new ResultEntity<>("successful");
     }
 
     @Path("/signup")
     @POST
     public ResultEntity<String> signUp(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
-                                       @QueryParam("type") @DefaultValue("mobile") String type,
                                        @Valid UserRegisterEntity r) {
-        logger.trace("Process signUp request with params: type {}", type);
         // validate
         if (r == null || r.getUser() == null || r.getDevice() == null) {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
         }
-        if (!type.equalsIgnoreCase("mobile") && !type.equalsIgnoreCase("email")) {
-            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-        }
+        logger.trace("Process signUp request with params: alias {} mobile {}", r.getUser().getAlias(), r.getUser().getMobile());
 
         // validate alias format
         if (!isAliasValid(r.getUser().getAlias())) {
@@ -143,35 +122,39 @@ public class UserRegisterResource extends AbstractResource {
             throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
         }
 
-        if (type.equalsIgnoreCase("mobile")) {
-            // validate mobile format
-            if (!isMobileValid(r.getUser().getMobile())) {
-                throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-            }
-            // is mobile exist in storage
-            if (this.storage.isUserMobileExist(r.getUser().getMobile())) {
-                throw new ValidateException(new ErrorEntity(ErrorCode.ALREADY_EXISTS, lang));
-            }
-            // is mobile verify code correct
-            if (!this.storage.isVerifyCodeCorrect(r.getUser().getMobile(), r.getUser().getVerifyCode())) {
-                throw new ValidateException(new ErrorEntity(ErrorCode.INCORRECT, lang));
-            }
-            // save device and user
-            User u = Converter.toUser(r.getUser());
-            u.setId(UuidUtils.shortUuid());
-            this.storage.updateUser(u);
-            Device d = Converter.toDevice(r.getDevice());
-            this.storage.updateDevice(d);
-            String ctrlToken = UuidUtils.shortUuid();
-            this.storage.updateUserControlDevice(u.getId(), d.getId(), ctrlToken);
-            logger.debug("Created a new user {} {} on controller {}", u.getId(), u.getAlias(), d.getId());
-
-            return new ResultEntity<>(ctrlToken);
-        } else {
-            throw new ValidateException(new ErrorEntity(ErrorCode.UNSUPPORTED, lang));
+        // validate mobile format
+        if (!isMobileValid(r.getUser().getMobile())) {
+            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
         }
+        // is mobile exist in storage
+        if (this.storage.isUserMobileExist(r.getUser().getMobile())) {
+            throw new ValidateException(new ErrorEntity(ErrorCode.ALREADY_EXISTS, lang));
+        }
+        // is mobile verify code correct
+        if (!this.storage.isVerifyCodeCorrect(r.getUser().getMobile(), r.getUser().getVerifyCode())) {
+            throw new ValidateException(new ErrorEntity(ErrorCode.INCORRECT, lang));
+        }
+
+        // save device and user
+        User u = Converter.toUser(r.getUser());
+        u.setId(UuidUtils.shortUuid());
+        this.storage.updateUser(u);
+        Device d = Converter.toDevice(r.getDevice());
+        this.storage.updateDevice(d);
+        String ctrlToken = UuidUtils.shortUuid();
+        this.storage.updateUserControlDevice(u.getId(), d.getId(), ctrlToken);
+        logger.debug("Created a new user {} {} on controller {}", u.getId(), u.getAlias(), d.getId());
+
+        return new ResultEntity<>(ctrlToken);
     }
 
+    /**
+     * If device entity (parameter) valid
+     * Used in user register process
+     *
+     * @param deviceEntity Device Entity
+     * @return True if valid
+     */
     protected boolean isDeviceEntityValid(DeviceEntity deviceEntity) {
         boolean b = true;
         if (StringUtils.isBlank(deviceEntity.getId()) ||
