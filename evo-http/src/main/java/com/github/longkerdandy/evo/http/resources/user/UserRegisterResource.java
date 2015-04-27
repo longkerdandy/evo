@@ -3,6 +3,7 @@ package com.github.longkerdandy.evo.http.resources.user;
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
 import com.github.longkerdandy.evo.aerospike.entity.Device;
 import com.github.longkerdandy.evo.aerospike.entity.User;
+import com.github.longkerdandy.evo.aerospike.util.EncryptionUtils;
 import com.github.longkerdandy.evo.api.mq.Producer;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.sms.SmsMessage;
@@ -138,11 +139,12 @@ public class UserRegisterResource extends AbstractResource {
 
         // save device and user
         User u = Converter.toUser(r.getUser());
-        u.setId(UuidUtils.shortUuid());
+        u.setId(UuidUtils.shortUuid()); // generate random user id
+        u.setPassword(EncryptionUtils.encryptPassword(u.getPassword())); // encode password
         this.storage.updateUser(u);
         Device d = Converter.toDevice(r.getDevice());
         this.storage.updateDevice(d);
-        String ctrlToken = UuidUtils.shortUuid();
+        String ctrlToken = UuidUtils.shortUuid(); // generate random ctrlToken
         this.storage.updateUserControlDevice(u.getId(), d.getId(), ctrlToken);
         logger.debug("Created a new user {} {} on controller {}", u.getId(), u.getAlias(), d.getId());
 
@@ -182,14 +184,14 @@ public class UserRegisterResource extends AbstractResource {
         }
 
         // is mobile password correct
-        if (this.storage.isUserPasswordCorrect(u.getId(), u.getPassword())) {
+        if (this.storage.isUserPasswordCorrect(u.getId(), EncryptionUtils.encryptPassword(u.getPassword()))) {
             throw new AuthorizeException(new ErrorEntity(ErrorCode.UNAUTHORIZED, lang));
         }
 
         // update token
         Device d = Converter.toDevice(r.getDevice());
         this.storage.updateDevice(d);
-        String ctrlToken = UuidUtils.shortUuid();
+        String ctrlToken = UuidUtils.shortUuid(); // generate random ctrlToken
         this.storage.updateUserControlDevice(u.getId(), d.getId(), ctrlToken);
         logger.debug("Updated user's ctrlToken {} on controller {}", u.getId(), d.getId());
 
