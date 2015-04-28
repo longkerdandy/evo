@@ -11,6 +11,12 @@ import com.github.longkerdandy.evo.http.entity.user.UserEntity;
  */
 public class Converter {
 
+    /**
+     * Http Device Entity to Storage Device
+     *
+     * @param deviceEntity Http Device Entity
+     * @return Storage Device
+     */
     public static Device toDevice(DeviceEntity deviceEntity) {
         Device device = EntityFactory.newDevice(deviceEntity.getId());
         device.setType(deviceEntity.getType());
@@ -20,6 +26,12 @@ public class Converter {
         return device;
     }
 
+    /**
+     * Http User Entity to Storage User
+     *
+     * @param userEntity Http User Entity
+     * @return Storage User
+     */
     public static User toUser(UserEntity userEntity) {
         User user = EntityFactory.newUser(userEntity.getId());
         user.setAlias(userEntity.getAlias());

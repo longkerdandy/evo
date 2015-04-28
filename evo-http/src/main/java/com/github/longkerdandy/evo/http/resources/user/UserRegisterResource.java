@@ -35,11 +35,10 @@ import javax.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 public class UserRegisterResource extends AbstractResource {
 
-    // Logger
-    private static final Logger logger = LoggerFactory.getLogger(UserRegisterResource.class);
-
     protected static final int MOBILE_VERIFY_CODE_LENGTH = 6;
     protected static final int MOBILE_VERIFY_CODE_TTL = 180;    // seconds
+    // Logger
+    private static final Logger logger = LoggerFactory.getLogger(UserRegisterResource.class);
 
     public UserRegisterResource(AerospikeStorage storage, Producer producer) {
         super(storage, producer);

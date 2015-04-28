@@ -1,4 +1,4 @@
-apply plugin:'application'
+apply plugin: 'application'
 
 // Project Version
 version = '1.0.0'
