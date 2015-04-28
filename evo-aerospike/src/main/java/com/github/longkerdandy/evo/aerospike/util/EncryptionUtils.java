@@ -21,6 +21,7 @@ public class EncryptionUtils {
     protected static final int LENGTH = 128;
 
     private static final Logger logger = LoggerFactory.getLogger(EncryptionUtils.class);
+    protected static byte[] SALT_HEX;
 
     static {
         try {
@@ -29,8 +30,6 @@ public class EncryptionUtils {
             logger.error("Prepare PBKDF2 Salt with error: ", ExceptionUtils.getMessage(e));
         }
     }
-
-    protected static byte[] SALT_HEX;
 
     private EncryptionUtils() {
     }
