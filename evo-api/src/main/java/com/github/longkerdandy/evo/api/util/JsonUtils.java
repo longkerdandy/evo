@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  * JSON Utils
  */
 public class JsonUtils {
+
     // Global JSON ObjectMapper
     public static final ObjectMapper ObjectMapper = new ObjectMapper();
 

@@ -100,7 +100,7 @@ public class OpenWeatherJob implements Job {
                     // send trigger message
                     Map<String, Object> attr = forgeAttributes(forecast);
                     Message<Trigger> trigger = MessageFactory.newTriggerMessage(
-                            Const.PROTOCOL_VERSION_1_0, DeviceType.DEVICE, IdUtils.getWeatherDeviceId(areaId), null, Description.TRIGGER_FORECAST, OverridePolicy.UPDATE_IF_NEWER, attr);
+                            Const.PROTOCOL_TCP_1_0, DeviceType.DEVICE, IdUtils.getWeatherDeviceId(areaId), null, Description.TRIGGER_FORECAST, OverridePolicy.UPDATE_IF_NEWER, attr);
                     TCPClientHandler.getInstance().sendMessage(trigger);
                 }
             } catch (ClientProtocolException e) {

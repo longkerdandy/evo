@@ -22,7 +22,7 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
  * Packet has binary header and payload.
  * Header is 7 bytes ~ 10 bytes long.
  * Bytes 1 ~ 3 signature .
- * Byte 4 is protocol version.
+ * Byte 4 is protocol.
  * Byte 5 is reserved at the moment.
  * Byte 6 is reserved at the moment.
  * Bytes 7 ~ 10 represent payload length.
@@ -32,7 +32,7 @@ import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
  * ---------------------------------------
  * | 1-3 | Signature                     |
  * ---------------------------------------
- * | 4   | Protocol Version              |
+ * | 4   | Protocol                      |
  * ---------------------------------------
  * | 5   | Reserved                      |
  * ---------------------------------------
@@ -85,7 +85,7 @@ public class Decoder extends ByteToMessageDecoder {
         }
         // header 4 protocol version
         short b4 = in.readUnsignedByte();
-        if (b4 != Const.PROTOCOL_VERSION_1_0) {
+        if (b4 != Const.PROTOCOL_TCP_1_0) {
             in.clear();
             throw new DecoderException("Unsupported protocol version " + b4);
         }
@@ -110,7 +110,7 @@ public class Decoder extends ByteToMessageDecoder {
         try {
             JavaType type = ObjectMapper.getTypeFactory().constructParametrizedType(Message.class, Message.class, JsonNode.class);
             Message<JsonNode> m = ObjectMapper.readValue(new ByteBufInputStream(in, remainingLength), type);
-            m.setPv(b4);    // save protocol version from header to message
+            m.setProtocol(b4);    // save protocol from header to message
             if (m.getTimestamp() <= 0) m.setTimestamp(System.currentTimeMillis());  // if timestamp not provided
             switch (m.getMsgType()) {
                 case MessageType.CONNECT:

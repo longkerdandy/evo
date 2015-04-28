@@ -5,7 +5,7 @@ import com.github.longkerdandy.evo.aerospike.entity.Device;
 import com.github.longkerdandy.evo.aerospike.entity.EntityFactory;
 import com.github.longkerdandy.evo.aerospike.entity.User;
 import com.github.longkerdandy.evo.api.message.*;
-import com.github.longkerdandy.evo.api.mq.Topic;
+import com.github.longkerdandy.evo.api.mq.Topics;
 import com.github.longkerdandy.evo.api.protocol.*;
 import com.github.longkerdandy.evo.tcp.mq.TCPProducer;
 import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
@@ -79,7 +79,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
     protected void onConnect(ChannelHandlerContext ctx, Message<Connect> msg) {
         logger.debug("Process Connect message {} from device {}", msg.getMsgId(), msg.getFrom());
         Connect connect = msg.getPayload();
-        int pv = msg.getPv();
+        int pv = msg.getProtocol();
         int deviceType = msg.getDeviceType();
         String deviceId = msg.getFrom();
         String descId = msg.getDescId();
@@ -156,7 +156,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             this.storage.updateDevice(device);
 
             // push to mq
-            this.producer.sendMessage(Topic.TCP_IN, online);
+            this.producer.sendMessage(Topics.TCP_IN, online);
         }
 
         // send connack
@@ -198,7 +198,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         }
 
         // push to mq
-        this.producer.sendMessage(Topic.TCP_IN, msg);
+        this.producer.sendMessage(Topics.TCP_IN, msg);
     }
 
     /**
@@ -302,7 +302,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                 // notifyUsers(deviceId, Permission.READ, Permission.OWNER, offline);
 
                 // push to mq
-                this.producer.sendMessage(Topic.TCP_IN, offline);
+                this.producer.sendMessage(Topics.TCP_IN, offline);
             }
         }
 
@@ -352,7 +352,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                 // notifyUsers(deviceId, Permission.READ, Permission.OWNER, offline);
 
                 // push to mq
-                this.producer.sendMessage(Topic.TCP_IN, offline);
+                this.producer.sendMessage(Topics.TCP_IN, offline);
             }
         });
 
@@ -377,7 +377,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
      * @param pv Protocol Version
      */
     protected boolean isProtocolVersionAcceptable(int pv) {
-        return pv == Const.PROTOCOL_VERSION_1_0;
+        return pv == Const.PROTOCOL_TCP_1_0;
     }
 
     /**
@@ -436,7 +436,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                 if (TCPNode.id().equals(d.getConnected())) {
                     this.repository.sendMessage(deviceId, msg); // send msg directly
                 } else {
-                    this.producer.sendMessage(Topic.TCP_OUT(TCPNode.id()), msg); // push to mq
+                    this.producer.sendMessage(Topics.TCP_OUT(TCPNode.id()), msg); // push to mq
                 }
             } else {
                 // cache or push service

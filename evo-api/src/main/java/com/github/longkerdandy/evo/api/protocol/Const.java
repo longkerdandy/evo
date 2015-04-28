@@ -6,8 +6,8 @@ package com.github.longkerdandy.evo.api.protocol;
 @SuppressWarnings("unused")
 public class Const {
 
-    // Protocol Version
-    public static final int PROTOCOL_VERSION_1_0 = 10;
+    // Protocol
+    public static final int PROTOCOL_TCP_1_0 = 10;
 
     // Message
     public static final int MESSAGE_MAX_BYTES = 8092;

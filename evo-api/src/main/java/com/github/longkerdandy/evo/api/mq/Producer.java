@@ -83,7 +83,7 @@ public class Producer {
         // If no partition is specified but a key is present a partition will be chosen using a hash of the key.
         // If neither key nor partition is present a partition will be assigned in a round-robin fashion.
         try {
-            String topic = Topic.SMS;
+            String topic = Topics.SMS;
             String value = JsonUtils.ObjectMapper.writeValueAsString(msg);
             ProducerRecord<String, String> record = new ProducerRecord<>(topic, value);
             this.producer.send(record,

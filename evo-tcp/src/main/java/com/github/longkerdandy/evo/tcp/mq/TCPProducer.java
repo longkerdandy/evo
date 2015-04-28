@@ -46,7 +46,7 @@ public class TCPProducer {
     /**
      * Send message to mq
      *
-     * @param topic MQ Topic
+     * @param topic MQ Topics
      * @param msg   Message
      */
     public void sendMessage(String topic, Message msg) {

@@ -1,6 +1,6 @@
 package com.github.longkerdandy.evo.service.sms.mq;
 
-import com.github.longkerdandy.evo.api.mq.Topic;
+import com.github.longkerdandy.evo.api.mq.Topics;
 import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
@@ -39,9 +39,9 @@ public class SmsLegacyConsumer {
 
         // connect to kafka
         Map<String, Integer> topicCountMap = new HashMap<>();
-        topicCountMap.put(Topic.SMS, threads);
+        topicCountMap.put(Topics.SMS, threads);
         Map<String, List<KafkaStream<String, String>>> consumerMap = consumer.createMessageStreams(topicCountMap, new StringDecoder(null), new StringDecoder(null));
-        List<KafkaStream<String, String>> streams = consumerMap.get(Topic.SMS);
+        List<KafkaStream<String, String>> streams = consumerMap.get(Topics.SMS);
 
         // now launch all the threads
         this.executor = Executors.newFixedThreadPool(threads);

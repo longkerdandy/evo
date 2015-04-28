@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class Message<T> {
 
     @JsonIgnore
-    private int pv;                 // Protocol Version
+    private int protocol;           // Protocol
     private int msgType;            // Message Type (payload)
     private int qos;                // QoS Level
     private boolean duplicate;      // Is duplicate?
@@ -23,12 +23,12 @@ public class Message<T> {
     private long timestamp;         // Timestamp (when message is send)
     private T payload;              // Payload (sub-message)
 
-    public int getPv() {
-        return pv;
+    public int getProtocol() {
+        return protocol;
     }
 
-    public void setPv(int pv) {
-        this.pv = pv;
+    public void setProtocol(int protocol) {
+        this.protocol = protocol;
     }
 
     public int getMsgType() {

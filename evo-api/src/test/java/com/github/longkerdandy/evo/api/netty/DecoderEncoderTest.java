@@ -23,7 +23,7 @@ public class DecoderEncoderTest {
     @SuppressWarnings("unchecked")
     public void decoderEncoderTest() throws Exception {
         // Message, payload is ConnectMessage
-        Message<Connect> msgOut = MessageFactory.newConnectMessage(Const.PROTOCOL_VERSION_1_0, DeviceType.CONTROLLER_ANDROID_PHONE, "Device 1", null, "Desc 1", "User 1", "Token 1", OverridePolicy.IGNORE, null);
+        Message<Connect> msgOut = MessageFactory.newConnectMessage(Const.PROTOCOL_TCP_1_0, DeviceType.CONTROLLER_ANDROID_PHONE, "Device 1", null, "Desc 1", "User 1", "Token 1", OverridePolicy.IGNORE, null);
 
         // encoding
         Encoder encoder = new Encoder();
@@ -39,7 +39,7 @@ public class DecoderEncoderTest {
 
         assert msgIn.getMsgId().equals(msgOut.getMsgId());
         assert msgIn.getMsgType() == MessageType.CONNECT;
-        assert msgIn.getPv() == Const.PROTOCOL_VERSION_1_0;
+        assert msgIn.getProtocol() == Const.PROTOCOL_TCP_1_0;
         assert msgIn.getDeviceType() == DeviceType.CONTROLLER_ANDROID_PHONE;
         assert msgIn.getFrom().equals("Device 1");
         assert msgIn.getDescId().equals("Desc 1");

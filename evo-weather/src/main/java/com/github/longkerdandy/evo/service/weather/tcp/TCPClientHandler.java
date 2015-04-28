@@ -56,7 +56,7 @@ public class TCPClientHandler extends SimpleChannelInboundHandler<Message> {
             Map<String, Object> attr = new HashMap<>();
             attr.put(Description.ATTR_AREA_ID, areaId);
             Message<Connect> connect = MessageFactory.newConnectMessage(
-                    Const.PROTOCOL_VERSION_1_0, DeviceType.DEVICE, deviceId, null, Description.ID, null, null, OverridePolicy.UPDATE_IF_NEWER, attr);
+                    Const.PROTOCOL_TCP_1_0, DeviceType.DEVICE, deviceId, null, Description.ID, null, null, OverridePolicy.UPDATE_IF_NEWER, attr);
             sendMessage(connect);
         }
 

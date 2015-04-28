@@ -21,7 +21,7 @@ public class MessageTest {
         Connect connMsg = new Connect();
         connMsg.setToken("Token 1");
         Message<Connect> out = new Message<>();
-        out.setPv(Const.PROTOCOL_VERSION_1_0);
+        out.setProtocol(Const.PROTOCOL_TCP_1_0);
         out.setUserId("User 1");
         out.setMsgId("Message ID 1");
         out.setMsgType(MessageType.CONNECT);
@@ -35,7 +35,7 @@ public class MessageTest {
         // Deserialization (raw message)
         JavaType type = ObjectMapper.getTypeFactory().constructParametrizedType(Message.class, Message.class, JsonNode.class);
         Message<JsonNode> in = ObjectMapper.readValue(json, type);
-        // assert in.getPv() == Const.PROTOCOL_VERSION_1_0;
+        // assert in.getProtocol() == Const.PROTOCOL_TCP_1_0;
         assert in.getUserId().equals("User 1");
         assert in.getMsgId().equals("Message ID 1");
         assert in.getMsgType() == MessageType.CONNECT;
