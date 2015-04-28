@@ -8,6 +8,6 @@ dependencies {
     // Aerospike
     compile "com.aerospike:aerospike-client:3.1.0"
 
-    // Apache Commons
+    // Commons Codec
     compile 'commons-codec:commons-codec:1.10'
 }
