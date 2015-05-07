@@ -29,12 +29,25 @@ public class AerospikeStorage {
     /**
      * Constructor
      * <p>
-     * The best practice is to specify each node in the cluster when creating the client.
-     * The client will iterate through the array of nodes until it successfully connects to a node,
-     * then the client will discover the other nodes in the cluster through that node.
+     * Initialize Aerospike client with suitable hosts to seed the cluster map.
+     * The client policy is used to set defaults and size internal data structures.
+     * For each host connection that succeeds, the client will:
+     * <p>
+     * - Add host to the cluster map <br>
+     * - Request host's list of other nodes in cluster <br>
+     * - Add these nodes to cluster map <br>
+     * <p>
+     * In most cases, only one host is necessary to seed the cluster. The remaining hosts
+     * are added as future seeds in case of a complete network failure.
+     * <p>
+     * If one connection succeeds, the client is ready to process database requests.
+     * If all connections fail and the policy's failIfNotConnected is true, a connection
+     * exception will be thrown. Otherwise, the cluster will remain in a disconnected state
+     * until the server is activated.
      *
-     * @param policy Aerospike Client Policy
-     * @param hosts  Aerospike Server Seed Nodes
+     * @param policy client configuration parameters, pass in null for defaults
+     * @param hosts  array of potential hosts to seed the cluster
+     * @throws AerospikeException if all host connections fail
      */
     public AerospikeStorage(ClientPolicy policy, Host[] hosts) {
         this.ac = new AerospikeClient(policy, hosts);
