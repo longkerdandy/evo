@@ -98,7 +98,7 @@ public class AerospikeAsyncStorageTest {
             public void onSuccess(Key key, Record record) {
                 if (record != null) {
                     List<Map<String, Object>> od = (List<Map<String, Object>>) record.getValue(Scheme.BIN_D_OWN);
-                    assert storage.hasOwn(od, "u000001", "d000001", Permission.READ, Permission.OWNER);
+                    assert asyncStorage.hasOwn(od, "u000001", "d000001", Permission.READ, Permission.OWNER);
                 } else {
                     assert false;
                 }

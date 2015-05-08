@@ -79,7 +79,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
     protected void onConnect(ChannelHandlerContext ctx, Message<Connect> msg) {
         logger.debug("Process Connect message {} from device {}", msg.getMsgId(), msg.getFrom());
         Connect connect = msg.getPayload();
-        int pv = msg.getProtocol();
+        int protocol = msg.getProtocol();
         int deviceType = msg.getDeviceType();
         String deviceId = msg.getFrom();
         String descId = msg.getDescId();
@@ -88,8 +88,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         int returnCode;
         // protocol version
-        if (!isProtocolVersionAcceptable(pv)) {
-            logger.trace("Protocol version {} unacceptable", pv);
+        if (!isProtocolVersionAcceptable(protocol)) {
+            logger.trace("Protocol version {} unacceptable", protocol);
             returnCode = ConnAck.PROTOCOL_VERSION_UNACCEPTABLE;
         }
         // description
@@ -132,7 +132,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             Device d = EntityFactory.newDevice(deviceId);
             d.setType(deviceType);
             d.setDescId(descId);
-            d.setProtocol(pv);
+            d.setProtocol(protocol);
             this.authDevices.put(deviceId, d);
             if (DeviceType.isController(deviceType)) {
                 User u = EntityFactory.newUser(userId);
@@ -140,7 +140,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             }
             this.repository.saveConn(deviceId, ctx);
 
-            Message<Trigger> online = MessageFactory.newTriggerMessage(pv, deviceType, deviceId, null, Const.TRIGGER_ONLINE, connect.getPolicy(), connect.getAttributes());
+            Message<Trigger> online = MessageFactory.newTriggerMessage(protocol, deviceType, deviceId, null, Const.TRIGGER_ONLINE, connect.getPolicy(), connect.getAttributes());
 
             // notify users
             if (Const.PLATFORM_ID.equals(msg.getTo())) {
@@ -151,7 +151,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             Device device = EntityFactory.newDevice(deviceId);
             device.setType(deviceType);
             device.setDescId(descId);
-            device.setProtocol(pv);
+            device.setProtocol(protocol);
             device.setConnected(TCPNode.id());
             this.storage.updateDevice(device);
 
@@ -160,7 +160,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         }
 
         // send connack
-        Message<ConnAck> msgConnAck = MessageFactory.newConnAckMessage(pv, deviceId, msg.getMsgId(), returnCode);
+        Message<ConnAck> msgConnAck = MessageFactory.newConnAckMessage(protocol, deviceId, msg.getMsgId(), returnCode);
         this.repository.sendMessage(ctx, msgConnAck);
     }
 

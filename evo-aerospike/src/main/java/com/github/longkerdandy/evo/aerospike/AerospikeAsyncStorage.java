@@ -7,6 +7,9 @@ import com.aerospike.client.async.AsyncClient;
 import com.aerospike.client.async.AsyncClientPolicy;
 import com.aerospike.client.listener.RecordListener;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Aerospike Database Asynchronous Access Layer
  */
@@ -71,5 +74,20 @@ public class AerospikeAsyncStorage {
     public void getDeviceById(String deviceId, RecordListener listener) {
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
         this.aac.get(null, listener, kd);
+    }
+
+    /**
+     * Has ownership?
+     */
+    protected boolean hasOwn(List<Map<String, Object>> own, String userId, String deviceId, int min, int max) {
+        if (own != null) {
+            for (Map<String, Object> m : own) {
+                if (m.get(Scheme.OWN_USER).equals(userId) && m.get(Scheme.OWN_DEVICE).equals(deviceId)
+                        && (long) m.getOrDefault(Scheme.OWN_PERMISSION, 0) >= min && (long) m.getOrDefault(Scheme.OWN_PERMISSION, 0) <= max) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
