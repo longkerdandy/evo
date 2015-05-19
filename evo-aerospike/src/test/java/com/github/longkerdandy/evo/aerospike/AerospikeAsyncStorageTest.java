@@ -34,7 +34,7 @@ public class AerospikeAsyncStorageTest {
     @BeforeClass
     public static void before() {
         Host[] hosts = new Host[]{
-                new Host("192.168.253.68", 3000),
+                new Host("192.168.0.55", 3000),
         };
         storage = new AerospikeStorage(new ClientPolicy(), hosts);
         asyncStorage = new AerospikeAsyncStorage(new AsyncClientPolicy(), hosts);
