@@ -16,6 +16,7 @@ import java.util.Map;
 /**
  * Message Queue Producer
  */
+@SuppressWarnings("unused")
 public class Producer {
 
     // Logger
