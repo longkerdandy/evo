@@ -1,16 +1,27 @@
+apply plugin: 'application'
+
 // Project Version
 version = '1.0.0'
+
+mainClassName = "com.github.longkerdandy.evo.tcp.TCPServer"
 
 dependencies {
     // Evo
     compile project(':evo-api')
     compile project(':evo-aerospike')
 
+    // Commons Configuration
+    compile 'commons-configuration:commons-configuration:1.10'
+
     // Netty
     compile 'io.netty:netty-all:4.0.26.Final'
 
     // Kafka
-    compile 'org.apache.kafka:kafka-clients:0.8.2.1'
+    compile('org.apache.kafka:kafka_2.10:0.8.2.1') {
+        exclude module: 'slf4j-log4j12'
+        exclude module: 'log4j'
+    }
+    compile 'org.slf4j:log4j-over-slf4j:1.7.10'
 
     // UUID
     compile 'com.fasterxml.uuid:java-uuid-generator:3.1.4'

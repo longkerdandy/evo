@@ -4,7 +4,7 @@
 aerospikeStorage:
 
   # host
-  host:  192.168.253.68
+  host:  192.168.0.55
 
   # port
   port:  3000
@@ -13,7 +13,7 @@ aerospikeStorage:
 kafkaProducer:
 
   # hosts
-  hosts: 192.168.253.68:9092
+  hosts: 192.168.0.55:9092
 
   # acks
   acks: 1

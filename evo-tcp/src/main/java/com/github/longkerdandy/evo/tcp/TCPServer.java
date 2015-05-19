@@ -3,10 +3,10 @@ package com.github.longkerdandy.evo.tcp;
 import com.aerospike.client.Host;
 import com.aerospike.client.policy.ClientPolicy;
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
+import com.github.longkerdandy.evo.api.mq.Producer;
 import com.github.longkerdandy.evo.api.netty.Decoder;
 import com.github.longkerdandy.evo.api.netty.Encoder;
 import com.github.longkerdandy.evo.tcp.handler.BusinessHandler;
-import com.github.longkerdandy.evo.tcp.mq.TCPProducer;
 import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -18,9 +18,12 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,29 +31,27 @@ import java.util.Map;
  */
 public class TCPServer {
 
-    private static final String STORAGE_HOST = "192.168.0.55";
-    private static final int STORAGE_PORT = 3000;
-
-    private static final String MQ_HOST = "192.168.0.55:9092";
-
-    private static final String HOST = "0.0.0.0";
-    private static final int PORT = 1883;
     private static final int THREADS = Runtime.getRuntime().availableProcessors() * 2;
 
     public static void main(String[] args) throws Exception {
+        // load config
+        String f = args.length >= 1 ? args[0] : "config/sms.properties";
+        PropertiesConfiguration config = new PropertiesConfiguration(f);
+
         // storage
         ClientPolicy policy = new ClientPolicy();
-        Host[] hosts = new Host[]{
-                new Host(STORAGE_HOST, STORAGE_PORT),
-        };
-        AerospikeStorage storage = new AerospikeStorage(policy, hosts);
+        List<Host> hosts = new ArrayList<>();
+        for (String h : config.getString("storage.hosts").split(",")) {
+            hosts.add(new Host(h.split(":")[0], Integer.valueOf(h.split(":")[1])));
+        }
+        AerospikeStorage storage = new AerospikeStorage(policy, hosts.toArray(new Host[hosts.size()]));
 
         // mq
         Map<String, Object> configs = new HashMap<>();
-        configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, MQ_HOST);
-        configs.put(ProducerConfig.ACKS_CONFIG, "1");
-        configs.put(ProducerConfig.BLOCK_ON_BUFFER_FULL_CONFIG, "false");
-        TCPProducer producer = new TCPProducer(configs);
+        configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getString("mq.producer.hosts"));
+        configs.put(ProducerConfig.ACKS_CONFIG, config.getString("mq.producer.acks"));
+        configs.put(ProducerConfig.BLOCK_ON_BUFFER_FULL_CONFIG, config.getString("mq.producer.blockOnBufferFull"));
+        Producer producer = new Producer(configs);
 
         // configure the server
         ChannelRepository repository = new ChannelRepository();
@@ -77,10 +78,10 @@ public class TCPServer {
                     });
 
             // start the server
-            ChannelFuture f = b.bind(HOST, PORT).sync();
+            ChannelFuture future = b.bind(config.getString("tcp.host"), config.getInt("tcp.port")).sync();
 
             // wait until the server socket is closed
-            f.channel().closeFuture().sync();
+            future.channel().closeFuture().sync();
         } finally {
             // shut down all event loops to terminate all threads
             bossGroup.shutdownGracefully();

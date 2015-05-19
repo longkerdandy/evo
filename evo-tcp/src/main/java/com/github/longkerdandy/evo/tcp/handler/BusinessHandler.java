@@ -5,9 +5,9 @@ import com.github.longkerdandy.evo.aerospike.entity.Device;
 import com.github.longkerdandy.evo.aerospike.entity.EntityFactory;
 import com.github.longkerdandy.evo.aerospike.entity.User;
 import com.github.longkerdandy.evo.api.message.*;
+import com.github.longkerdandy.evo.api.mq.Producer;
 import com.github.longkerdandy.evo.api.mq.Topics;
 import com.github.longkerdandy.evo.api.protocol.*;
-import com.github.longkerdandy.evo.tcp.mq.TCPProducer;
 import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
 import com.github.longkerdandy.evo.tcp.util.TCPNode;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,9 +34,9 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
     private final Map<String, User> authUsers;              // Authorized users in this connection
     private final AerospikeStorage storage;                 // Storage
     private final ChannelRepository repository;             // Connection Repository
-    private final TCPProducer producer;                     // MQ Producer
+    private final Producer producer;                        // MQ Producer
 
-    public BusinessHandler(AerospikeStorage storage, ChannelRepository repository, TCPProducer producer) {
+    public BusinessHandler(AerospikeStorage storage, ChannelRepository repository, Producer producer) {
         this.storage = storage;
         this.repository = repository;
         this.producer = producer;
