@@ -28,10 +28,10 @@ import java.util.Map;
  */
 public class TCPServer {
 
-    private static final String STORAGE_HOST = "172.16.1.227";
+    private static final String STORAGE_HOST = "192.168.0.55";
     private static final int STORAGE_PORT = 3000;
 
-    private static final String MQ_HOST = "172.16.1.227:9092,172.16.1.227:9093,172.16.1.227:9094";
+    private static final String MQ_HOST = "192.168.0.55:9092";
 
     private static final String HOST = "0.0.0.0";
     private static final int PORT = 1883;

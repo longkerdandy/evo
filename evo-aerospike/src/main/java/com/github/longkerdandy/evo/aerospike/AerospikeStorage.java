@@ -392,11 +392,13 @@ public class AerospikeStorage {
      */
     @SuppressWarnings("unchecked")
     public boolean isUserOwnDevice(String userId, String deviceId, int min) {
-        Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
-        Record rd = this.ac.get(null, kd, Scheme.BIN_D_OWN);
-        if (rd != null) {
-            List<Map<String, Object>> od = (List<Map<String, Object>>) rd.getValue(Scheme.BIN_D_OWN);
-            return hasOwn(od, userId, deviceId, min, Permission.OWNER);
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
+        Record r = this.ac.get(null, k, Scheme.BIN_D_OWN, Scheme.BIN_D_CTRL);
+        if (r != null) {
+            List<Map<String, Object>> o = (List<Map<String, Object>>) r.getValue(Scheme.BIN_D_OWN);
+            if(hasOwn(o, userId, deviceId, min, Permission.OWNER)) return true;
+            String c = r.getString(Scheme.BIN_D_CTRL);
+            if (userId.equals(c)) return true;
         }
         return false;
     }
@@ -410,8 +412,20 @@ public class AerospikeStorage {
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getUserOwnee(String userId) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
-        Record r = this.ac.get(null, k, Scheme.BIN_U_OWN);
-        return r != null ? (List<Map<String, Object>>) r.getValue(Scheme.BIN_U_OWN) : null;
+        Record r = this.ac.get(null, k, Scheme.BIN_U_OWN, Scheme.BIN_U_CTRL);
+        if (r != null) {
+            List<Map<String, Object>> o = (List<Map<String, Object>>) r.getValue(Scheme.BIN_D_OWN);
+            if (o == null) o = new ArrayList<>();
+            List<String> c = (List<String>) r.getValue(Scheme.BIN_U_CTRL);
+            if (c != null) {
+                for (String d : c) {
+                    updateOwn(o, userId, d, Permission.OWNER);
+                }
+            }
+            return o;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -423,8 +437,16 @@ public class AerospikeStorage {
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getDeviceOwner(String deviceId) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
-        Record r = this.ac.get(null, k, Scheme.BIN_D_OWN);
-        return r != null ? (List<Map<String, Object>>) r.getValue(Scheme.BIN_D_OWN) : null;
+        Record r = this.ac.get(null, k, Scheme.BIN_D_OWN, Scheme.BIN_D_CTRL);
+        if (r != null) {
+            List<Map<String, Object>> o = (List<Map<String, Object>>) r.getValue(Scheme.BIN_D_OWN);
+            if (o == null) o = new ArrayList<>();
+            String c = r.getString(Scheme.BIN_D_CTRL);
+            if (c != null) updateOwn(o, c, deviceId, Permission.OWNER);
+            return o;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -515,7 +537,7 @@ public class AerospikeStorage {
         Set<String> set = new HashSet<>();
 
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
-        Record r = this.ac.get(null, kd, Scheme.BIN_D_OWN);
+        Record r = this.ac.get(null, kd, Scheme.BIN_D_OWN, Scheme.BIN_D_CTRL);
         if (r == null) {
             return null;
         }
@@ -537,6 +559,9 @@ public class AerospikeStorage {
                 }
             }
         }
+
+        String c = r.getString(Scheme.BIN_D_CTRL);
+        if (c != null) set.add(c);
 
         return set;
     }
@@ -598,7 +623,8 @@ public class AerospikeStorage {
         if (own != null) {
             for (Map<String, Object> m : own) {
                 if (m.get(Scheme.OWN_USER).equals(userId) && m.get(Scheme.OWN_DEVICE).equals(deviceId)
-                        && (long) m.getOrDefault(Scheme.OWN_PERMISSION, 0) >= min && (long) m.getOrDefault(Scheme.OWN_PERMISSION, 0) <= max) {
+                        && Long.valueOf(String.valueOf(m.getOrDefault(Scheme.OWN_PERMISSION, 0))) >= min
+                        && Long.valueOf(String.valueOf(m.getOrDefault(Scheme.OWN_PERMISSION, 0))) <= max) {
                     return true;
                 }
             }

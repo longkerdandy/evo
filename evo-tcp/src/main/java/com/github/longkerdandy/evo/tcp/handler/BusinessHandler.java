@@ -122,7 +122,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                 returnCode = ConnAck.RECEIVED;
             }
         }
-        // never happens
+        // wrong device type
         else {
             returnCode = ConnAck.DEVICE_TYPE_UNACCEPTABLE;
         }
@@ -154,6 +154,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             device.setProtocol(protocol);
             device.setConnected(TCPNode.id());
             this.storage.updateDevice(device);
+            updateDeviceAttr(deviceId, connect.getAttributes(), connect.getPolicy());
 
             // push to mq
             this.producer.sendMessage(Topics.TCP_IN, online);
@@ -174,6 +175,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
     protected void onTrigger(ChannelHandlerContext ctx, Message<Trigger> msg) {
         logger.debug("Process Trigger message {} from device {}", msg.getMsgId(), msg.getFrom());
         String deviceId = msg.getFrom();
+        Trigger trigger = msg.getPayload();
         Device d = this.authDevices.get(deviceId);
 
         // not auth
@@ -190,6 +192,9 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         if (Const.PLATFORM_ID.equals(msg.getTo())) {
             notifyUsers(deviceId, Permission.READ, Permission.OWNER, msg);
         }
+
+        // update device
+        updateDeviceAttr(deviceId, trigger.getAttributes(), trigger.getPolicy());
 
         // send trigack
         if (msg.getQos() == QoS.LEAST_ONCE || msg.getQos() == QoS.EXACTLY_ONCE) {
@@ -210,7 +215,6 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
      */
     protected void onTrigAck(ChannelHandlerContext ctx, Message<TrigAck> msg) {
         logger.debug("Process TrigAck message {} from device {}", msg.getMsgId(), msg.getFrom());
-        // TODO: handle cache
     }
 
     /**
@@ -262,7 +266,6 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
      */
     protected void onActAck(ChannelHandlerContext ctx, Message<ActAck> msg) {
         logger.debug("Process ActAck message {} from device {}", msg.getMsgId(), msg.getFrom());
-        // TODO: handle cache
     }
 
     /**
@@ -288,11 +291,15 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         msg.setDescId(d.getDescId());
         // msg.setProtocol(d.getProtocol());
 
+        // remove from session
+        this.authDevices.remove(deviceId);
+        this.authUsers.remove(deviceId);
+
         // try to remove from local repository
+        // may fails because device already re-connected in another session
         if (this.repository.removeConn(deviceId, ctx)) {
-            this.authDevices.remove(deviceId);
-            this.authUsers.remove(deviceId);
             // try to mark device disconnect
+            // may fails because device already re-connected to another node
             if (this.storage.updateDeviceDisconnect(deviceId, TCPNode.id())) {
                 Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, null, Const.TRIGGER_OFFLINE, disconnect.getPolicy(), disconnect.getAttributes());
                 offline.setDescId(d.getDescId());
@@ -339,9 +346,15 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
      * @param ctx ChannelHandlerContext
      */
     protected void handleConnLost(ChannelHandlerContext ctx) {
+        // clear session
+        this.authDevices.clear();
+        this.authUsers.clear();
+
         // try to remove from local repository
+        // may fails because device already re-connected in another session
         this.authDevices.keySet().stream().filter(deviceId -> this.repository.removeConn(deviceId, ctx)).forEach(deviceId -> {
             // try to mark device disconnect
+            // may fails because device already re-connected to another node
             if (this.storage.updateDeviceDisconnect(deviceId, TCPNode.id())) {
                 Device d = this.authDevices.get(deviceId);
                 Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, null, Const.TRIGGER_OFFLINE, OverridePolicy.IGNORE, null);
@@ -355,9 +368,6 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                 this.producer.sendMessage(Topics.TCP_IN, offline);
             }
         });
-
-        this.authDevices.clear();
-        this.authUsers.clear();
     }
 
     /**
@@ -439,7 +449,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                     this.producer.sendMessage(Topics.TCP_OUT(TCPNode.id()), msg); // push to mq
                 }
             } else {
-                // cache or push service
+                // cache the msg
             }
         } else {
             logger.trace("Device {} not exist, msg {} {} not send", deviceId, msg.getMsgType(), msg.getMsgId());
