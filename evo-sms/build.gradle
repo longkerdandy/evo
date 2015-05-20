@@ -17,11 +17,4 @@ dependencies {
         exclude module: 'commons-logging'
     }
     compile 'org.slf4j:jcl-over-slf4j:1.7.10'
-
-    // Kafka
-    compile('org.apache.kafka:kafka_2.10:0.8.2.1') {
-        exclude module: 'slf4j-log4j12'
-        exclude module: 'log4j'
-    }
-    compile 'org.slf4j:log4j-over-slf4j:1.7.10'
 }
