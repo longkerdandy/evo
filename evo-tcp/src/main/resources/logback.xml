@@ -6,14 +6,26 @@
         </encoder>
     </appender>
 
-    <logger name="com.arangodb" level="INFO" additivity="false">
+    <!-- Commons Configuration -->
+    <logger name="org.apache.commons.configuration" level="INFO" additivity="false">
         <appender-ref ref="Console"/>
     </logger>
 
-    <logger name="org.apache.http" level="INFO" additivity="false">
+    <!-- Kafka -->
+    <logger name="org.apache.zookeeper" level="INFO" additivity="false">
+        <appender-ref ref="Console"/>
+    </logger>
+    <logger name="org.I0Itec.zkclient" level="INFO" additivity="false">
+        <appender-ref ref="Console"/>
+    </logger>
+    <logger name="kafka" level="INFO" additivity="false">
+        <appender-ref ref="Console"/>
+    </logger>
+    <logger name="org.apache.kafka" level="INFO" additivity="false">
         <appender-ref ref="Console"/>
     </logger>
 
+    <!-- Netty -->
     <logger name="io.netty" level="INFO" additivity="false">
         <appender-ref ref="Console"/>
     </logger>

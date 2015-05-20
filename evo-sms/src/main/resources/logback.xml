@@ -10,13 +10,13 @@
         <appender-ref ref="Console"/>
     </logger>
 
+    <!-- Kafka -->
     <logger name="org.apache.zookeeper" level="INFO" additivity="false">
         <appender-ref ref="Console"/>
     </logger>
     <logger name="org.I0Itec.zkclient" level="INFO" additivity="false">
         <appender-ref ref="Console"/>
     </logger>
-
     <logger name="kafka" level="INFO" additivity="false">
         <appender-ref ref="Console"/>
     </logger>

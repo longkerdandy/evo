@@ -3,11 +3,17 @@ package com.github.longkerdandy.evo.tcp;
 import com.aerospike.client.Host;
 import com.aerospike.client.policy.ClientPolicy;
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
+import com.github.longkerdandy.evo.api.mq.AdminTools;
+import com.github.longkerdandy.evo.api.mq.LegacyConsumer;
 import com.github.longkerdandy.evo.api.mq.Producer;
+import com.github.longkerdandy.evo.api.mq.Topics;
 import com.github.longkerdandy.evo.api.netty.Decoder;
 import com.github.longkerdandy.evo.api.netty.Encoder;
 import com.github.longkerdandy.evo.tcp.handler.BusinessHandler;
+import com.github.longkerdandy.evo.tcp.mq.TCPConsumerWorker;
+import com.github.longkerdandy.evo.tcp.mq.TCPConsumerWorkerFactory;
 import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
+import com.github.longkerdandy.evo.tcp.util.TCPNode;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -21,10 +27,7 @@ import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * TCP Server
@@ -38,6 +41,9 @@ public class TCPServer {
         String f = args.length >= 1 ? args[0] : "config/sms.properties";
         PropertiesConfiguration config = new PropertiesConfiguration(f);
 
+        // channel repository
+        ChannelRepository repository = new ChannelRepository();
+
         // storage
         ClientPolicy policy = new ClientPolicy();
         List<Host> hosts = new ArrayList<>();
@@ -46,15 +52,29 @@ public class TCPServer {
         }
         AerospikeStorage storage = new AerospikeStorage(policy, hosts.toArray(new Host[hosts.size()]));
 
-        // mq
+        // message queue
+        // create producer
         Map<String, Object> configs = new HashMap<>();
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getString("mq.producer.hosts"));
         configs.put(ProducerConfig.ACKS_CONFIG, config.getString("mq.producer.acks"));
         configs.put(ProducerConfig.BLOCK_ON_BUFFER_FULL_CONFIG, config.getString("mq.producer.blockOnBufferFull"));
         Producer producer = new Producer(configs);
+        // create tcp-out topic
+        String topic = Topics.TCP_OUT(TCPNode.id());
+        AdminTools admin = new AdminTools(config.getString("mq.zk.hosts"), 10000, 10000);
+        if (!admin.isTopicExist(topic)) {
+            admin.createTopic(topic, config.getInt("mq.topic.tcpout.partitions"), config.getInt("mq.topic.tcpout.replication"), new Properties());
+        }
+        admin.close();
+        // create consumer
+        TCPConsumerWorkerFactory factory = new TCPConsumerWorkerFactory(repository);
+        Properties props = new Properties();
+        props.put("zookeeper.connect", config.getString("mq.zk.hosts"));
+        props.put("group.id", topic);
+        LegacyConsumer<TCPConsumerWorker> consumer = new LegacyConsumer<>(factory, topic, props, config.getInt("mq.topic.tcpout.workerThreads"));
 
         // configure the server
-        ChannelRepository repository = new ChannelRepository();
+
         InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup(THREADS);
@@ -86,6 +106,9 @@ public class TCPServer {
             // shut down all event loops to terminate all threads
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+            // close message queue
+            producer.close();
+            consumer.close();
         }
     }
 }

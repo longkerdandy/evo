@@ -137,7 +137,7 @@ public class AerospikeStorage {
      * Is user email already exist?
      *
      * @param email Mail
-     * @return True if already exist
+     * @return True if already exists
      */
     public boolean isUserEmailExist(String email) {
         Statement stmt = new Statement();
@@ -153,7 +153,7 @@ public class AerospikeStorage {
      * Is user mobile already exist?
      *
      * @param mobile Mobile
-     * @return True if already exist
+     * @return True if already exists
      */
     public boolean isUserMobileExist(String mobile) {
         Statement stmt = new Statement();
@@ -194,7 +194,7 @@ public class AerospikeStorage {
      * Is device exist?
      *
      * @param deviceId Device Id
-     * @return True if exist
+     * @return True if exists
      */
     public boolean isDeviceExist(String deviceId) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
