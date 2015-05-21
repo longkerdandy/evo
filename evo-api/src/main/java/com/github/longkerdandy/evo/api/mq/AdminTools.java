@@ -58,7 +58,6 @@ public class AdminTools {
 
     /**
      * Close admin tools
-     *
      */
     public void close() {
         this.zkClient.close();

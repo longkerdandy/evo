@@ -7,7 +7,7 @@ dependencies {
 
     // Kafka
     compile 'org.apache.kafka:kafka-clients:0.8.2.1'
-    compile('com.101tec:zkclient:0.3'){
+    compile('com.101tec:zkclient:0.3') {
         exclude module: 'slf4j-log4j12'
         exclude module: 'log4j'
     }
