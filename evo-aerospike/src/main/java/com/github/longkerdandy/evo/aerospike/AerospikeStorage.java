@@ -68,8 +68,8 @@ public class AerospikeStorage {
      * Create or Update verify code
      * Validate before invoking this method!
      *
-     * @param verifyId Mobile or Email
-     * @param code     Verify Code
+     * @param verifyId Mobile or email
+     * @param code     Verify code
      * @param ttl      Time to live
      */
     public void updateVerify(String verifyId, String code, int ttl) {
@@ -83,8 +83,8 @@ public class AerospikeStorage {
     /**
      * Is verify code correct?
      *
-     * @param verifyId Mobile or Email
-     * @param code     Verify Code
+     * @param verifyId Mobile or email
+     * @param code     Verify code
      */
     public boolean isVerifyCodeCorrect(String verifyId, String code) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_VERIFY, verifyId);
@@ -120,7 +120,7 @@ public class AerospikeStorage {
     /**
      * Get user by mobile
      *
-     * @param mobile User Mobile
+     * @param mobile Mobile
      * @return user
      */
     public User getUserByMobile(String mobile) {
@@ -134,7 +134,7 @@ public class AerospikeStorage {
     }
 
     /**
-     * Is user email already exist?
+     * Is user email already exists?
      *
      * @param email Mail
      * @return True if already exists
@@ -150,7 +150,7 @@ public class AerospikeStorage {
     }
 
     /**
-     * Is user mobile already exist?
+     * Is user mobile already exists?
      *
      * @param mobile Mobile
      * @return True if already exists
@@ -169,14 +169,51 @@ public class AerospikeStorage {
      * Is user id and password correct?
      * Password must be encoded
      *
-     * @param userId   User Id
-     * @param password Password (Encoded)
+     * @param userId   User id
+     * @param password Password (encoded)
      * @return True if correct
      */
     public boolean isUserPasswordCorrect(String userId, String password) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record r = this.ac.get(null, k, Scheme.BIN_U_PASSWORD);
         return r != null && password.equals(r.getString(Scheme.BIN_U_PASSWORD));
+    }
+
+    /**
+     * Get user id by OAuth token
+     *
+     * @param token OAuth token
+     * @return Null if not present
+     */
+    public String getUserIdbyToken(String token) {
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_OAUTH_TOKEN, token);
+        Record r = this.ac.get(null, k, Scheme.BIN_O_T_USER);
+        return r != null ? r.getString(Scheme.BIN_O_T_USER) : null;
+    }
+
+    /**
+     * Create or Update user id with OAuth token
+     * Validate before invoking this method!
+     *
+     * @param userId User id
+     * @param token  OAuth token
+     */
+    public void updateUserToken(String userId, String token) {
+        // delete old token
+        Statement stmt = new Statement();
+        stmt.setNamespace(Scheme.NS_EVO);
+        stmt.setSetName(Scheme.SET_OAUTH_TOKEN);
+        stmt.setFilters(Filter.equal(Scheme.BIN_O_T_USER, userId));
+        try (RecordSet rs = this.ac.query(null, stmt)) {
+            while (rs.next()) {
+                this.ac.delete(null, rs.getKey());
+            }
+        }
+        // add new token
+        WritePolicy p = new WritePolicy();
+        p.recordExistsAction = RecordExistsAction.UPDATE;
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_OAUTH_TOKEN, token);
+        this.ac.put(p, k, new Bin(Scheme.BIN_O_T_TOKEN, token), new Bin(Scheme.BIN_O_T_USER, userId));
     }
 
     /**
@@ -247,19 +284,19 @@ public class AerospikeStorage {
         return Converter.recordToDevice(r);
     }
 
-    /**
-     * Is User's token correct (on specific controller)
-     *
-     * @param userId   User Id
-     * @param deviceId Device Id (Controller)
-     * @param token    Token
-     * @return True if token is correct
-     */
-    public boolean isUserDeviceTokenCorrect(String userId, String deviceId, String token) {
-        Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
-        Record r = this.ac.get(null, k, Scheme.BIN_D_CTRL, Scheme.BIN_D_CTRL_TOKEN);
-        return r != null && userId.equals(r.getString(Scheme.BIN_D_CTRL)) && token.equals(r.getString(Scheme.BIN_D_CTRL_TOKEN));
-    }
+    //    /**
+    //     * Is User's token correct (on specific controller)
+    //     *
+    //     * @param userId   User Id
+    //     * @param deviceId Device Id (Controller)
+    //     * @param token    Token
+    //     * @return True if token is correct
+    //     */
+    //    public boolean isUserDeviceTokenCorrect(String userId, String deviceId, String token) {
+    //        Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
+    //        Record r = this.ac.get(null, k, Scheme.BIN_D_CTRL, Scheme.BIN_D_CTRL_TOKEN);
+    //        return r != null && userId.equals(r.getString(Scheme.BIN_D_CTRL)) && token.equals(r.getString(Scheme.BIN_D_CTRL_TOKEN));
+    //    }
 
     /**
      * Create or Update device attribute
@@ -396,7 +433,7 @@ public class AerospikeStorage {
         Record r = this.ac.get(null, k, Scheme.BIN_D_OWN, Scheme.BIN_D_CTRL);
         if (r != null) {
             List<Map<String, Object>> o = (List<Map<String, Object>>) r.getValue(Scheme.BIN_D_OWN);
-            if(hasOwn(o, userId, deviceId, min, Permission.OWNER)) return true;
+            if (hasOwn(o, userId, deviceId, min, Permission.OWNER)) return true;
             String c = r.getString(Scheme.BIN_D_CTRL);
             if (userId.equals(c)) return true;
         }
@@ -457,7 +494,7 @@ public class AerospikeStorage {
      * @param deviceId Device Id
      */
     @SuppressWarnings("unchecked")
-    public void updateUserControlDevice(String userId, String deviceId, String ctrlToken) {
+    public void updateUserControlDevice(String userId, String deviceId) {
         Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record ru = this.ac.get(null, ku, Scheme.BIN_U_CTRL);
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
@@ -477,9 +514,10 @@ public class AerospikeStorage {
             String cd = rd.getString(Scheme.BIN_D_CTRL);
             // remove old control relation
             if (cd != null && !cd.equals(userId)) removeUserControlDevice(cd, deviceId);
-            // always update because of ctrlToken
-            // if (cd == null || !cd.equals(userId)) this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, userId));
-            this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, userId), new Bin(Scheme.BIN_D_CTRL_TOKEN, ctrlToken));
+            // update new control relation
+            if (cd == null || !cd.equals(userId)) this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, userId));
+            // // always update because of ctrlToken
+            // this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, userId), new Bin(Scheme.BIN_D_CTRL_TOKEN, ctrlToken));
         }
     }
 
@@ -507,7 +545,8 @@ public class AerospikeStorage {
         }
 
         if (rd != null && userId.equals(rd.getString(Scheme.BIN_D_CTRL))) {
-            this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, Value.getAsNull()), new Bin(Scheme.BIN_D_CTRL_TOKEN, Value.getAsNull()));
+            // this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, Value.getAsNull()), new Bin(Scheme.BIN_D_CTRL_TOKEN, Value.getAsNull()));
+            this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, Value.getAsNull()));
         }
     }
 

@@ -70,7 +70,7 @@ public class Converter {
                 new Bin(Scheme.BIN_D_CONN, device.getConnected()),
                 new Bin(Scheme.BIN_D_OWN, Value.get(device.getOwn())),
                 new Bin(Scheme.BIN_D_CTRL, device.getCtrl()),
-                new Bin(Scheme.BIN_D_CTRL_TOKEN, device.getCtrlToken()),
+                // new Bin(Scheme.BIN_D_CTRL_TOKEN, device.getCtrlToken()),
         };
     }
 

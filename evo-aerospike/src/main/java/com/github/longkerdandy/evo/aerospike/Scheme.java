@@ -28,6 +28,11 @@ public class Scheme {
     public static final String BIN_U_OWN = "own";
     public static final String BIN_U_CTRL = "ctrl";
 
+    // set - oauth token
+    public static final String SET_OAUTH_TOKEN = "oauth:token";
+    public static final String BIN_O_T_TOKEN = "token";
+    public static final String BIN_O_T_USER = "user";       // Index
+
     // set - devices
     public static final String SET_DEVICES = "devices";
     public static final String BIN_D_ID = "id";
@@ -38,7 +43,7 @@ public class Scheme {
     public static final String BIN_D_CONN = "conn";
     public static final String BIN_D_OWN = "own";
     public static final String BIN_D_CTRL = "ctrl";
-    public static final String BIN_D_CTRL_TOKEN = "ctrlToken";
+    // public static final String BIN_D_CTRL_TOKEN = "ctrlToken";
 
     // set - devices attribute
     public static final String SET_DEVICES_ATTR = "devices:attr";

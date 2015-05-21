@@ -100,6 +100,31 @@ public class AerospikeStorageTest {
     }
 
     @Test
+    public void userTokenTest() {
+        // create new user
+        User userA = EntityFactory.newUser("u000001");
+        userA.setAlias("UserA");
+        userA.setEmail("usera@example.com");
+        userA.setMobile("18600000000");
+        userA.setPassword("passwr0d");
+        storage.updateUser(userA);
+
+        // create token
+        storage.updateUserToken("u000001", "abcdefg");
+        assert storage.getUserIdbyToken("abcdefg").equals("u000001");
+
+        // update token
+        storage.updateUserToken("u000001", "1234567890");
+        assert storage.getUserIdbyToken("abcdefg") == null;
+        assert storage.getUserIdbyToken("1234567890").equals("u000001");
+
+        // clear
+        storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_USERS, "u000001"));
+        storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_OAUTH_TOKEN, "abcdefg"));
+        storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_OAUTH_TOKEN, "1234567890"));
+    }
+
+    @Test
     public void deviceTest() {
         // create new device
         Device deviceA = EntityFactory.newDevice("d000001");
@@ -115,7 +140,6 @@ public class AerospikeStorageTest {
         }});
         deviceA.setOwn(l);
         deviceA.setCtrl("u000001");
-        deviceA.setCtrlToken("1234567890");
         storage.updateDevice(deviceA);
 
         // exist
@@ -131,10 +155,6 @@ public class AerospikeStorageTest {
         assert deviceA.getConnected().equals("Node1");
         assert deviceA.getOwn().get(0).get(Scheme.OWN_USER).equals("u000001");
         assert storage.getDeviceById("d000002") == null;
-
-        // token
-        assert storage.isUserDeviceTokenCorrect("u000001", "d000001", "1234567890");
-        assert !storage.isUserDeviceTokenCorrect("u000002", "d000001", "1234567890");
 
         // update device attribute
         Map<String, Object> attrA = new HashMap<>();
@@ -261,10 +281,10 @@ public class AerospikeStorageTest {
         storage.updateDevice(deviceC);
 
         // update control
-        storage.updateUserControlDevice("u000001", "d000002", "token_abc");
+        storage.updateUserControlDevice("u000001", "d000002");
         List<String> ctrlA = storage.getUserControllee("u000001");
         assert ctrlA.contains("d000002");
-        storage.updateUserControlDevice("u000001", "d000003", "token_abc");
+        storage.updateUserControlDevice("u000001", "d000003");
         ctrlA = storage.getUserControllee("u000001");
         assert ctrlA.contains("d000002");
         assert ctrlA.contains("d000003");
@@ -280,7 +300,7 @@ public class AerospikeStorageTest {
 
         // get own with control
         storage.updateUserOwnDevice("u000001", "d000001", Permission.READ);
-        storage.updateUserControlDevice("u000001", "d000002", "token_abc");
+        storage.updateUserControlDevice("u000001", "d000002");
         Set<String> setA = storage.getDeviceOwnerControllee("d000001", Permission.READ, Permission.OWNER);
         assert setA.contains("d000002");
         assert setA.contains("d000003");

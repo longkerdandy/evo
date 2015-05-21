@@ -18,8 +18,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +28,7 @@ public class AerospikeAsyncStorageTest {
 
     private static AerospikeStorage storage;
     private static AerospikeAsyncStorage asyncStorage;
+    private boolean completed;
 
     @BeforeClass
     public static void before() {
@@ -45,8 +44,6 @@ public class AerospikeAsyncStorageTest {
         storage.close();
         asyncStorage.close();
     }
-
-    private boolean completed;
 
     private synchronized void waitTillComplete() {
         completed = false;
@@ -116,55 +113,5 @@ public class AerospikeAsyncStorageTest {
         // clear
         storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_USERS, "u000001"));
         storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, "d000001"));
-    }
-
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void userDeviceTokenTest() {
-        // create new device
-        Device deviceA = EntityFactory.newDevice("d000001");
-        deviceA.setType(DeviceType.DEVICE);
-        deviceA.setDescId("Desc1");
-        deviceA.setProtocol(Const.PROTOCOL_TCP_1_0);
-        deviceA.setConnected("Node1");
-        List<Map<String, Object>> l = new ArrayList<>();
-        l.add(new HashMap<String, Object>() {{
-            put(Scheme.OWN_USER, "u000001");
-            put(Scheme.OWN_DEVICE, "d000001");
-            put(Scheme.OWN_PERMISSION, Permission.READ_WRITE);
-        }});
-        deviceA.setOwn(l);
-        deviceA.setCtrl("u000001");
-        deviceA.setCtrlToken("1234567890");
-        storage.updateDevice(deviceA);
-
-        // token
-        assert storage.isUserDeviceTokenCorrect("u000001", "d000001", "1234567890");
-        assert !storage.isUserDeviceTokenCorrect("u000002", "d000001", "1234567890");
-        asyncStorage.getDeviceById("d000001", new RecordListener() {
-            @Override
-            public void onSuccess(Key key, Record record) {
-                if (record != null) {
-                    String c = record.getString(Scheme.BIN_D_CTRL);
-                    String ct = record.getString(Scheme.BIN_D_CTRL_TOKEN);
-                    assert "u000001".equals(c) && "1234567890".equals(ct);
-                } else {
-                    assert false;
-                }
-                notifyCompleted();
-            }
-
-            @Override
-            public void onFailure(AerospikeException exception) {
-                assert false;
-                notifyCompleted();
-            }
-        });
-        waitTillComplete();
-
-        // clear
-        storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, "d000001"));
-        storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_DEVICES_ATTR, "d000001"));
     }
 }
