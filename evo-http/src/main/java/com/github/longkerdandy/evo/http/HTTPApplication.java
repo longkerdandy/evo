@@ -5,8 +5,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
 import com.github.longkerdandy.evo.api.mq.Producer;
+import com.github.longkerdandy.evo.http.auth.OAuthAuthenticator;
 import com.github.longkerdandy.evo.http.resources.user.UserRegisterResource;
 import io.dropwizard.Application;
+import io.dropwizard.auth.AuthFactory;
+import io.dropwizard.auth.oauth.OAuthFactory;
 import io.dropwizard.setup.Environment;
 
 public class HTTPApplication extends Application<HTTPConfiguration> {
@@ -22,6 +25,9 @@ public class HTTPApplication extends Application<HTTPConfiguration> {
 
         // init mq
         Producer producer = configuration.getKafkaProducer().build(environment);
+
+        // OAuth2
+        environment.jersey().register(AuthFactory.binder(new OAuthFactory<>(new OAuthAuthenticator(storage), "SUPER SECRET STUFF", String.class)));
 
         // register resources
         environment.jersey().register(new UserRegisterResource(storage, producer));

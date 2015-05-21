@@ -111,12 +111,12 @@ public class AerospikeStorageTest {
 
         // create token
         storage.updateUserToken("u000001", "abcdefg");
-        assert storage.getUserIdbyToken("abcdefg").equals("u000001");
+        assert storage.getUserIdByToken("abcdefg").equals("u000001");
 
         // update token
         storage.updateUserToken("u000001", "1234567890");
-        assert storage.getUserIdbyToken("abcdefg") == null;
-        assert storage.getUserIdbyToken("1234567890").equals("u000001");
+        assert storage.getUserIdByToken("abcdefg") == null;
+        assert storage.getUserIdByToken("1234567890").equals("u000001");
 
         // clear
         storage.ac.delete(null, new Key(Scheme.NS_EVO, Scheme.SET_USERS, "u000001"));
@@ -231,10 +231,10 @@ public class AerospikeStorageTest {
         assert storage.isUserOwnDevice("u000001", "d000001", Permission.READ_WRITE);
 
         // get own
-        List<Map<String, Object>> ownA = storage.getUserOwnee("u000001");
+        List<Map<String, Object>> ownA = storage.getUserOwnee("u000001", Permission.READ_WRITE);
         assert ownA.get(0).get(Scheme.OWN_DEVICE).equals("d000001");
         assert NumberUtils.toInt(String.valueOf(ownA.get(0).get(Scheme.OWN_PERMISSION))) == Permission.READ_WRITE;
-        ownA = storage.getDeviceOwner("d000001");
+        ownA = storage.getDeviceOwner("d000001", Permission.READ_WRITE);
         assert ownA.get(0).get(Scheme.OWN_USER).equals("u000001");
         assert NumberUtils.toInt(String.valueOf(ownA.get(0).get(Scheme.OWN_PERMISSION))) == Permission.READ_WRITE;
 
@@ -289,8 +289,8 @@ public class AerospikeStorageTest {
         assert ctrlA.contains("d000002");
         assert ctrlA.contains("d000003");
         assert storage.isUserOwnDevice("u000001", "d000002", Permission.OWNER);
-        assert storage.hasOwn(storage.getDeviceOwner("d000002"), "u000001", "d000002", Permission.OWNER, Permission.OWNER);
-        assert storage.hasOwn(storage.getUserOwnee("u000001"), "u000001", "d000002", Permission.OWNER, Permission.OWNER);
+        assert storage.hasOwn(storage.getDeviceOwner("d000002", Permission.OWNER), "u000001", "d000002", Permission.OWNER, Permission.OWNER);
+        assert storage.hasOwn(storage.getUserOwnee("u000001", Permission.OWNER), "u000001", "d000002", Permission.OWNER, Permission.OWNER);
 
         // remove control
         storage.removeUserControlDevice("u000001", "d000002");

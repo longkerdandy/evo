@@ -19,7 +19,7 @@ public class Message<T> {
     private String from;            // Device ID (who send this message)
     private String to;              // Device ID (whom this message send to)
     private String descId;          // Device Description Id
-    private String userId;          // User ID (as controller)
+    private String userId;          // User ID
     private long timestamp;         // Timestamp (when message is send)
     private T payload;              // Payload (sub-message)
 

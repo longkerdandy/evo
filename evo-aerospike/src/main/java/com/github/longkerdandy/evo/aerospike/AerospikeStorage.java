@@ -169,7 +169,7 @@ public class AerospikeStorage {
      * Is user id and password correct?
      * Password must be encoded
      *
-     * @param userId   User id
+     * @param userId   User Id
      * @param password Password (encoded)
      * @return True if correct
      */
@@ -185,7 +185,7 @@ public class AerospikeStorage {
      * @param token OAuth token
      * @return Null if not present
      */
-    public String getUserIdbyToken(String token) {
+    public String getUserIdByToken(String token) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_OAUTH_TOKEN, token);
         Record r = this.ac.get(null, k, Scheme.BIN_O_T_USER);
         return r != null ? r.getString(Scheme.BIN_O_T_USER) : null;
@@ -195,7 +195,7 @@ public class AerospikeStorage {
      * Create or Update user id with OAuth token
      * Validate before invoking this method!
      *
-     * @param userId User id
+     * @param userId User Id
      * @param token  OAuth token
      */
     public void updateUserToken(String userId, String token) {
@@ -444,22 +444,23 @@ public class AerospikeStorage {
      * Get user's owned devices
      *
      * @param userId User Id
+     * @param min    Minimal Permission
      * @return List of own relation
      */
     @SuppressWarnings("unchecked")
-    public List<Map<String, Object>> getUserOwnee(String userId) {
+    public List<Map<String, Object>> getUserOwnee(String userId, int min) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record r = this.ac.get(null, k, Scheme.BIN_U_OWN, Scheme.BIN_U_CTRL);
         if (r != null) {
             List<Map<String, Object>> o = (List<Map<String, Object>>) r.getValue(Scheme.BIN_D_OWN);
-            if (o == null) o = new ArrayList<>();
+            // if (o == null) o = new ArrayList<>();
             List<String> c = (List<String>) r.getValue(Scheme.BIN_U_CTRL);
             if (c != null) {
                 for (String d : c) {
-                    updateOwn(o, userId, d, Permission.OWNER);
+                    o = updateOwn(o, userId, d, Permission.OWNER);
                 }
             }
-            return o;
+            return filterOwn(o, min, Permission.OWNER);
         } else {
             return null;
         }
@@ -469,18 +470,19 @@ public class AerospikeStorage {
      * Get device's owners (users)
      *
      * @param deviceId Device Id
+     * @param min      Minimal Permission
      * @return List of own relation
      */
     @SuppressWarnings("unchecked")
-    public List<Map<String, Object>> getDeviceOwner(String deviceId) {
+    public List<Map<String, Object>> getDeviceOwner(String deviceId, int min) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
         Record r = this.ac.get(null, k, Scheme.BIN_D_OWN, Scheme.BIN_D_CTRL);
         if (r != null) {
             List<Map<String, Object>> o = (List<Map<String, Object>>) r.getValue(Scheme.BIN_D_OWN);
-            if (o == null) o = new ArrayList<>();
+            // if (o == null) o = new ArrayList<>();
             String c = r.getString(Scheme.BIN_D_CTRL);
-            if (c != null) updateOwn(o, c, deviceId, Permission.OWNER);
-            return o;
+            if (c != null) o = updateOwn(o, c, deviceId, Permission.OWNER);
+            return filterOwn(o, min, Permission.OWNER);
         } else {
             return null;
         }
@@ -656,14 +658,29 @@ public class AerospikeStorage {
     }
 
     /**
+     * Filter ownership
+     */
+    protected List<Map<String, Object>> filterOwn(List<Map<String, Object>> own, int min, int max) {
+        if (own != null) {
+            for (Iterator<Map<String, Object>> iterator = own.iterator(); iterator.hasNext(); ) {
+                Map<String, Object> m = iterator.next();
+                int p = Integer.valueOf(String.valueOf(m.getOrDefault(Scheme.OWN_PERMISSION, 0)));
+                if (p < min || p > max) {
+                    iterator.remove();
+                }
+            }
+        }
+        return own;
+    }
+
+    /**
      * Has ownership?
      */
     protected boolean hasOwn(List<Map<String, Object>> own, String userId, String deviceId, int min, int max) {
         if (own != null) {
             for (Map<String, Object> m : own) {
-                if (m.get(Scheme.OWN_USER).equals(userId) && m.get(Scheme.OWN_DEVICE).equals(deviceId)
-                        && Long.valueOf(String.valueOf(m.getOrDefault(Scheme.OWN_PERMISSION, 0))) >= min
-                        && Long.valueOf(String.valueOf(m.getOrDefault(Scheme.OWN_PERMISSION, 0))) <= max) {
+                int p = Integer.valueOf(String.valueOf(m.getOrDefault(Scheme.OWN_PERMISSION, 0)));
+                if (m.get(Scheme.OWN_USER).equals(userId) && m.get(Scheme.OWN_DEVICE).equals(deviceId) && p >= min && p <= max) {
                     return true;
                 }
             }

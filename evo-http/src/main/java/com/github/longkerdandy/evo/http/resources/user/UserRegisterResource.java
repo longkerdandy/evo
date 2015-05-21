@@ -18,6 +18,7 @@ import com.github.longkerdandy.evo.http.entity.user.UserRegisterEntity;
 import com.github.longkerdandy.evo.http.exception.AuthorizeException;
 import com.github.longkerdandy.evo.http.exception.ValidateException;
 import com.github.longkerdandy.evo.http.resources.AbstractResource;
+import com.github.longkerdandy.evo.http.util.TokenUtils;
 import com.google.common.base.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +38,7 @@ public class UserRegisterResource extends AbstractResource {
 
     protected static final int MOBILE_VERIFY_CODE_LENGTH = 6;
     protected static final int MOBILE_VERIFY_CODE_TTL = 180;    // seconds
+
     // Logger
     private static final Logger logger = LoggerFactory.getLogger(UserRegisterResource.class);
 
@@ -54,7 +56,7 @@ public class UserRegisterResource extends AbstractResource {
     @GET
     public ResultEntity<Boolean> exist(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
                                        @QueryParam("mobile") Optional<String> mobile) {
-        logger.trace("Process exist request with params: mobile {}", mobile.get());
+        logger.debug("Process exist request with params: mobile {}", mobile.get());
         // validate
         if (!mobile.isPresent()) {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
@@ -83,7 +85,7 @@ public class UserRegisterResource extends AbstractResource {
     @POST
     public ResultEntity<String> verify(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
                                        @QueryParam("mobile") Optional<String> mobile) {
-        logger.trace("Process verify request with params: mobile {}", mobile.get());
+        logger.debug("Process verify request with params: mobile {}", mobile.get());
         // validate
         if (!mobile.isPresent()) {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
@@ -123,7 +125,7 @@ public class UserRegisterResource extends AbstractResource {
         if (r == null || r.getUser() == null || r.getDevice() == null) {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
         }
-        logger.trace("Process signUp request with params: alias {} mobile {}", r.getUser().getAlias(), r.getUser().getMobile());
+        logger.debug("Process signUp request with params: alias {} mobile {}", r.getUser().getAlias(), r.getUser().getMobile());
 
         // validate alias format
         if (!isAliasValid(r.getUser().getAlias())) {
@@ -162,11 +164,15 @@ public class UserRegisterResource extends AbstractResource {
         this.storage.updateUser(u);
         Device d = Converter.toDevice(r.getDevice());
         this.storage.updateDevice(d);
-        String ctrlToken = UuidUtils.shortUuid(); // generate random ctrlToken
-        this.storage.updateUserControlDevice(u.getId(), d.getId(), ctrlToken);
-        logger.debug("Created a new user {} {} on controller {}", u.getId(), u.getAlias(), d.getId());
+        this.storage.updateUserControlDevice(u.getId(), d.getId());
+        logger.trace("Created a new user {} on controller {}", u.getId(), d.getId());
 
-        return new ResultEntity<>(ctrlToken);
+        // create user token
+        String t = TokenUtils.newToken(u.getId());
+        this.storage.updateUserToken(u.getId(), t);
+        logger.trace("Create token for user{}", u.getId());
+
+        return new ResultEntity<>(t);
     }
 
     /**
@@ -215,11 +221,15 @@ public class UserRegisterResource extends AbstractResource {
         // update token
         Device d = Converter.toDevice(r.getDevice());
         this.storage.updateDevice(d);
-        String ctrlToken = UuidUtils.shortUuid(); // generate random ctrlToken
-        this.storage.updateUserControlDevice(u.getId(), d.getId(), ctrlToken);
+        this.storage.updateUserControlDevice(u.getId(), d.getId());
         logger.debug("Updated user's ctrlToken {} on controller {}", u.getId(), d.getId());
 
-        return new ResultEntity<>(ctrlToken);
+        // update user token
+        String t = TokenUtils.newToken(u.getId());
+        this.storage.updateUserToken(u.getId(), t);
+        logger.trace("Update token for user{}", u.getId());
+
+        return new ResultEntity<>(t);
     }
 
     /**
