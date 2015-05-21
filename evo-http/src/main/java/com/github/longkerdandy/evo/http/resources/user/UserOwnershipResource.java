@@ -70,7 +70,7 @@ public class UserOwnershipResource extends AbstractResource {
         List<Map<String, Object>> o = this.storage.getDeviceOwner(deviceId, Permission.OWNER);
         if (o != null && o.size() > 0) {
             // require permission from owner
-            // push notify message to mq
+            // push notify message to message queue
 
             return new ResultEntity<>(false);
         } else {
@@ -81,6 +81,12 @@ public class UserOwnershipResource extends AbstractResource {
         }
     }
 
+    /**
+     * User release ownership for device
+     *
+     * @param userId     User Id
+     * @param deviceId   Device Id
+     */
     @Path("/release")
     @POST
     public ResultEntity<String> release(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,

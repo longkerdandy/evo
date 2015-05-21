@@ -9,9 +9,9 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class Action {
 
-    private String actionId;                // Action Id
-    private int lifetime;                   // Action Lifetime, seconds until this action expires
-    private Map<String, Object> attributes; // Attributes
+    protected String actionId;                // Action Id
+    protected int lifetime;                   // Action Lifetime, seconds until this action expires
+    protected Map<String, Object> attributes; // Attributes
 
     public String getActionId() {
         return actionId;

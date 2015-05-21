@@ -103,7 +103,7 @@ public class UserRegisterResource extends AbstractResource {
         // create mobile verify code
         String code = RandomStringUtils.randomNumeric(MOBILE_VERIFY_CODE_LENGTH);
         this.storage.updateVerify(mobile.get(), code, MOBILE_VERIFY_CODE_TTL);
-        logger.debug("Created a verify code for mobile {}", mobile.get());
+        logger.trace("Created a verify code for mobile {}", mobile.get());
 
         // send to mq
         this.producer.sendSmsMessage(new SmsMessage<>(mobile.get(), SmsMessage.TYPE_VERIFY_CODE, new SmsVerifyCode(code)));
@@ -222,7 +222,7 @@ public class UserRegisterResource extends AbstractResource {
         Device d = Converter.toDevice(r.getDevice());
         this.storage.updateDevice(d);
         this.storage.updateUserControlDevice(u.getId(), d.getId());
-        logger.debug("Updated user's ctrlToken {} on controller {}", u.getId(), d.getId());
+        logger.trace("Updated user's ctrlToken {} on controller {}", u.getId(), d.getId());
 
         // update user token
         String t = TokenUtils.newToken(u.getId());
