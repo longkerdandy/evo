@@ -44,6 +44,12 @@ public class UserRegisterResource extends AbstractResource {
         super(storage, producer);
     }
 
+    /**
+     * Check whether user exists?
+     *
+     * @param mobile User mobile
+     * @return True if user exists
+     */
     @Path("/exist")
     @GET
     public ResultEntity<Boolean> exist(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
@@ -66,6 +72,13 @@ public class UserRegisterResource extends AbstractResource {
         return new ResultEntity<>(true);
     }
 
+    /**
+     * Require verify code
+     * Create a new verify code in storage, and send to user's mobile
+     *
+     * @param mobile User mobile
+     * @return Verify code id
+     */
     @Path("/verify")
     @POST
     public ResultEntity<String> verify(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
@@ -96,6 +109,12 @@ public class UserRegisterResource extends AbstractResource {
         return new ResultEntity<>("successful");
     }
 
+    /**
+     * New user sign up
+     *
+     * @param r New user information
+     * @return Token
+     */
     @Path("/signup")
     @POST
     public ResultEntity<String> signUp(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
@@ -150,6 +169,12 @@ public class UserRegisterResource extends AbstractResource {
         return new ResultEntity<>(ctrlToken);
     }
 
+    /**
+     * User sign in
+     *
+     * @param r User information
+     * @return Token
+     */
     @Path("/signin")
     @POST
     public ResultEntity<String> signIn(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
@@ -201,7 +226,7 @@ public class UserRegisterResource extends AbstractResource {
      * If device entity (parameter) valid
      * Used in user register process
      *
-     * @param deviceEntity Device Entity
+     * @param deviceEntity Device entity
      * @return True if valid
      */
     protected boolean isDeviceEntityValid(DeviceEntity deviceEntity) {
