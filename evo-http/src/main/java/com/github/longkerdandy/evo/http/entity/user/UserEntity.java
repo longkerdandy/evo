@@ -65,7 +65,7 @@ public class UserEntity extends User {
     public void validateMobile(String lang) {
         boolean valid = false;
         if (StringUtils.isNotBlank(this.mobile)) {
-            Pattern p = Pattern.compile("^\\+\\d{1,2}[- ]\\d{10,11}$");
+            Pattern p = Pattern.compile("^\\+\\d{1,2}[ ]\\d{10,11}$");
             Matcher m = p.matcher(this.mobile);
             valid = m.matches();
         }

@@ -30,7 +30,7 @@ public abstract class AbstractResource {
      */
     protected boolean isMobileValid(String mobile) {
         if (mobile == null) return false;
-        Pattern p = Pattern.compile("^\\+\\d{1,2}[- ]\\d{10,11}$");
+        Pattern p = Pattern.compile("^\\+\\d{1,2}[ ]\\d{10,11}$");
         Matcher m = p.matcher(mobile);
         return m.matches();
     }
