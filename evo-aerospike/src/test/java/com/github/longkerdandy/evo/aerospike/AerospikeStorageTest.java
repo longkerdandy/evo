@@ -282,9 +282,13 @@ public class AerospikeStorageTest {
 
         // update control
         storage.updateUserControlDevice("u000001", "d000002");
+        assert storage.isUserControlDevice("u000001", "d000002");
+        assert !storage.isUserControlDevice("u000001", "d000003");
         List<String> ctrlA = storage.getUserControllee("u000001");
         assert ctrlA.contains("d000002");
         storage.updateUserControlDevice("u000001", "d000003");
+        assert storage.isUserControlDevice("u000001", "d000002");
+        assert storage.isUserControlDevice("u000001", "d000003");
         ctrlA = storage.getUserControllee("u000001");
         assert ctrlA.contains("d000002");
         assert ctrlA.contains("d000003");
@@ -294,6 +298,7 @@ public class AerospikeStorageTest {
 
         // remove control
         storage.removeUserControlDevice("u000001", "d000002");
+        assert !storage.isUserControlDevice("u000001", "d000002");
         ctrlA = storage.getUserControllee("u000001");
         assert !ctrlA.contains("d000002");
         assert ctrlA.contains("d000003");

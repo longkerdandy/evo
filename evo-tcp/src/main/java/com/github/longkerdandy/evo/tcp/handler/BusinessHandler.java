@@ -113,7 +113,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                 returnCode = ConnAck.EMPTY_USER_OR_TOKEN;
             }
             // user token incorrect
-            else if (!this.storage.isUserDeviceTokenCorrect(userId, deviceId, token)) {
+            else if (!userId.equals(this.storage.getUserIdByToken(token))) {
                 logger.trace("User id & token incorrect");
                 returnCode = ConnAck.USER_TOKEN_INCORRECT;
             }
@@ -155,6 +155,11 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             device.setConnected(TCPNode.id());
             this.storage.updateDevice(device);
             updateDeviceAttr(deviceId, connect.getAttributes(), connect.getPolicy());
+
+            // update user device control relationship
+            if (DeviceType.isController(deviceType) && !this.storage.isUserControlDevice(userId, deviceId)) {
+                this.storage.updateUserControlDevice(userId, deviceId);
+            }
 
             // push to mq
             this.producer.sendMessage(Topics.TCP_IN, online);

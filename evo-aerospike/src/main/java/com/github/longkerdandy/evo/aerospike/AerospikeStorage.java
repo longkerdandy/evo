@@ -553,6 +553,19 @@ public class AerospikeStorage {
     }
 
     /**
+     * Is device one of user's controller
+     *
+     * @param userId   User Id
+     * @param deviceId Device Id
+     * @return True if is controller
+     */
+    public boolean isUserControlDevice(String userId, String deviceId) {
+        Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
+        Record r = this.ac.get(null, k, Scheme.BIN_D_OWN, Scheme.BIN_D_CTRL);
+        return r != null && userId.equals(r.getString(Scheme.BIN_D_CTRL));
+    }
+
+    /**
      * Get user's controlled devices
      *
      * @param userId User Id
