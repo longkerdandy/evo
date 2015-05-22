@@ -29,7 +29,7 @@ public class Scheme {
     public static final String BIN_U_CTRL = "ctrl";
 
     // set - oauth token
-    public static final String SET_OAUTH_TOKEN = "oauth:token";
+    public static final String SET_OAUTH_TOKEN = "oauth.token";
     public static final String BIN_O_T_TOKEN = "token";
     public static final String BIN_O_T_USER = "user";       // Index
 
@@ -46,7 +46,7 @@ public class Scheme {
     // public static final String BIN_D_CTRL_TOKEN = "ctrlToken";
 
     // set - devices attribute
-    public static final String SET_DEVICES_ATTR = "devices:attr";
+    public static final String SET_DEVICES_ATTR = "devices.attr";
     public static final String BIN_D_A_UPDATE_TIME = "timestamp";
 
     private Scheme() {
