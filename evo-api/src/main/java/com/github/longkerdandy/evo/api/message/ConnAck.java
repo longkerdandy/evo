@@ -15,8 +15,8 @@ public class ConnAck {
     public static final int DESCRIPTION_NOT_REGISTERED = 116;       // Device description is not registered
     public static final int DEVICE_TYPE_UNACCEPTABLE = 117;         // Device description is not registered
 
-    private String connMsgId;       // ConnectMessage's message id
-    private int returnCode;         // Return Code
+    protected String connMsgId;       // ConnectMessage's message id
+    protected int returnCode;         // Return Code
 
     public String getConnMsgId() {
         return connMsgId;

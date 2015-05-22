@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 /**
  * Abstract Base Resource
  */
+@SuppressWarnings("unused")
 public abstract class AbstractResource {
 
     protected final AerospikeStorage storage;
@@ -43,40 +44,5 @@ public abstract class AbstractResource {
      */
     protected boolean isEmailValid(String email) {
         return email != null && EmailValidator.getInstance().isValid(email);
-    }
-
-    /**
-     * Is given user alias valid
-     * Alias can have unicode characters and '-', length from 3 ~ 15
-     *
-     * @param alias User Alias
-     * @return True if valid
-     */
-    protected boolean isAliasValid(String alias) {
-        if (alias == null) return false;
-        Pattern p = Pattern.compile("^[\\w-]{3,15}$", Pattern.UNICODE_CHARACTER_CLASS);
-        Matcher m = p.matcher(alias);
-        return m.matches();
-    }
-
-    /**
-     * Is given password valid
-     * ^                 # start-of-string
-     * (?=.*[0-9])       # a digit must occur at least once
-     * (?=.*[a-z])       # a lower case letter must occur at least once
-     * (?=.*[A-Z])       # an upper case letter must occur at least once
-     * (?=.*[@#$%^&+=])  # a special character must occur at least once
-     * (?=\S+$)          # no whitespace allowed in the entire string
-     * .{8,}             # anything, at least eight places though
-     * $                 # end-of-string
-     *
-     * @param password Password
-     * @return True if valid
-     */
-    protected boolean isPasswordValid(String password) {
-        if (password == null) return false;
-        Pattern p = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$");
-        Matcher m = p.matcher(password);
-        return m.matches();
     }
 }

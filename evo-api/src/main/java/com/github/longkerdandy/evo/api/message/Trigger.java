@@ -9,9 +9,9 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class Trigger {
 
-    private String triggerId;               // Trigger Id
-    private int policy;                     // Attributes Override Policy
-    private Map<String, Object> attributes; // Attributes
+    protected String triggerId;               // Trigger Id
+    protected int policy;                     // Attributes Override Policy
+    protected Map<String, Object> attributes; // Attributes
 
     public String getTriggerId() {
         return triggerId;

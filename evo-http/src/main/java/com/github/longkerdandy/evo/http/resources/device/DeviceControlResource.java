@@ -34,7 +34,7 @@ public class DeviceControlResource extends AbstractResource {
     // Logger
     private static final Logger logger = LoggerFactory.getLogger(DeviceControlResource.class);
 
-    protected DeviceControlResource(AerospikeStorage storage, Producer producer) {
+    public DeviceControlResource(AerospikeStorage storage, Producer producer) {
         super(storage, producer);
     }
 
@@ -42,11 +42,15 @@ public class DeviceControlResource extends AbstractResource {
     @POST
     public ResultEntity<String> action(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
                                        @Auth String userId, @QueryParam("from") Optional<String> from, @QueryParam("to") String to, @QueryParam("deviceType") int deviceType,
-                                       @Valid ActionEntity action) {
-        logger.debug("Process action request with params: userId {} deviceId {} actionId {}", userId, to, action.getActionId());
+                                       @Valid ActionEntity actionEntity) {
+        logger.debug("Process action request with params: userId {} deviceId {} actionId {}", userId, to, actionEntity.getActionId());
+
+        // validate
+        actionEntity.validateActionId(lang);
+
         // check permission
         if (!this.storage.isUserOwnDevice(userId, to, Permission.READ_WRITE)) {
-            throw new AuthorizeException(new ErrorEntity(ErrorCode.UNAUTHORIZED, lang));
+            throw new AuthorizeException(new ErrorEntity(ErrorCode.FORBIDDEN, lang));
         }
 
         // check device connection
@@ -57,9 +61,9 @@ public class DeviceControlResource extends AbstractResource {
             return new ResultEntity<>("cached");
         }
 
-        // forge message and push to message queue
+        // connected, forge the message and push to message queue
         Message<Action> msg = MessageFactory.newActionMessage(Const.PROTOCOL_TCP_1_0, deviceType, from.or(Const.PLATFORM_ID), to, userId,
-                action.getActionId(), action.getLifetime(), action.getAttributes());
+                actionEntity.getActionId(), actionEntity.getLifetime(), actionEntity.getAttributes());
         this.producer.sendMessage(Topics.TCP_OUT(node), msg);
 
         return new ResultEntity<>("successful");

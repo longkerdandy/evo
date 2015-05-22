@@ -9,13 +9,13 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class User {
 
-    private String id;                          // id
-    private String alias;                       // nick name
-    private String email;                       // email
-    private String mobile;                      // mobile phone
-    private String password;                    // password (encoded before saving to db)
-    private List<Map<String, Object>> own;      // own relations
-    private List<String> ctrl;                  // control relations
+    protected String id;                          // id
+    protected String alias;                       // nick name
+    protected String email;                       // email
+    protected String mobile;                      // mobile phone
+    protected String password;                    // password (encoded before saving to db)
+    protected List<Map<String, Object>> own;      // own relations
+    protected List<String> ctrl;                  // control relations
 
     protected User() {
     }

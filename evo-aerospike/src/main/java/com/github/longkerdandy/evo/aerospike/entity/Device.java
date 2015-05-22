@@ -9,15 +9,15 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class Device {
 
-    private String id;                          // id
-    private int type;                           // type
-    private String descId;                      // description id
-    private int protocol;                       // protocol
-    private String token;                       // token
-    private String connected;                   // connected node
-    private List<Map<String, Object>> own;      // own relations
-    private String ctrl;                        // control relation
-    // private String ctrlToken;                   // control user's token
+    protected String id;                          // id
+    protected int type;                           // type
+    protected String descId;                      // description id
+    protected int protocol;                       // protocol
+    protected String token;                       // token
+    protected String connected;                   // connected node
+    protected List<Map<String, Object>> own;      // own relations
+    protected String ctrl;                        // control relation
+    // protected String ctrlToken;                   // control user's token
 
     protected Device() {
     }

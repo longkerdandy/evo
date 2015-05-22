@@ -25,7 +25,7 @@ public class UserOwnershipResource extends AbstractResource {
     // Logger
     private static final Logger logger = LoggerFactory.getLogger(UserOwnershipResource.class);
 
-    protected UserOwnershipResource(AerospikeStorage storage, Producer producer) {
+    public UserOwnershipResource(AerospikeStorage storage, Producer producer) {
         super(storage, producer);
     }
 
@@ -42,6 +42,7 @@ public class UserOwnershipResource extends AbstractResource {
     public ResultEntity<Boolean> exist(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
                                        @Auth String userId, @QueryParam("deviceId") String deviceId, @QueryParam("permission") int permission) {
         logger.debug("Process exist request with params: userId {} deviceId {} permission {}", userId, deviceId, permission);
+
         // check ownership
         boolean b = this.storage.isUserOwnDevice(userId, deviceId, permission);
 
@@ -61,6 +62,7 @@ public class UserOwnershipResource extends AbstractResource {
     public ResultEntity<Boolean> require(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
                                          @Auth String userId, @QueryParam("deviceId") String deviceId, @QueryParam("permission") Optional<Integer> permission) {
         logger.debug("Process require request with params: userId {} deviceId {} permission {}", userId, deviceId, permission.or(Permission.OWNER));
+
         // already has permission?
         if (this.storage.isUserOwnDevice(userId, deviceId, permission.or(Permission.OWNER))) {
             return new ResultEntity<>(true);
@@ -84,8 +86,8 @@ public class UserOwnershipResource extends AbstractResource {
     /**
      * User release ownership for device
      *
-     * @param userId     User Id
-     * @param deviceId   Device Id
+     * @param userId   User Id
+     * @param deviceId Device Id
      */
     @Path("/release")
     @POST

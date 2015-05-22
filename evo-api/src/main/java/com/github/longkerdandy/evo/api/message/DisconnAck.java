@@ -10,8 +10,8 @@ public class DisconnAck {
     // Return Code
     public static final int RECEIVED = 100;                 // Message received and re-directed to followers
 
-    private String disconnMsgId;       // DisconnectMessage's message id
-    private int returnCode;            // Return Code
+    protected String disconnMsgId;       // DisconnectMessage's message id
+    protected int returnCode;            // Return Code
 
     public String getDisconnMsgId() {
         return disconnMsgId;

@@ -14,9 +14,6 @@ dependencies {
     compile 'io.dropwizard:dropwizard-core:0.8.1'
     compile 'io.dropwizard:dropwizard-auth:0.8.1'
 
-    // UUID
-    compile 'com.fasterxml.uuid:java-uuid-generator:3.1.4'
-
     // Validator
     compile 'commons-validator:commons-validator:1.4.1'
 }

@@ -1,11 +1,9 @@
 package com.github.longkerdandy.evo.http.resources.user;
 
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
-import com.github.longkerdandy.evo.aerospike.entity.Device;
 import com.github.longkerdandy.evo.aerospike.entity.User;
 import com.github.longkerdandy.evo.aerospike.util.EncryptionUtils;
 import com.github.longkerdandy.evo.api.mq.Producer;
-import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.sms.SmsMessage;
 import com.github.longkerdandy.evo.api.sms.SmsVerifyCode;
 import com.github.longkerdandy.evo.api.util.UuidUtils;
@@ -13,8 +11,7 @@ import com.github.longkerdandy.evo.http.entity.Converter;
 import com.github.longkerdandy.evo.http.entity.ErrorCode;
 import com.github.longkerdandy.evo.http.entity.ErrorEntity;
 import com.github.longkerdandy.evo.http.entity.ResultEntity;
-import com.github.longkerdandy.evo.http.entity.device.DeviceEntity;
-import com.github.longkerdandy.evo.http.entity.user.UserRegisterEntity;
+import com.github.longkerdandy.evo.http.entity.user.UserEntity;
 import com.github.longkerdandy.evo.http.exception.AuthorizeException;
 import com.github.longkerdandy.evo.http.exception.ValidateException;
 import com.github.longkerdandy.evo.http.resources.AbstractResource;
@@ -57,6 +54,7 @@ public class UserRegisterResource extends AbstractResource {
     public ResultEntity<Boolean> exist(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
                                        @QueryParam("mobile") Optional<String> mobile) {
         logger.debug("Process exist request with params: mobile {}", mobile.get());
+
         // validate
         if (!mobile.isPresent()) {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
@@ -86,6 +84,7 @@ public class UserRegisterResource extends AbstractResource {
     public ResultEntity<String> verify(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
                                        @QueryParam("mobile") Optional<String> mobile) {
         logger.debug("Process verify request with params: mobile {}", mobile.get());
+
         // validate
         if (!mobile.isPresent()) {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
@@ -105,7 +104,7 @@ public class UserRegisterResource extends AbstractResource {
         this.storage.updateVerify(mobile.get(), code, MOBILE_VERIFY_CODE_TTL);
         logger.trace("Created a verify code for mobile {}", mobile.get());
 
-        // send to mq
+        // send to message queue
         this.producer.sendSmsMessage(new SmsMessage<>(mobile.get(), SmsMessage.TYPE_VERIFY_CODE, new SmsVerifyCode(code)));
 
         return new ResultEntity<>("successful");
@@ -114,63 +113,44 @@ public class UserRegisterResource extends AbstractResource {
     /**
      * New user sign up
      *
-     * @param r New user information
+     * @param userEntity New user information
      * @return Token
      */
     @Path("/signup")
     @POST
     public ResultEntity<String> signUp(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
-                                       @Valid UserRegisterEntity r) {
-        // validate
-        if (r == null || r.getUser() == null || r.getDevice() == null) {
+                                       @Valid UserEntity userEntity) {
+        if (userEntity == null) {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
         }
-        logger.debug("Process signUp request with params: alias {} mobile {}", r.getUser().getAlias(), r.getUser().getMobile());
 
-        // validate alias format
-        if (!isAliasValid(r.getUser().getAlias())) {
-            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-        }
-        // validate password format
-        if (!isPasswordValid(r.getUser().getPassword())) {
-            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-        }
-        // validate verify code
-        if (StringUtils.isBlank(r.getUser().getVerifyCode())) {
-            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-        }
-        // validate device
-        if (!isDeviceEntityValid(r.getDevice())) {
-            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-        }
+        logger.debug("Process signUp request with params: alias {} mobile {}", userEntity.getAlias(), userEntity.getMobile());
 
-        // validate mobile format
-        if (!isMobileValid(r.getUser().getMobile())) {
-            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-        }
+        // validate
+        userEntity.validateAlias(lang);
+        userEntity.validatePassword(lang);
+        userEntity.validateVerifyCode(lang);
+        userEntity.validateMobile(lang);
+
         // is mobile exist in storage
-        if (this.storage.isUserMobileExist(r.getUser().getMobile())) {
+        if (this.storage.isUserMobileExist(userEntity.getMobile())) {
             throw new ValidateException(new ErrorEntity(ErrorCode.ALREADY_EXISTS, lang));
         }
         // is mobile verify code correct
-        if (!this.storage.isVerifyCodeCorrect(r.getUser().getMobile(), r.getUser().getVerifyCode())) {
+        if (!this.storage.isVerifyCodeCorrect(userEntity.getMobile(), userEntity.getVerifyCode())) {
             throw new ValidateException(new ErrorEntity(ErrorCode.INCORRECT, lang));
         }
 
-        // save device and user
-        User u = Converter.toUser(r.getUser());
+        // create new user
+        User u = Converter.toUser(userEntity);
         u.setId(UuidUtils.shortUuid()); // generate random user id
         u.setPassword(EncryptionUtils.encryptPassword(u.getPassword())); // encode password
-        this.storage.updateUser(u);
-        Device d = Converter.toDevice(r.getDevice());
-        this.storage.updateDevice(d);
-        this.storage.updateUserControlDevice(u.getId(), d.getId());
-        logger.trace("Created a new user {} on controller {}", u.getId(), d.getId());
+        logger.trace("Created a new user {} {}", u.getId(), u.getAlias());
 
         // create user token
         String t = TokenUtils.newToken(u.getId());
         this.storage.updateUserToken(u.getId(), t);
-        logger.trace("Create token for user{}", u.getId());
+        logger.trace("Create token for user {}", u.getId());
 
         return new ResultEntity<>(t);
     }
@@ -178,77 +158,42 @@ public class UserRegisterResource extends AbstractResource {
     /**
      * User sign in
      *
-     * @param r User information
+     * @param userEntity User information
      * @return Token
      */
     @Path("/signin")
     @POST
     public ResultEntity<String> signIn(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
-                                       @Valid UserRegisterEntity r) {
-        // validate
-        if (r == null || r.getUser() == null || r.getDevice() == null) {
+                                       @Valid UserEntity userEntity) {
+        if (userEntity == null) {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
         }
-        logger.trace("Process signIn request with params: mobile {}", r.getUser().getMobile());
 
-        // validate password format
-        if (!isPasswordValid(r.getUser().getPassword())) {
-            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-        }
+        logger.trace("Process signIn request with params: id {} mobile {}", userEntity.getId(), userEntity.getMobile());
 
-        // validate device
-        if (!isDeviceEntityValid(r.getDevice())) {
-            throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-        }
+        // validate
+        userEntity.validateIdOrMobile(lang);
+        userEntity.validatePassword(lang);
 
         User u;
-        if (StringUtils.isBlank(r.getUser().getId())) {
-            // validate mobile format
-            if (!isMobileValid(r.getUser().getMobile())) {
-                throw new ValidateException(new ErrorEntity(ErrorCode.INVALID, lang));
-            }
+        if (StringUtils.isBlank(userEntity.getId())) {
             // get user record by mobile
-            u = this.storage.getUserByMobile(r.getUser().getMobile());
+            u = this.storage.getUserByMobile(userEntity.getMobile());
+            if (u == null) throw new AuthorizeException(new ErrorEntity(ErrorCode.UNAUTHORIZED, lang));
         } else {
-            u = Converter.toUser(r.getUser());
+            u = Converter.toUser(userEntity);
         }
 
-        // is mobile password correct
+        // is user password correct
         if (this.storage.isUserPasswordCorrect(u.getId(), EncryptionUtils.encryptPassword(u.getPassword()))) {
             throw new AuthorizeException(new ErrorEntity(ErrorCode.UNAUTHORIZED, lang));
         }
 
         // update token
-        Device d = Converter.toDevice(r.getDevice());
-        this.storage.updateDevice(d);
-        this.storage.updateUserControlDevice(u.getId(), d.getId());
-        logger.trace("Updated user's ctrlToken {} on controller {}", u.getId(), d.getId());
-
-        // update user token
         String t = TokenUtils.newToken(u.getId());
         this.storage.updateUserToken(u.getId(), t);
-        logger.trace("Update token for user{}", u.getId());
+        logger.trace("Update token for user {}", u.getId());
 
         return new ResultEntity<>(t);
-    }
-
-    /**
-     * If device entity (parameter) valid
-     * Used in user register process
-     *
-     * @param deviceEntity Device entity
-     * @return True if valid
-     */
-    protected boolean isDeviceEntityValid(DeviceEntity deviceEntity) {
-        boolean b = true;
-        if (StringUtils.isBlank(deviceEntity.getId()) ||
-                StringUtils.isBlank(deviceEntity.getDescId())) {
-            b = false;
-        }
-        if (!DeviceType.isController(deviceEntity.getType())) {
-            b = false;
-        }
-        // TODO: validate protocol
-        return b;
     }
 }

@@ -10,8 +10,8 @@ public class TrigAck {
     // Return Code
     public static final int RECEIVED = 100;                 // Message received and re-directed to followers
 
-    private String trigMsgId;       // TriggerMessage's message id
-    private int returnCode;         // Return Code
+    protected String trigMsgId;       // TriggerMessage's message id
+    protected int returnCode;         // Return Code
 
     public String getTrigMsgId() {
         return trigMsgId;

@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
 import com.github.longkerdandy.evo.api.mq.Producer;
 import com.github.longkerdandy.evo.http.auth.OAuthAuthenticator;
+import com.github.longkerdandy.evo.http.resources.device.DeviceControlResource;
+import com.github.longkerdandy.evo.http.resources.user.UserOwnershipResource;
 import com.github.longkerdandy.evo.http.resources.user.UserRegisterResource;
 import io.dropwizard.Application;
 import io.dropwizard.auth.AuthFactory;
@@ -31,6 +33,8 @@ public class HTTPApplication extends Application<HTTPConfiguration> {
 
         // register resources
         environment.jersey().register(new UserRegisterResource(storage, producer));
+        environment.jersey().register(new UserOwnershipResource(storage, producer));
+        environment.jersey().register(new DeviceControlResource(storage, producer));
 
         // config jackson
         environment.getObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

@@ -11,8 +11,8 @@ public class ActAck {
     public static final int RECEIVED = 100;                 // Message received and re-directed to the target device
     public static final int PERMISSION_INSUFFICIENT = 110;  // User doesn't has enough permission to execute the action
 
-    private String actMsgId;                // ActionMessage's message id
-    private int returnCode;                 // Return Code
+    protected String actMsgId;                // ActionMessage's message id
+    protected int returnCode;                 // Return Code
 
     public String getActMsgId() {
         return actMsgId;

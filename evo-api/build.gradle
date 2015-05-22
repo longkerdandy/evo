@@ -11,7 +11,6 @@ dependencies {
         exclude module: 'slf4j-log4j12'
         exclude module: 'log4j'
     }
-    // Kafka
     compile('org.apache.kafka:kafka_2.10:0.8.2.1') {
         exclude module: 'slf4j-log4j12'
         exclude module: 'log4j'

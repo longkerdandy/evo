@@ -9,8 +9,8 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class Disconnect {
 
-    private int policy;                     // Attributes Override Policy
-    private Map<String, Object> attributes; // Attributes
+    protected int policy;                     // Attributes Override Policy
+    protected Map<String, Object> attributes; // Attributes
 
     public int getPolicy() {
         return policy;

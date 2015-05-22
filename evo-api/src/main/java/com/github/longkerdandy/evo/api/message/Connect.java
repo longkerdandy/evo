@@ -9,9 +9,9 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class Connect {
 
-    private String token;                   // Token
-    private int policy;                     // Attributes Override Policy
-    private Map<String, Object> attributes; // Attributes
+    protected String token;                   // Token
+    protected int policy;                     // Attributes Override Policy
+    protected Map<String, Object> attributes; // Attributes
 
     public String getToken() {
         return token;

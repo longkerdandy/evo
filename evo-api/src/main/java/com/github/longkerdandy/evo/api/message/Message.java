@@ -10,18 +10,18 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class Message<T> {
 
     @JsonIgnore
-    private int protocol;           // Protocol
-    private int msgType;            // Message Type (payload)
-    private int qos;                // QoS Level
-    private boolean duplicate;      // Is duplicate?
-    private int deviceType;         // Device Type
-    private String msgId;           // Message ID
-    private String from;            // Device ID (who send this message)
-    private String to;              // Device ID (whom this message send to)
-    private String descId;          // Device Description Id
-    private String userId;          // User ID
-    private long timestamp;         // Timestamp (when message is send)
-    private T payload;              // Payload (sub-message)
+    protected int protocol;           // Protocol
+    protected int msgType;            // Message Type (payload)
+    protected int qos;                // QoS Level
+    protected boolean duplicate;      // Is duplicate?
+    protected int deviceType;         // Device Type
+    protected String msgId;           // Message ID
+    protected String from;            // Device ID (who send this message)
+    protected String to;              // Device ID (whom this message send to)
+    protected String descId;          // Device Description Id
+    protected String userId;          // User ID
+    protected long timestamp;         // Timestamp (when message is send)
+    protected T payload;              // Payload (sub-message)
 
     public int getProtocol() {
         return protocol;
