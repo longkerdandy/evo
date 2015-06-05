@@ -33,7 +33,7 @@ public class ChannelRepository {
     }
 
     /**
-     * Save device connection
+     * Get device connection
      *
      * @param deviceId Device Id
      * @return ChannelHandlerContext

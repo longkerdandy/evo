@@ -46,10 +46,10 @@ public class TCPClient implements Runnable {
                 @Override
                 public void initChannel(SocketChannel ch) throws Exception {
                     ChannelPipeline p = ch.pipeline();
-                    // Encoder/Decoder
+                    // encoder/decoder
                     p.addLast(new Encoder());
                     p.addLast(new Decoder());
-                    // Handler
+                    // handler
                     p.addLast(handler);
                 }
             });

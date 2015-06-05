@@ -38,7 +38,7 @@ public class TCPServer {
 
     public static void main(String[] args) throws Exception {
         // load config
-        String f = args.length >= 1 ? args[0] : "config/sms.properties";
+        String f = args.length >= 1 ? args[0] : "config/tcp.properties";
         PropertiesConfiguration config = new PropertiesConfiguration(f);
 
         // channel repository

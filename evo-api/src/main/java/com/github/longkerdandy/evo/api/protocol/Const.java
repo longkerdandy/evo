@@ -19,6 +19,11 @@ public class Const {
     public static final String TRIGGER_ONLINE = "online";
     public static final String TRIGGER_OFFLINE = "offline";
 
+    // Common Attribute
+    public static final String ATTRIBUTE_NAME = "name";
+    public static final String ATTRIBUTE_FRIENDLY_NAME = "friendly_name";
+    public static final String ATTRIBUTE_FIRMWARE_VERSION = "firmware_ver";
+
     private Const() {
     }
 }

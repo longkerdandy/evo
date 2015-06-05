@@ -84,8 +84,8 @@ public class TCPClientHandler extends SimpleChannelInboundHandler<Message> {
      * @param msg Message to be sent
      */
     public void sendMessage(Message msg) {
-        if (ctx == null) {
-            logger.debug("Not connected to the platform, {} message {} dropped", msg.getMsgType(), msg.getMsgId());
+        if (this.ctx == null) {
+            logger.debug("Not connected to the platform, message {} {} dropped", msg.getMsgType(), msg.getMsgId());
             return;
         }
 
