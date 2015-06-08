@@ -27,7 +27,7 @@ public class AerospikeStorageTest {
     public static void before() {
         ClientPolicy policy = new ClientPolicy();
         Host[] hosts = new Host[]{
-                new Host("192.168.0.55", 3000),
+                new Host("192.168.1.101", 3000),
         };
         storage = new AerospikeStorage(policy, hosts);
     }

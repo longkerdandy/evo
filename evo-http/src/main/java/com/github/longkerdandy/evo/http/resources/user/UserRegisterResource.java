@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * User register related resource
@@ -118,7 +120,7 @@ public class UserRegisterResource extends AbstractResource {
      */
     @Path("/signup")
     @POST
-    public ResultEntity<String> signUp(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
+    public ResultEntity<Map> signUp(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
                                        @Valid UserEntity userEntity) {
         if (userEntity == null) {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
@@ -142,17 +144,23 @@ public class UserRegisterResource extends AbstractResource {
         }
 
         // create new user
+        String uid = UuidUtils.shortUuid(); // generate random user id
         User u = Converter.toUser(userEntity);
-        u.setId(UuidUtils.shortUuid()); // generate random user id
+        u.setId(uid);
         u.setPassword(EncryptionUtils.encryptPassword(u.getPassword())); // encode password
-        logger.trace("Created a new user {} {}", u.getId(), u.getAlias());
+        this.storage.updateUser(u);
+        logger.trace("Created a new user {} {}", uid, u.getAlias());
 
         // create user token
-        String t = TokenUtils.newToken(u.getId());
-        this.storage.updateUserToken(u.getId(), t);
-        logger.trace("Create token for user {}", u.getId());
+        String t = TokenUtils.newToken(uid);
+        this.storage.updateUserToken(uid, t);
+        logger.trace("Create token for user {}", uid);
 
-        return new ResultEntity<>(t);
+        // result
+        Map<String, String> r = new HashMap<>();
+        r.put("userId", uid);
+        r.put("token", t);
+        return new ResultEntity<>(r);
     }
 
     /**
@@ -185,7 +193,7 @@ public class UserRegisterResource extends AbstractResource {
         }
 
         // is user password correct
-        if (this.storage.isUserPasswordCorrect(u.getId(), EncryptionUtils.encryptPassword(u.getPassword()))) {
+        if (!this.storage.isUserPasswordCorrect(u.getId(), EncryptionUtils.encryptPassword(userEntity.getPassword()))) {
             throw new AuthorizeException(new ErrorEntity(ErrorCode.UNAUTHORIZED, lang));
         }
 
