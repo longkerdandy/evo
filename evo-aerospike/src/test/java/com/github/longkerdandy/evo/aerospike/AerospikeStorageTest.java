@@ -6,9 +6,9 @@ import com.aerospike.client.policy.ClientPolicy;
 import com.github.longkerdandy.evo.aerospike.entity.Device;
 import com.github.longkerdandy.evo.aerospike.entity.EntityFactory;
 import com.github.longkerdandy.evo.aerospike.entity.User;
-import com.github.longkerdandy.evo.api.protocol.Const;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.protocol.Permission;
+import com.github.longkerdandy.evo.api.protocol.ProtocolType;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -121,7 +121,7 @@ public class AerospikeStorageTest {
         Device deviceA = EntityFactory.newDevice("d000001");
         deviceA.setType(DeviceType.DEVICE);
         deviceA.setDescId("Desc1");
-        deviceA.setProtocol(Const.PROTOCOL_TCP_1_0);
+        deviceA.setProtocol(ProtocolType.TCP_1_0);
         deviceA.setConnected("Node1");
         storage.updateDevice(deviceA, true);
 
@@ -134,7 +134,7 @@ public class AerospikeStorageTest {
         assert deviceA != null;
         assert deviceA.getType() == DeviceType.DEVICE;
         assert deviceA.getDescId().equals("Desc1");
-        assert deviceA.getProtocol() == Const.PROTOCOL_TCP_1_0;
+        assert deviceA.getProtocol() == ProtocolType.TCP_1_0;
         assert deviceA.getConnected().equals("Node1");
         assert storage.getDeviceById("d000002") == null;
 
@@ -186,7 +186,7 @@ public class AerospikeStorageTest {
         Device deviceA = EntityFactory.newDevice("d000001");
         deviceA.setType(DeviceType.DEVICE);
         deviceA.setDescId("Desc1");
-        deviceA.setProtocol(Const.PROTOCOL_TCP_1_0);
+        deviceA.setProtocol(ProtocolType.TCP_1_0);
         deviceA.setConnected("Node1");
         storage.updateDevice(deviceA, true);
 
@@ -246,19 +246,19 @@ public class AerospikeStorageTest {
         Device deviceA = EntityFactory.newDevice("d000001");
         deviceA.setType(DeviceType.DEVICE);
         deviceA.setDescId("Desc1");
-        deviceA.setProtocol(Const.PROTOCOL_TCP_1_0);
+        deviceA.setProtocol(ProtocolType.TCP_1_0);
         deviceA.setConnected("Node1");
         storage.updateDevice(deviceA, true);
         Device deviceB = EntityFactory.newDevice("d000002");
         deviceB.setType(DeviceType.DEVICE);
         deviceB.setDescId("Desc1");
-        deviceB.setProtocol(Const.PROTOCOL_TCP_1_0);
+        deviceB.setProtocol(ProtocolType.TCP_1_0);
         deviceB.setConnected("Node1");
         storage.updateDevice(deviceB, true);
         Device deviceC = EntityFactory.newDevice("d000003");
         deviceC.setType(DeviceType.DEVICE);
         deviceC.setDescId("Desc1");
-        deviceC.setProtocol(Const.PROTOCOL_TCP_1_0);
+        deviceC.setProtocol(ProtocolType.TCP_1_0);
         deviceC.setConnected("Node1");
         storage.updateDevice(deviceC, true);
 

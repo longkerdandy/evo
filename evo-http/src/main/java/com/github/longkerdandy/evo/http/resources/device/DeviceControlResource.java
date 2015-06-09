@@ -6,8 +6,9 @@ import com.github.longkerdandy.evo.api.message.Message;
 import com.github.longkerdandy.evo.api.message.MessageFactory;
 import com.github.longkerdandy.evo.api.mq.Producer;
 import com.github.longkerdandy.evo.api.mq.Topics;
-import com.github.longkerdandy.evo.api.protocol.Const;
+import com.github.longkerdandy.evo.api.protocol.Evolution;
 import com.github.longkerdandy.evo.api.protocol.Permission;
+import com.github.longkerdandy.evo.api.protocol.ProtocolType;
 import com.github.longkerdandy.evo.http.entity.ErrorCode;
 import com.github.longkerdandy.evo.http.entity.ErrorEntity;
 import com.github.longkerdandy.evo.http.entity.ResultEntity;
@@ -62,7 +63,7 @@ public class DeviceControlResource extends AbstractResource {
         }
 
         // connected, forge the message and push to message queue
-        Message<Action> msg = MessageFactory.newActionMessage(Const.PROTOCOL_TCP_1_0, deviceType, from.or(Const.PLATFORM_ID), to, userId,
+        Message<Action> msg = MessageFactory.newActionMessage(ProtocolType.TCP_1_0, deviceType, from.or(Evolution.ID), to, userId,
                 actionEntity.getActionId(), actionEntity.getLifetime(), actionEntity.getAttributes());
         this.producer.sendMessage(Topics.TCP_OUT(node), msg);
 

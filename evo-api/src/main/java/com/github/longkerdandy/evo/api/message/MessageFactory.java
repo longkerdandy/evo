@@ -1,9 +1,6 @@
 package com.github.longkerdandy.evo.api.message;
 
-import com.github.longkerdandy.evo.api.protocol.Const;
-import com.github.longkerdandy.evo.api.protocol.DeviceType;
-import com.github.longkerdandy.evo.api.protocol.MessageType;
-import com.github.longkerdandy.evo.api.protocol.QoS;
+import com.github.longkerdandy.evo.api.protocol.*;
 import com.github.longkerdandy.evo.api.util.UuidUtils;
 
 import java.util.Map;
@@ -108,7 +105,7 @@ public class MessageFactory {
         ConnAck connAck = new ConnAck();
         connAck.setConnMsgId(connMsgId);
         connAck.setReturnCode(returnCode);
-        return newMessage(protocol, MessageType.CONNACK, QoS.MOST_ONCE, DeviceType.PLATFORM, Const.PLATFORM_ID, to, connAck);
+        return newMessage(protocol, MessageType.CONNACK, QoS.MOST_ONCE, DeviceType.PLATFORM, Evolution.ID, to, connAck);
     }
 
     /**
@@ -138,7 +135,7 @@ public class MessageFactory {
         DisconnAck disconnAck = new DisconnAck();
         disconnAck.setDisconnMsgId(disconnMsgId);
         disconnAck.setReturnCode(returnCode);
-        return newMessage(protocol, MessageType.DISCONNACK, QoS.MOST_ONCE, DeviceType.PLATFORM, Const.PLATFORM_ID, to, disconnAck);
+        return newMessage(protocol, MessageType.DISCONNACK, QoS.MOST_ONCE, DeviceType.PLATFORM, Evolution.ID, to, disconnAck);
     }
 
     /**

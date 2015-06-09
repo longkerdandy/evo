@@ -10,9 +10,9 @@ import com.aerospike.client.policy.ClientPolicy;
 import com.github.longkerdandy.evo.aerospike.entity.Device;
 import com.github.longkerdandy.evo.aerospike.entity.EntityFactory;
 import com.github.longkerdandy.evo.aerospike.entity.User;
-import com.github.longkerdandy.evo.api.protocol.Const;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.protocol.Permission;
+import com.github.longkerdandy.evo.api.protocol.ProtocolType;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -75,7 +75,7 @@ public class AerospikeAsyncStorageTest {
         Device deviceA = EntityFactory.newDevice("d000001");
         deviceA.setType(DeviceType.DEVICE);
         deviceA.setDescId("Desc1");
-        deviceA.setProtocol(Const.PROTOCOL_TCP_1_0);
+        deviceA.setProtocol(ProtocolType.TCP_1_0);
         deviceA.setConnected("Node1");
         storage.updateDevice(deviceA, true);
 

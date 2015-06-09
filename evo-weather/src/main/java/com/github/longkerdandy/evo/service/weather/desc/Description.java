@@ -1,7 +1,7 @@
 package com.github.longkerdandy.evo.service.weather.desc;
 
 /**
- * Weather Device Description Const
+ * Weather Device Description
  */
 public class Description {
 

@@ -1,7 +1,6 @@
 package com.github.longkerdandy.evo.api.netty;
 
 import com.github.longkerdandy.evo.api.message.Message;
-import com.github.longkerdandy.evo.api.protocol.Const;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.EncoderException;
@@ -68,7 +67,7 @@ public class Encoder extends MessageToByteEncoder<Message> {
 
         // header
         int remainingLength = bytes.length;
-        if (remainingLength > Const.MESSAGE_MAX_BYTES) {
+        if (remainingLength > Message.MAX_BYTES) {
             throw new EncoderException("Message size is too large: " + remainingLength + " bytes");
         }
         out.writeByte(0x45);

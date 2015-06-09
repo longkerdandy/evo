@@ -7,6 +7,9 @@ package com.github.longkerdandy.evo.api.message;
 @SuppressWarnings("unused")
 public class Message<T> {
 
+    // Message Size
+    public static final int MAX_BYTES = 8092;
+
     protected int protocol;           // Protocol
     protected int msgType;            // Message Type (payload)
     protected int qos;                // QoS Level

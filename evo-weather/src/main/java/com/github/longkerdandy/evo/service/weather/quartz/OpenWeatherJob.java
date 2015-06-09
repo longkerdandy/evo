@@ -3,9 +3,9 @@ package com.github.longkerdandy.evo.service.weather.quartz;
 import com.github.longkerdandy.evo.api.message.Message;
 import com.github.longkerdandy.evo.api.message.MessageFactory;
 import com.github.longkerdandy.evo.api.message.Trigger;
-import com.github.longkerdandy.evo.api.protocol.Const;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.protocol.OverridePolicy;
+import com.github.longkerdandy.evo.api.protocol.ProtocolType;
 import com.github.longkerdandy.evo.api.util.JsonUtils;
 import com.github.longkerdandy.evo.service.weather.desc.Description;
 import com.github.longkerdandy.evo.service.weather.entity.Area;
@@ -100,7 +100,7 @@ public class OpenWeatherJob implements Job {
                     // send trigger message
                     Map<String, Object> attr = forgeAttributes(forecast);
                     Message<Trigger> trigger = MessageFactory.newTriggerMessage(
-                            Const.PROTOCOL_TCP_1_0, DeviceType.DEVICE, IdUtils.getWeatherDeviceId(areaId), null, Description.TRIGGER_FORECAST, OverridePolicy.UPDATE_IF_NEWER, attr);
+                            ProtocolType.TCP_1_0, DeviceType.DEVICE, IdUtils.getWeatherDeviceId(areaId), null, Description.TRIGGER_FORECAST, OverridePolicy.UPDATE_IF_NEWER, attr);
                     TCPClientHandler.getInstance().sendMessage(trigger);
                 }
             } catch (ClientProtocolException e) {

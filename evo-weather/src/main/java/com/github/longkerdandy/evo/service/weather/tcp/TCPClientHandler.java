@@ -3,9 +3,9 @@ package com.github.longkerdandy.evo.service.weather.tcp;
 import com.github.longkerdandy.evo.api.message.Connect;
 import com.github.longkerdandy.evo.api.message.Message;
 import com.github.longkerdandy.evo.api.message.MessageFactory;
-import com.github.longkerdandy.evo.api.protocol.Const;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.protocol.OverridePolicy;
+import com.github.longkerdandy.evo.api.protocol.ProtocolType;
 import com.github.longkerdandy.evo.service.weather.desc.Description;
 import com.github.longkerdandy.evo.service.weather.util.IdUtils;
 import io.netty.channel.ChannelFuture;
@@ -56,7 +56,7 @@ public class TCPClientHandler extends SimpleChannelInboundHandler<Message> {
             Map<String, Object> attr = new HashMap<>();
             attr.put(Description.ATTR_AREA_ID, areaId);
             Message<Connect> connect = MessageFactory.newConnectMessage(
-                    Const.PROTOCOL_TCP_1_0, DeviceType.DEVICE, deviceId, null, Description.ID, null, null, OverridePolicy.UPDATE_IF_NEWER, attr);
+                    ProtocolType.TCP_1_0, DeviceType.DEVICE, deviceId, null, Description.ID, null, null, OverridePolicy.UPDATE_IF_NEWER, attr);
             sendMessage(connect);
         }
 

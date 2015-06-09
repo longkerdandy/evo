@@ -140,10 +140,10 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             }
             this.repository.saveConn(deviceId, ctx);
 
-            Message<Trigger> online = MessageFactory.newTriggerMessage(protocol, deviceType, deviceId, null, Const.TRIGGER_ONLINE, connect.getPolicy(), connect.getAttributes());
+            Message<Trigger> online = MessageFactory.newTriggerMessage(protocol, deviceType, deviceId, null, Triggers.ONLINE, connect.getPolicy(), connect.getAttributes());
 
             // notify users
-            if (Const.PLATFORM_ID.equals(msg.getTo())) {
+            if (Evolution.ID.equals(msg.getTo())) {
                 notifyUsers(deviceId, Permission.READ, Permission.OWNER, online);
             }
 
@@ -194,7 +194,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         // msg.setProtocol(d.getProtocol());
 
         // notify users
-        if (Const.PLATFORM_ID.equals(msg.getTo())) {
+        if (Evolution.ID.equals(msg.getTo())) {
             notifyUsers(deviceId, Permission.READ, Permission.OWNER, msg);
         }
 
@@ -203,7 +203,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         // send trigack
         if (msg.getQos() == QoS.LEAST_ONCE || msg.getQos() == QoS.EXACTLY_ONCE) {
-            Message<TrigAck> trigAck = MessageFactory.newTrigAckMessage(d.getProtocol(), DeviceType.PLATFORM, Const.PLATFORM_ID, deviceId, msg.getMsgId(), TrigAck.RECEIVED);
+            Message<TrigAck> trigAck = MessageFactory.newTrigAckMessage(d.getProtocol(), DeviceType.PLATFORM, Evolution.ID, deviceId, msg.getMsgId(), TrigAck.RECEIVED);
             this.repository.sendMessage(ctx, trigAck);
         }
 
@@ -257,7 +257,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         // send actack
         if (msg.getQos() == QoS.LEAST_ONCE || msg.getQos() == QoS.EXACTLY_ONCE) {
-            Message<ActAck> actAck = MessageFactory.newActAckMessage(d.getProtocol(), DeviceType.PLATFORM, Const.PLATFORM_ID, controllerId, msg.getMsgId(), returnCode);
+            Message<ActAck> actAck = MessageFactory.newActAckMessage(d.getProtocol(), DeviceType.PLATFORM, Evolution.ID, controllerId, msg.getMsgId(), returnCode);
             this.repository.sendMessage(ctx, actAck);
         }
     }
@@ -306,7 +306,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             // try to mark device disconnect
             // may fails because device already re-connected to another node
             if (this.storage.updateDeviceDisconnect(deviceId, TCPNode.id())) {
-                Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, null, Const.TRIGGER_OFFLINE, disconnect.getPolicy(), disconnect.getAttributes());
+                Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, null, Triggers.OFFLINE, disconnect.getPolicy(), disconnect.getAttributes());
                 offline.setDescId(d.getDescId());
 
                 // notify users
@@ -362,7 +362,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             // may fails because device already re-connected to another node
             if (this.storage.updateDeviceDisconnect(deviceId, TCPNode.id())) {
                 Device d = this.authDevices.get(deviceId);
-                Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, null, Const.TRIGGER_OFFLINE, OverridePolicy.IGNORE, null);
+                Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, null, Triggers.OFFLINE, OverridePolicy.IGNORE, null);
                 offline.setDescId(d.getDescId());
 
                 // notify users
@@ -392,7 +392,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
      * @param pv Protocol Version
      */
     protected boolean isProtocolVersionAcceptable(int pv) {
-        return pv == Const.PROTOCOL_TCP_1_0;
+        return pv == ProtocolType.TCP_1_0;
     }
 
     /**

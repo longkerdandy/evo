@@ -3,8 +3,8 @@ package com.github.longkerdandy.evo.api.netty;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.longkerdandy.evo.api.message.*;
-import com.github.longkerdandy.evo.api.protocol.Const;
 import com.github.longkerdandy.evo.api.protocol.MessageType;
+import com.github.longkerdandy.evo.api.protocol.ProtocolType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.ChannelHandlerContext;
@@ -85,7 +85,7 @@ public class Decoder extends ByteToMessageDecoder {
         }
         // header 4 protocol version
         short b4 = in.readUnsignedByte();
-        if (b4 != Const.PROTOCOL_TCP_1_0) {
+        if (b4 != ProtocolType.TCP_1_0) {
             in.clear();
             throw new DecoderException("Unsupported protocol version " + b4);
         }
@@ -95,7 +95,7 @@ public class Decoder extends ByteToMessageDecoder {
         in.readUnsignedByte();
         // header 7-10 remaining length
         int remainingLength = decodeRemainingLength(in);
-        if (remainingLength > Const.MESSAGE_MAX_BYTES) {
+        if (remainingLength > Message.MAX_BYTES) {
             in.clear();
             throw new DecoderException("Message size is too large: " + remainingLength + " bytes");
         }
