@@ -153,7 +153,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             device.setDescId(descId);
             device.setProtocol(protocol);
             device.setConnected(TCPNode.id());
-            this.storage.updateDevice(device);
+            this.storage.updateDevice(device, true);
             updateDeviceAttr(deviceId, connect.getAttributes(), connect.getPolicy());
 
             // update user device control relationship

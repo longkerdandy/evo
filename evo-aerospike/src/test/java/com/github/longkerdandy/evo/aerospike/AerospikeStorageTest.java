@@ -56,14 +56,7 @@ public class AerospikeStorageTest {
         userA.setEmail("usera@example.com");
         userA.setMobile("18600000000");
         userA.setPassword("passwr0d");
-        List<Map<String, Object>> l = new ArrayList<>();
-        l.add(new HashMap<String, Object>() {{
-            put(Scheme.OWN_USER, "u000001");
-            put(Scheme.OWN_DEVICE, "d000001");
-            put(Scheme.OWN_PERMISSION, Permission.READ_WRITE);
-        }});
-        userA.setOwn(l);
-        storage.updateUser(userA);
+        storage.updateUser(userA, true);
 
         // get user
         userA = storage.getUserById("u000001");
@@ -71,7 +64,6 @@ public class AerospikeStorageTest {
         assert userA.getAlias().equals("UserA");
         assert userA.getEmail().equals("usera@example.com");
         assert userA.getMobile().equals("18600000000");
-        assert userA.getOwn().get(0).get(Scheme.OWN_DEVICE).equals("d000001");
         assert storage.getUserById("u000002") == null;
 
         // get user by mobile
@@ -80,7 +72,6 @@ public class AerospikeStorageTest {
         assert userA.getAlias().equals("UserA");
         assert userA.getEmail().equals("usera@example.com");
         assert userA.getMobile().equals("18600000000");
-        assert userA.getOwn().get(0).get(Scheme.OWN_DEVICE).equals("d000001");
 
         // email exist
         assert storage.isUserEmailExist("usera@example.com");
@@ -107,7 +98,7 @@ public class AerospikeStorageTest {
         userA.setEmail("usera@example.com");
         userA.setMobile("18600000000");
         userA.setPassword("passwr0d");
-        storage.updateUser(userA);
+        storage.updateUser(userA, true);
 
         // create token
         storage.updateUserToken("u000001", "abcdefg");
@@ -132,15 +123,7 @@ public class AerospikeStorageTest {
         deviceA.setDescId("Desc1");
         deviceA.setProtocol(Const.PROTOCOL_TCP_1_0);
         deviceA.setConnected("Node1");
-        List<Map<String, Object>> l = new ArrayList<>();
-        l.add(new HashMap<String, Object>() {{
-            put(Scheme.OWN_USER, "u000001");
-            put(Scheme.OWN_DEVICE, "d000001");
-            put(Scheme.OWN_PERMISSION, Permission.READ_WRITE);
-        }});
-        deviceA.setOwn(l);
-        deviceA.setCtrl("u000001");
-        storage.updateDevice(deviceA);
+        storage.updateDevice(deviceA, true);
 
         // exist
         assert storage.isDeviceExist("d000001");
@@ -153,7 +136,6 @@ public class AerospikeStorageTest {
         assert deviceA.getDescId().equals("Desc1");
         assert deviceA.getProtocol() == Const.PROTOCOL_TCP_1_0;
         assert deviceA.getConnected().equals("Node1");
-        assert deviceA.getOwn().get(0).get(Scheme.OWN_USER).equals("u000001");
         assert storage.getDeviceById("d000002") == null;
 
         // update device attribute
@@ -198,7 +180,7 @@ public class AerospikeStorageTest {
         userA.setEmail("usera@example.com");
         userA.setMobile("18600000000");
         userA.setPassword("passwr0d");
-        storage.updateUser(userA);
+        storage.updateUser(userA, true);
 
         // create new device
         Device deviceA = EntityFactory.newDevice("d000001");
@@ -206,7 +188,7 @@ public class AerospikeStorageTest {
         deviceA.setDescId("Desc1");
         deviceA.setProtocol(Const.PROTOCOL_TCP_1_0);
         deviceA.setConnected("Node1");
-        storage.updateDevice(deviceA);
+        storage.updateDevice(deviceA, true);
 
         // update own
         storage.updateUserOwnDevice("u000001", "d000001", Permission.READ);
@@ -258,7 +240,7 @@ public class AerospikeStorageTest {
         userA.setEmail("usera@example.com");
         userA.setMobile("18600000000");
         userA.setPassword("passwr0d");
-        storage.updateUser(userA);
+        storage.updateUser(userA, true);
 
         // create new devices
         Device deviceA = EntityFactory.newDevice("d000001");
@@ -266,19 +248,19 @@ public class AerospikeStorageTest {
         deviceA.setDescId("Desc1");
         deviceA.setProtocol(Const.PROTOCOL_TCP_1_0);
         deviceA.setConnected("Node1");
-        storage.updateDevice(deviceA);
+        storage.updateDevice(deviceA, true);
         Device deviceB = EntityFactory.newDevice("d000002");
         deviceB.setType(DeviceType.DEVICE);
         deviceB.setDescId("Desc1");
         deviceB.setProtocol(Const.PROTOCOL_TCP_1_0);
         deviceB.setConnected("Node1");
-        storage.updateDevice(deviceB);
+        storage.updateDevice(deviceB, true);
         Device deviceC = EntityFactory.newDevice("d000003");
         deviceC.setType(DeviceType.DEVICE);
         deviceC.setDescId("Desc1");
         deviceC.setProtocol(Const.PROTOCOL_TCP_1_0);
         deviceC.setConnected("Node1");
-        storage.updateDevice(deviceC);
+        storage.updateDevice(deviceC, true);
 
         // update control
         storage.updateUserControlDevice("u000001", "d000002");

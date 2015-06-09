@@ -1,7 +1,5 @@
 package com.github.longkerdandy.evo.api.message;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /**
  * Message
  * Base message & carrier for all other messages
@@ -9,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @SuppressWarnings("unused")
 public class Message<T> {
 
-    @JsonIgnore
     protected int protocol;           // Protocol
     protected int msgType;            // Message Type (payload)
     protected int qos;                // QoS Level

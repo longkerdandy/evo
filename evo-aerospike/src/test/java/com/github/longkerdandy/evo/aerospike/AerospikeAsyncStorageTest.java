@@ -69,7 +69,7 @@ public class AerospikeAsyncStorageTest {
         userA.setEmail("usera@example.com");
         userA.setMobile("18600000000");
         userA.setPassword("passwr0d");
-        storage.updateUser(userA);
+        storage.updateUser(userA, true);
 
         // create new device
         Device deviceA = EntityFactory.newDevice("d000001");
@@ -77,7 +77,7 @@ public class AerospikeAsyncStorageTest {
         deviceA.setDescId("Desc1");
         deviceA.setProtocol(Const.PROTOCOL_TCP_1_0);
         deviceA.setConnected("Node1");
-        storage.updateDevice(deviceA);
+        storage.updateDevice(deviceA, true);
 
         // update own
         storage.updateUserOwnDevice("u000001", "d000001", Permission.READ);

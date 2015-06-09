@@ -120,7 +120,7 @@ public class UserRegisterResource extends AbstractResource {
      */
     @Path("/signup")
     @POST
-    public ResultEntity<Map> signUp(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
+    public ResultEntity<String> signUp(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
                                        @Valid UserEntity userEntity) {
         if (userEntity == null) {
             throw new ValidateException(new ErrorEntity(ErrorCode.MISSING_FIELD, lang));
@@ -148,7 +148,7 @@ public class UserRegisterResource extends AbstractResource {
         User u = Converter.toUser(userEntity);
         u.setId(uid);
         u.setPassword(EncryptionUtils.encryptPassword(u.getPassword())); // encode password
-        this.storage.updateUser(u);
+        this.storage.updateUser(u, true);
         logger.trace("Created a new user {} {}", uid, u.getAlias());
 
         // create user token
@@ -157,10 +157,7 @@ public class UserRegisterResource extends AbstractResource {
         logger.trace("Create token for user {}", uid);
 
         // result
-        Map<String, String> r = new HashMap<>();
-        r.put("userId", uid);
-        r.put("token", t);
-        return new ResultEntity<>(r);
+        return new ResultEntity<>(t);
     }
 
     /**

@@ -97,12 +97,13 @@ public class AerospikeStorage {
      * Validate before invoking this method!
      *
      * @param user User
+     * @param filter Exclude null and empty fields?
      */
-    public void updateUser(User user) {
+    public void updateUser(User user, boolean filter) {
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_USERS, user.getId());
-        this.ac.put(p, k, Converter.userToBins(user));
+        this.ac.put(p, k, Converter.userToBins(user, filter));
     }
 
     /**
@@ -243,12 +244,13 @@ public class AerospikeStorage {
      * Validate before invoking this method!
      *
      * @param device Device
+     * @param filter Exclude null and empty fields?
      */
-    public void updateDevice(Device device) {
+    public void updateDevice(Device device, boolean filter) {
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, device.getId());
-        this.ac.put(p, k, Converter.deviceToBins(device));
+        this.ac.put(p, k, Converter.deviceToBins(device, filter));
     }
 
     /**

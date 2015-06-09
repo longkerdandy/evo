@@ -25,6 +25,7 @@ public class DeviceType {
     public static final int CONTROLLER_WIN_TV = 122;
     public static final int CONTROLLER_WIN_WEARABLE = 123;
     public static final int CONTROLLER_WIN_AUTO = 124;
+    public static final int CONTROLLER_WEB_BROWSER = 150;
 
     private DeviceType() {
     }

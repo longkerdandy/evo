@@ -2,11 +2,12 @@ package com.github.longkerdandy.evo.aerospike;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Record;
-import com.aerospike.client.Value;
 import com.github.longkerdandy.evo.aerospike.entity.Device;
 import com.github.longkerdandy.evo.aerospike.entity.EntityFactory;
 import com.github.longkerdandy.evo.aerospike.entity.User;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -21,19 +22,28 @@ public class Converter {
     /**
      * Convert user entity to aerospike bins
      *
-     * @param user User
+     * @param user   User
+     * @param filter Exclude null and empty fields?
      * @return Bin[]
      */
-    public static Bin[] userToBins(User user) {
-        return new Bin[]{
-                new Bin(Scheme.BIN_U_ID, user.getId()),
-                new Bin(Scheme.BIN_U_ALIAS, user.getAlias()),
-                new Bin(Scheme.BIN_U_EMAIL, user.getEmail()),
-                new Bin(Scheme.BIN_U_MOBILE, user.getMobile()),
-                new Bin(Scheme.BIN_U_PASSWORD, user.getPassword()),
-                new Bin(Scheme.BIN_U_OWN, Value.get(user.getOwn())),
-                new Bin(Scheme.BIN_U_CTRL, Value.get(user.getCtrl())),
-        };
+    public static Bin[] userToBins(User user, boolean filter) {
+        List<Bin> bins = new ArrayList<>();
+        if (!filter || StringUtils.isNotBlank(user.getId()))
+            bins.add(new Bin(Scheme.BIN_U_ID, user.getId()));
+        if (!filter || StringUtils.isNotBlank(user.getAlias()))
+            bins.add(new Bin(Scheme.BIN_U_ALIAS, user.getAlias()));
+        if (!filter || StringUtils.isNotBlank(user.getEmail()))
+            bins.add(new Bin(Scheme.BIN_U_EMAIL, user.getEmail()));
+        if (!filter || StringUtils.isNotBlank(user.getMobile()))
+            bins.add(new Bin(Scheme.BIN_U_MOBILE, user.getMobile()));
+        if (!filter || StringUtils.isNotBlank(user.getPassword()))
+            bins.add(new Bin(Scheme.BIN_U_PASSWORD, user.getPassword()));
+
+        // exclude relation
+        // new Bin(Scheme.BIN_U_OWN, Value.get(user.getOwn())),
+        // new Bin(Scheme.BIN_U_CTRL, Value.get(user.getCtrl())),
+
+        return bins.toArray(new Bin[bins.size()]);
     }
 
     /**
@@ -58,20 +68,29 @@ public class Converter {
      * Convert device entity to aerospike bins
      *
      * @param device User
+     * @param filter Exclude null and empty fields?
      * @return Bin[]
      */
-    public static Bin[] deviceToBins(Device device) {
-        return new Bin[]{
-                new Bin(Scheme.BIN_D_ID, device.getId()),
-                new Bin(Scheme.BIN_D_TYPE, device.getType()),
-                new Bin(Scheme.BIN_D_DESC_ID, device.getDescId()),
-                new Bin(Scheme.BIN_D_PROTOCOL, device.getProtocol()),
-                new Bin(Scheme.BIN_D_TOKEN, device.getToken()),
-                new Bin(Scheme.BIN_D_CONN, device.getConnected()),
-                new Bin(Scheme.BIN_D_OWN, Value.get(device.getOwn())),
-                new Bin(Scheme.BIN_D_CTRL, device.getCtrl()),
-                // new Bin(Scheme.BIN_D_CTRL_TOKEN, device.getCtrlToken()),
-        };
+    public static Bin[] deviceToBins(Device device, boolean filter) {
+        List<Bin> bins = new ArrayList<>();
+        if (!filter || StringUtils.isNotBlank(device.getId()))
+            bins.add(new Bin(Scheme.BIN_D_ID, device.getId()));
+        if (!filter || device.getType() > 0)
+            bins.add(new Bin(Scheme.BIN_D_TYPE, device.getType()));
+        if (!filter || StringUtils.isNotBlank(device.getDescId()))
+            bins.add(new Bin(Scheme.BIN_D_DESC_ID, device.getDescId()));
+        if (!filter || device.getProtocol() > 0)
+            bins.add(new Bin(Scheme.BIN_D_PROTOCOL, device.getProtocol()));
+        if (!filter || StringUtils.isNotBlank(device.getToken()))
+            bins.add(new Bin(Scheme.BIN_D_TOKEN, device.getToken()));
+        if (!filter || StringUtils.isNotBlank(device.getConnected()))
+            bins.add(new Bin(Scheme.BIN_D_CONN, device.getConnected()));
+
+        // exclude relation
+        // new Bin(Scheme.BIN_D_OWN, Value.get(device.getOwn())),
+        // new Bin(Scheme.BIN_D_CTRL, device.getCtrl()),
+
+        return bins.toArray(new Bin[bins.size()]);
     }
 
     /**
