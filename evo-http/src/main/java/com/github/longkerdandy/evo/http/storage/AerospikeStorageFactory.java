@@ -7,8 +7,8 @@ import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Environment;
 import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * AerospikeStorage Factory
@@ -17,30 +17,25 @@ import javax.validation.constraints.Min;
 public class AerospikeStorageFactory {
 
     @NotEmpty
-    private String host;
+    private String hosts;
 
-    @Min(1)
-    @Max(65535)
-    private int port = 5672;
-
-    public String getHost() {
-        return host;
+    public String getHosts() {
+        return hosts;
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
+    public void setHosts(String hosts) {
+        this.hosts = hosts;
     }
 
     public AerospikeStorage build(Environment environment) {
-        final AerospikeStorage storage = new AerospikeStorage(new ClientPolicy(), new Host[]{new Host(this.host, this.port)});
+        // create aerospike storage
+        ClientPolicy policy = new ClientPolicy();
+        List<Host> hostList = new ArrayList<>();
+        for (String h : this.hosts.split(",")) {
+            hostList.add(new Host(h.split(":")[0], Integer.valueOf(h.split(":")[1])));
+        }
+        final AerospikeStorage storage = new AerospikeStorage(policy, hostList.toArray(new Host[hostList.size()]));
+        // add to dropwizard life cycle
         environment.lifecycle().manage(new Managed() {
             @Override
             public void start() {

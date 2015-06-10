@@ -9,11 +9,8 @@ logging:
 # Aerospike Storage
 aerospikeStorage:
 
-  # host
-  host:  192.168.1.101
-
-  # port
-  port:  3000
+  # hosts
+  hosts:  192.168.1.101:3000
 
 # Kafka Message Queue Producer
 kafkaProducer:
