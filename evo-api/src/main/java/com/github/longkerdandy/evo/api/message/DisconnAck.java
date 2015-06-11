@@ -1,11 +1,14 @@
 package com.github.longkerdandy.evo.api.message;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * DisconnAck Message
  * Acknowledge for Disconnect Message
  */
 @SuppressWarnings("unused")
-public class DisconnAck {
+public class DisconnAck implements Validatable {
 
     // Return Code
     public static final int RECEIVED = 100;                 // Message received and re-directed to followers
@@ -27,5 +30,16 @@ public class DisconnAck {
 
     public void setReturnCode(int returnCode) {
         this.returnCode = returnCode;
+    }
+
+    @Override
+    public void validate() {
+        if (StringUtils.isBlank(this.disconnMsgId)) {
+            throw new IllegalStateException("Invalid disconnect message id");
+        }
+
+        if (!ArrayUtils.contains(new int[]{RECEIVED}, this.returnCode)) {
+            throw new IllegalStateException("Invalid return code");
+        }
     }
 }

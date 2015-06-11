@@ -1,5 +1,7 @@
 package com.github.longkerdandy.evo.api.message;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Map;
 
 /**
@@ -7,7 +9,7 @@ import java.util.Map;
  * Device receives certain type of command(action) and changes its state
  */
 @SuppressWarnings("unused")
-public class Action {
+public class Action implements Validatable {
 
     protected String actionId;                // Action Id
     protected int lifetime;                   // Action Lifetime, seconds until this action expires
@@ -35,5 +37,16 @@ public class Action {
 
     public void setAttributes(Map<String, Object> attributes) {
         this.attributes = attributes;
+    }
+
+    @Override
+    public void validate() {
+        if (StringUtils.isBlank(this.actionId)) {
+            throw new IllegalStateException("Invalid action id");
+        }
+
+        if (this.lifetime < 0) {
+            throw new IllegalStateException("Invalid lifetime");
+        }
     }
 }

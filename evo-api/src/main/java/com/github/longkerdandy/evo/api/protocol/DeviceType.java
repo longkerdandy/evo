@@ -31,6 +31,17 @@ public class DeviceType {
     }
 
     /**
+     * Whether give device type is valid
+     *
+     * @param deviceType Device Type
+     * @return True if valid
+     */
+    public static boolean isValid(int deviceType) {
+        // TODO: find a better way to validate device type
+        return deviceType >= 0 && deviceType <= 255;
+    }
+
+    /**
      * Is device type a simple device
      *
      * @param deviceType Device Controller

@@ -1,5 +1,7 @@
 package com.github.longkerdandy.evo.api.message;
 
+import com.github.longkerdandy.evo.api.protocol.OverridePolicy;
+
 import java.util.Map;
 
 /**
@@ -7,7 +9,7 @@ import java.util.Map;
  * Must be sent before all other messages when device connecting to the Cloud
  */
 @SuppressWarnings("unused")
-public class Connect {
+public class Connect implements Validatable {
 
     protected String token;                   // Token
     protected int policy;                     // Attributes Override Policy
@@ -35,5 +37,12 @@ public class Connect {
 
     public void setAttributes(Map<String, Object> attributes) {
         this.attributes = attributes;
+    }
+
+    @Override
+    public void validate() {
+        if (!OverridePolicy.isValid(this.policy)) {
+            throw new IllegalStateException("Invalid override policy");
+        }
     }
 }

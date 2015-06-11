@@ -1,5 +1,7 @@
 package com.github.longkerdandy.evo.api.message;
 
+import com.github.longkerdandy.evo.api.protocol.OverridePolicy;
+
 import java.util.Map;
 
 /**
@@ -7,7 +9,7 @@ import java.util.Map;
  * Device/Gate should try to notify platform when device disconnecting to the Cloud
  */
 @SuppressWarnings("unused")
-public class Disconnect {
+public class Disconnect implements Validatable {
 
     protected int policy;                     // Attributes Override Policy
     protected Map<String, Object> attributes; // Attributes
@@ -26,5 +28,12 @@ public class Disconnect {
 
     public void setAttributes(Map<String, Object> attributes) {
         this.attributes = attributes;
+    }
+
+    @Override
+    public void validate() {
+        if (!OverridePolicy.isValid(this.policy)) {
+            throw new IllegalStateException("Invalid override policy");
+        }
     }
 }

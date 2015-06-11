@@ -1,11 +1,17 @@
 package com.github.longkerdandy.evo.api.message;
 
+import com.github.longkerdandy.evo.api.protocol.DeviceType;
+import com.github.longkerdandy.evo.api.protocol.MessageType;
+import com.github.longkerdandy.evo.api.protocol.ProtocolType;
+import com.github.longkerdandy.evo.api.protocol.QoS;
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Message
  * Base message & carrier for all other messages
  */
 @SuppressWarnings("unused")
-public class Message<T> {
+public class Message<T extends Validatable> implements Validatable {
 
     // Message Size
     public static final int MAX_BYTES = 8092;
@@ -117,5 +123,55 @@ public class Message<T> {
 
     public void setPayload(T payload) {
         this.payload = payload;
+    }
+
+    public void validate() {
+        if (!ProtocolType.isValid(this.protocol)) {
+            throw new IllegalStateException("Invalid protocol type");
+        }
+
+        if (!MessageType.isValid(this.msgType)) {
+            throw new IllegalStateException("Invalid message type");
+        }
+
+        if (!QoS.isValid(this.qos)) {
+            throw new IllegalStateException("Invalid qos level");
+        }
+
+        if (!DeviceType.isValid(this.deviceType)) {
+            throw new IllegalStateException("Invalid device type");
+        }
+
+        if (StringUtils.isBlank(this.msgId)) {
+            throw new IllegalStateException("Invalid message id");
+        }
+
+        if (StringUtils.isBlank(this.from)) {
+            throw new IllegalStateException("Invalid message from");
+        }
+
+        if (StringUtils.isBlank(this.to)) {
+            throw new IllegalStateException("Invalid message to");
+        }
+
+        // TODO: find a better way to validate time stamp
+        if (this.timestamp <= 0) {
+            throw new IllegalStateException("Invalid time stamp");
+        }
+
+        // disconnect message can have null payload
+        if (this.payload == null && this.msgType != MessageType.DISCONNECT) {
+            throw new IllegalStateException("Invalid message payload");
+        }
+
+        if (this.msgType == MessageType.CONNECT) {
+            if (StringUtils.isBlank(this.descId)) {
+                throw new IllegalStateException("Invalid descriptor id");
+            }
+        }
+
+        if (this.payload != null) {
+            this.payload.validate();
+        }
     }
 }

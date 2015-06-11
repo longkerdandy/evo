@@ -17,4 +17,14 @@ public class MessageType {
 
     private MessageType() {
     }
+
+    /**
+     * Whether give message type is valid
+     *
+     * @param msgType Message Type
+     * @return True if valid
+     */
+    public static boolean isValid(int msgType) {
+        return msgType >= 1 && msgType <= 8;
+    }
 }

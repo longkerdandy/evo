@@ -14,4 +14,14 @@ public class OverridePolicy {
 
     private OverridePolicy() {
     }
+
+    /**
+     * Whether give override policy is valid
+     *
+     * @param policy Override Policy
+     * @return True if valid
+     */
+    public static boolean isValid(int policy) {
+        return policy >= 0 && policy <= 4;
+    }
 }

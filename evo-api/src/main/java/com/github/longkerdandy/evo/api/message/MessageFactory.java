@@ -1,6 +1,9 @@
 package com.github.longkerdandy.evo.api.message;
 
-import com.github.longkerdandy.evo.api.protocol.*;
+import com.github.longkerdandy.evo.api.protocol.DeviceType;
+import com.github.longkerdandy.evo.api.protocol.Evolution;
+import com.github.longkerdandy.evo.api.protocol.MessageType;
+import com.github.longkerdandy.evo.api.protocol.QoS;
 import com.github.longkerdandy.evo.api.util.UuidUtils;
 
 import java.util.Map;
@@ -22,7 +25,7 @@ public class MessageFactory {
      * @param <T>     Payload Message Class
      * @return Message with replaced Payload
      */
-    public static <T> Message<T> newMessage(Message msg, T payload) {
+    public static <T extends Validatable> Message<T> newMessage(Message msg, T payload) {
         Message<T> m = new Message<>();
         m.setProtocol(msg.getProtocol());
         m.setMsgType(msg.getMsgType());
@@ -52,7 +55,7 @@ public class MessageFactory {
      * @param <T>        Payload Message Class
      * @return Message with Payload
      */
-    protected static <T> Message<T> newMessage(int protocol, int msgType, int qos, int deviceType, String from, String to, T payload) {
+    protected static <T extends Validatable> Message<T> newMessage(int protocol, int msgType, int qos, int deviceType, String from, String to, T payload) {
         Message<T> msg = new Message<>();
         msg.setProtocol(protocol);                      // Protocol
         msg.setMsgType(msgType);                        // Message Type

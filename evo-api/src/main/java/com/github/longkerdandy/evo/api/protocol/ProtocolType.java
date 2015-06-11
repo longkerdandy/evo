@@ -10,4 +10,14 @@ public class ProtocolType {
 
     private ProtocolType() {
     }
+
+    /**
+     * Whether give protocol type is valid
+     *
+     * @param protocol Protocol Type
+     * @return True if valid
+     */
+    public static boolean isValid(int protocol) {
+        return protocol == TCP_1_0;
+    }
 }

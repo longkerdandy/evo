@@ -12,4 +12,14 @@ public class QoS {
 
     private QoS() {
     }
+
+    /**
+     * Whether give QoS level is valid
+     *
+     * @param qos QoS Level
+     * @return True if valid
+     */
+    public static boolean isValid(int qos) {
+        return qos >= 0 && qos <= 2;
+    }
 }
