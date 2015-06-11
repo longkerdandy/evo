@@ -12,7 +12,7 @@ import java.util.Properties;
 @SuppressWarnings("unused")
 public class AdminTools {
 
-    private ZkClient zkClient;
+    private final ZkClient zkClient;
 
     /**
      * Constructor

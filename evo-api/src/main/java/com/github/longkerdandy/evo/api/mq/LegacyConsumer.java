@@ -42,8 +42,7 @@ public class LegacyConsumer<W extends LegacyConsumerWorker> {
         // connect to kafka
         Map<String, Integer> topicCountMap = new HashMap<>();
         topicCountMap.put(topic, threads);
-        Map<String, List<KafkaStream<String, String>>> consumerMap =
-                consumer.createMessageStreams(topicCountMap, new StringDecoder(null), new StringDecoder(null));
+        Map<String, List<KafkaStream<String, String>>> consumerMap = this.consumer.createMessageStreams(topicCountMap, new StringDecoder(null), new StringDecoder(null));
         List<KafkaStream<String, String>> streams = consumerMap.get(topic);
 
         // now launch all the threads
@@ -59,16 +58,14 @@ public class LegacyConsumer<W extends LegacyConsumerWorker> {
      * Close consumer
      */
     public void close() {
-        if (consumer != null) consumer.shutdown();
-        if (executor != null) {
-            executor.shutdown();
-            try {
-                if (!executor.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
-                    logger.error("Timed out waiting for consumer threads to shut down, exiting uncleanly");
-                }
-            } catch (InterruptedException e) {
-                logger.error("Interrupted during shutdown, exiting uncleanly");
+        this.consumer.shutdown();
+        this.executor.shutdown();
+        try {
+            if (!this.executor.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
+                logger.error("Timed out waiting for consumer threads to shut down, exiting uncleanly");
             }
+        } catch (InterruptedException e) {
+            logger.error("Interrupted during shutdown, exiting uncleanly");
         }
     }
 }

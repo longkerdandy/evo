@@ -22,7 +22,7 @@ public class Producer {
     // Logger
     private static final Logger logger = LoggerFactory.getLogger(Producer.class);
     // Kafka Producer
-    private KafkaProducer<String, String> producer;
+    private final KafkaProducer<String, String> producer;
 
     /**
      * Constructor
@@ -41,7 +41,7 @@ public class Producer {
      * Failure to close the producer after use will leak these resources.
      */
     public void close() {
-        if (this.producer != null) this.producer.close();
+        this.producer.close();
     }
 
     /**
@@ -62,13 +62,13 @@ public class Producer {
             this.producer.send(record,
                     (metadata, e) -> {
                         if (e != null)
-                            logger.error("Send message {} {} to mq failed: {}", msg.getMsgType(), msg.getMsgId(), ExceptionUtils.getMessage(e));
+                            logger.error("Send message {} {} to mq {} failed: {}", msg.getMsgType(), msg.getMsgId(), topic, ExceptionUtils.getMessage(e));
                         else {
-                            logger.trace("Successful send message {} {} to mq partition {} offset {}", msg.getMsgType(), msg.getMsgId(), metadata.partition(), metadata.offset());
+                            logger.debug("Successful send message {} {} to mq {} partition {} offset {}", msg.getMsgType(), msg.getMsgId(), topic, metadata.partition(), metadata.offset());
                         }
                     });
         } catch (JsonProcessingException e) {
-            logger.error("Send message {} {} to mq with exception: {}", msg.getMsgType(), msg.getMsgId(), ExceptionUtils.getMessage(e));
+            logger.error("Send message {} {} to mq {} with exception: {}", msg.getMsgType(), msg.getMsgId(), topic, ExceptionUtils.getMessage(e));
         }
     }
 
@@ -90,13 +90,13 @@ public class Producer {
             this.producer.send(record,
                     (metadata, e) -> {
                         if (e != null)
-                            logger.error("Send message {} {} to mq failed: {}", msg.getType(), msg.getMobile(), ExceptionUtils.getMessage(e));
+                            logger.error("Send message {} {} to mq {} failed: {}", msg.getType(), msg.getMobile(), Topics.SMS, ExceptionUtils.getMessage(e));
                         else {
-                            logger.trace("Successful send message {} {} to mq partition {} offset {}", msg.getType(), msg.getMobile(), metadata.partition(), metadata.offset());
+                            logger.debug("Successful send message {} {} to mq {} partition {} offset {}", msg.getType(), msg.getMobile(), Topics.SMS, metadata.partition(), metadata.offset());
                         }
                     });
         } catch (JsonProcessingException e) {
-            logger.error("Send message {} {} to mq with exception: {}", msg.getType(), msg.getMobile(), ExceptionUtils.getMessage(e));
+            logger.error("Send message {} {} to mq {} with exception: {}", msg.getType(), msg.getMobile(), Topics.SMS, ExceptionUtils.getMessage(e));
         }
     }
 }
