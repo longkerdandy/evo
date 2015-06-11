@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringUtils;
  * Base message & carrier for all other messages
  */
 @SuppressWarnings("unused")
-public class Message<T extends Validatable> implements Validatable {
+public class Message<T> implements Validatable {
 
     // Message Size
     public static final int MAX_BYTES = 8092;
@@ -170,8 +170,8 @@ public class Message<T extends Validatable> implements Validatable {
             }
         }
 
-        if (this.payload != null) {
-            this.payload.validate();
+        if (this.payload != null && this.payload instanceof Validatable) {
+            ((Validatable) this.payload).validate();
         }
     }
 }

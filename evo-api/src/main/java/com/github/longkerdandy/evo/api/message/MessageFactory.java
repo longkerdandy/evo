@@ -25,7 +25,7 @@ public class MessageFactory {
      * @param <T>     Payload Message Class
      * @return Message with replaced Payload
      */
-    public static <T extends Validatable> Message<T> newMessage(Message msg, T payload) {
+    public static <T> Message<T> newMessage(Message msg, T payload) {
         Message<T> m = new Message<>();
         m.setProtocol(msg.getProtocol());
         m.setMsgType(msg.getMsgType());
@@ -55,7 +55,7 @@ public class MessageFactory {
      * @param <T>        Payload Message Class
      * @return Message with Payload
      */
-    protected static <T extends Validatable> Message<T> newMessage(int protocol, int msgType, int qos, int deviceType, String from, String to, T payload) {
+    protected static <T> Message<T> newMessage(int protocol, int msgType, int qos, int deviceType, String from, String to, T payload) {
         Message<T> msg = new Message<>();
         msg.setProtocol(protocol);                      // Protocol
         msg.setMsgType(msgType);                        // Message Type

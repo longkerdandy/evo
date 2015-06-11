@@ -83,12 +83,8 @@ public class Decoder extends ByteToMessageDecoder {
             in.clear();
             throw new DecoderException("Wrong message signature");
         }
-        // header 4 protocol version
+        // header 4 protocol type
         short b4 = in.readUnsignedByte();
-        if (b4 != ProtocolType.TCP_1_0) {
-            in.clear();
-            throw new DecoderException("Unsupported protocol version " + b4);
-        }
         // header 5 reserved
         in.readUnsignedByte();
         // header 6 reserved
@@ -108,48 +104,46 @@ public class Decoder extends ByteToMessageDecoder {
 
         // message data
         try {
+            // two step parse json
             JavaType type = ObjectMapper.getTypeFactory().constructParametrizedType(Message.class, Message.class, JsonNode.class);
             Message<JsonNode> m = ObjectMapper.readValue(new ByteBufInputStream(in, remainingLength), type);
             m.setProtocol(b4);    // save protocol from header to message
             if (m.getTimestamp() <= 0) m.setTimestamp(System.currentTimeMillis());  // if timestamp not provided
+            Message msg;
             switch (m.getMsgType()) {
                 case MessageType.CONNECT:
-                    Message<Connect> c = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Connect.class));
-                    out.add(c);
+                    msg = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Connect.class));
                     break;
                 case MessageType.CONNACK:
-                    Message<ConnAck> ca = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), ConnAck.class));
-                    out.add(ca);
+                    msg = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), ConnAck.class));
                     break;
                 case MessageType.DISCONNECT:
-                    Message<Disconnect> d = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Disconnect.class));
-                    out.add(d);
+                    msg = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Disconnect.class));
                     break;
                 case MessageType.DISCONNACK:
-                    Message<DisconnAck> da = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), DisconnAck.class));
-                    out.add(da);
+                    msg = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), DisconnAck.class));
                     break;
                 case MessageType.TRIGGER:
-                    Message<Trigger> t = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Trigger.class));
-                    out.add(t);
+                    msg = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Trigger.class));
                     break;
                 case MessageType.TRIGACK:
-                    Message<TrigAck> ta = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), TrigAck.class));
-                    out.add(ta);
+                    msg = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), TrigAck.class));
                     break;
                 case MessageType.ACTION:
-                    Message<Action> a = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Action.class));
-                    out.add(a);
+                    msg = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), Action.class));
                     break;
                 case MessageType.ACTACK:
-                    Message<ActAck> aa = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), ActAck.class));
-                    out.add(aa);
+                    msg = MessageFactory.newMessage(m, ObjectMapper.treeToValue(m.getPayload(), ActAck.class));
                     break;
                 default:
                     in.clear();
                     throw new DecoderException("Unexpected message type: " + m.getMsgType());
             }
-        } catch (IOException e) {
+            // validate
+            msg.validate();
+            // pass to handler
+            out.add(msg);
+        } catch (IOException | IllegalStateException e) {
             in.clear();
             throw new DecoderException(e);
         }
