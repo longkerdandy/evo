@@ -23,7 +23,11 @@ public class DecoderEncoderTest {
     @SuppressWarnings("unchecked")
     public void decoderEncoderTest() throws Exception {
         // Message, payload is ConnectMessage
-        Message<Connect> msgOut = MessageFactory.newConnectMessage(ProtocolType.TCP_1_0, DeviceType.CONTROLLER_ANDROID_PHONE, "Device 1", null, "Desc 1", "User 1", "Token 1", OverridePolicy.IGNORE, null);
+        Message<Connect> msgOut = MessageFactory.newConnectMessage(
+                ProtocolType.TCP_1_0, DeviceType.CONTROLLER_ANDROID_PHONE,
+                "Device 1", "Device 2", "Desc 1",
+                "User 1", "Token 1",
+                OverridePolicy.IGNORE, null);
 
         // encoding
         Encoder encoder = new Encoder();

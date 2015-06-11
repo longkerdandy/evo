@@ -2,11 +2,15 @@ package com.github.longkerdandy.evo.api.message;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.protocol.MessageType;
+import com.github.longkerdandy.evo.api.protocol.OverridePolicy;
 import com.github.longkerdandy.evo.api.protocol.ProtocolType;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
 
@@ -17,34 +21,40 @@ public class MessageTest {
 
     @Test
     public void jsonTest() throws IOException {
-        // Message, payload is ConnectMessage
-        Connect connMsg = new Connect();
-        connMsg.setToken("Token 1");
-        Message<Connect> out = new Message<>();
-        out.setProtocol(ProtocolType.TCP_1_0);
-        out.setUserId("User 1");
-        out.setMsgId("Message ID 1");
-        out.setMsgType(MessageType.CONNECT);
-        out.setFrom("Device 1");
-        out.setTimestamp(System.currentTimeMillis());
-        out.setPayload(connMsg);
+        // message, payload is ConnectMessage
+        Message<Connect> out = MessageFactory.newConnectMessage(
+                ProtocolType.TCP_1_0, DeviceType.DEVICE,
+                "Device A", "Device B", "Description A",
+                "User A", "Token A",
+                OverridePolicy.IGNORE, null);
 
-        // Serialization
+        // validate
+        out.validate();
+
+        // serialization
         String json = ObjectMapper.writeValueAsString(out);
 
-        // Deserialization (raw message)
+        // deserialization (raw message)
         JavaType type = ObjectMapper.getTypeFactory().constructParametrizedType(Message.class, Message.class, JsonNode.class);
-        Message<JsonNode> in = ObjectMapper.readValue(json, type);
-        // assert in.getProtocol() == ProtocolType.TCP_1_0;
-        assert in.getUserId().equals("User 1");
-        assert in.getMsgId().equals("Message ID 1");
+        Message<Object> in = ObjectMapper.readValue(json, type);
+
+        // validate
+        in.validate();
+
+        assert in.getProtocol() == ProtocolType.TCP_1_0;
+        assert in.getUserId().equals("User A");
+        assert StringUtils.isNotBlank(in.getMsgId());
         assert in.getMsgType() == MessageType.CONNECT;
-        assert in.getFrom().equals("Device 1");
+        assert in.getFrom().equals("Device A");
         assert in.getTimestamp() > 0;
         assert in.getPayload() != null;
 
-        // Deserialization (connect message)
-        connMsg = ObjectMapper.treeToValue(in.getPayload(), Connect.class);
-        assert connMsg.getToken().equals("Token 1");
+        // deserialization (connect message)
+        Connect connect = ObjectMapper.treeToValue((JsonNode) in.getPayload(), Connect.class);
+        assert connect.getToken().equals("Token A");
+
+        // validate
+        in.setPayload(connect);
+        in.validate();
     }
 }
