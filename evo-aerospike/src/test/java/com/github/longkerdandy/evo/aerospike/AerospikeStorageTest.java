@@ -14,7 +14,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * AerospikeStorage Test
@@ -40,7 +43,7 @@ public class AerospikeStorageTest {
     @Test
     public void verifyTest() throws InterruptedException {
         // create mobile verify code
-        storage.updateVerify("+86 18600000000", "123456", 1);
+        storage.replaceVerify("+86 18600000000", "123456", 1);
         assert storage.isVerifyCodeCorrect("+86 18600000000", "123456");
 
         // sleep to wait ttl expire
@@ -101,11 +104,11 @@ public class AerospikeStorageTest {
         storage.updateUser(userA, true);
 
         // create token
-        storage.updateUserToken("u000001", "abcdefg");
+        storage.replaceUserToken("u000001", "abcdefg");
         assert storage.getUserIdByToken("abcdefg").equals("u000001");
 
         // update token
-        storage.updateUserToken("u000001", "1234567890");
+        storage.replaceUserToken("u000001", "1234567890");
         assert storage.getUserIdByToken("abcdefg") == null;
         assert storage.getUserIdByToken("1234567890").equals("u000001");
 
@@ -191,7 +194,7 @@ public class AerospikeStorageTest {
         storage.updateDevice(deviceA, true);
 
         // update own
-        storage.updateUserOwnDevice("u000001", "d000001", Permission.READ);
+        storage.addUserOwnDevice("u000001", "d000001", Permission.READ);
         userA = storage.getUserById("u000001");
         assert userA.getOwn().get(0).get(Scheme.OWN_DEVICE).equals("d000001");
         assert NumberUtils.toInt(String.valueOf(userA.getOwn().get(0).get(Scheme.OWN_PERMISSION))) == Permission.READ;
@@ -202,7 +205,7 @@ public class AerospikeStorageTest {
         assert !storage.isUserOwnDevice("u000001", "d000001", Permission.READ_WRITE);
 
         // update own again
-        storage.updateUserOwnDevice("u000001", "d000001", Permission.READ_WRITE);
+        storage.addUserOwnDevice("u000001", "d000001", Permission.READ_WRITE);
         userA = storage.getUserById("u000001");
         assert userA.getOwn().get(0).get(Scheme.OWN_DEVICE).equals("d000001");
         assert NumberUtils.toInt(String.valueOf(userA.getOwn().get(0).get(Scheme.OWN_PERMISSION))) == Permission.READ_WRITE;
@@ -263,12 +266,12 @@ public class AerospikeStorageTest {
         storage.updateDevice(deviceC, true);
 
         // update control
-        storage.updateUserControlDevice("u000001", "d000002");
+        storage.addUserControlDevice("u000001", "d000002");
         assert storage.isUserControlDevice("u000001", "d000002");
         assert !storage.isUserControlDevice("u000001", "d000003");
         List<String> ctrlA = storage.getUserControllee("u000001");
         assert ctrlA.contains("d000002");
-        storage.updateUserControlDevice("u000001", "d000003");
+        storage.addUserControlDevice("u000001", "d000003");
         assert storage.isUserControlDevice("u000001", "d000002");
         assert storage.isUserControlDevice("u000001", "d000003");
         ctrlA = storage.getUserControllee("u000001");
@@ -286,8 +289,8 @@ public class AerospikeStorageTest {
         assert ctrlA.contains("d000003");
 
         // get own with control
-        storage.updateUserOwnDevice("u000001", "d000001", Permission.READ);
-        storage.updateUserControlDevice("u000001", "d000002");
+        storage.addUserOwnDevice("u000001", "d000001", Permission.READ);
+        storage.addUserControlDevice("u000001", "d000002");
         Set<String> setA = storage.getDeviceOwnerControllee("d000001", Permission.READ, Permission.OWNER);
         assert setA.contains("d000002");
         assert setA.contains("d000003");

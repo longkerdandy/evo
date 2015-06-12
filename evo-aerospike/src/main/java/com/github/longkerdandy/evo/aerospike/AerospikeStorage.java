@@ -65,16 +65,16 @@ public class AerospikeStorage {
     }
 
     /**
-     * Create or Update verify code
+     * Create or Replace verify code
      * Validate before invoking this method!
      *
-     * @param verifyId Mobile or email
-     * @param code     Verify code
+     * @param verifyId Mobile or Email
+     * @param code     Verify Code
      * @param ttl      Time to live
      */
-    public void updateVerify(String verifyId, String code, int ttl) {
+    public void replaceVerify(String verifyId, String code, int ttl) {
         WritePolicy p = new WritePolicy();
-        p.recordExistsAction = RecordExistsAction.UPDATE;
+        p.recordExistsAction = RecordExistsAction.REPLACE;
         p.expiration = ttl;
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_VERIFY, verifyId);
         this.ac.put(p, k, new Bin(Scheme.BIN_V_ID, verifyId), new Bin(Scheme.BIN_V_CODE, code));
@@ -89,14 +89,14 @@ public class AerospikeStorage {
     public boolean isVerifyCodeCorrect(String verifyId, String code) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_VERIFY, verifyId);
         Record r = this.ac.get(null, k, Scheme.BIN_V_CODE);
-        return r != null && code.equals(r.getValue(Scheme.BIN_V_CODE));
+        return r != null && code.equals(r.getString(Scheme.BIN_V_CODE));
     }
 
     /**
      * Create or Update user
      * Validate before invoking this method!
      *
-     * @param user User
+     * @param user   User
      * @param filter Exclude null and empty fields?
      */
     public void updateUser(User user, boolean filter) {
@@ -116,6 +116,22 @@ public class AerospikeStorage {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record r = this.ac.get(null, k);
         return Converter.recordToUser(r);
+    }
+
+    /**
+     * Get user by email
+     *
+     * @param email Email
+     * @return user
+     */
+    public User getUserByEmail(String email) {
+        Statement stmt = new Statement();
+        stmt.setNamespace(Scheme.NS_EVO);
+        stmt.setSetName(Scheme.SET_USERS);
+        stmt.setFilters(Filter.equal(Scheme.BIN_U_EMAIL, email));
+        try (RecordSet rs = this.ac.query(null, stmt)) {
+            return rs.next() ? Converter.recordToUser(rs.getRecord()) : null;
+        }
     }
 
     /**
@@ -193,13 +209,12 @@ public class AerospikeStorage {
     }
 
     /**
-     * Create or Update user id with OAuth token
-     * Validate before invoking this method!
+     * Create or Replace user id with OAuth token
      *
      * @param userId User Id
      * @param token  OAuth token
      */
-    public void updateUserToken(String userId, String token) {
+    public void replaceUserToken(String userId, String token) {
         // delete old token
         Statement stmt = new Statement();
         stmt.setNamespace(Scheme.NS_EVO);
@@ -212,20 +227,9 @@ public class AerospikeStorage {
         }
         // add new token
         WritePolicy p = new WritePolicy();
-        p.recordExistsAction = RecordExistsAction.UPDATE;
+        p.recordExistsAction = RecordExistsAction.REPLACE;
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_OAUTH_TOKEN, token);
         this.ac.put(p, k, new Bin(Scheme.BIN_O_T_TOKEN, token), new Bin(Scheme.BIN_O_T_USER, userId));
-    }
-
-    /**
-     * Is description exist?
-     *
-     * @param descId Description Id
-     * @return True if exist
-     */
-    public boolean isDescriptionExist(String descId) {
-        // TODO: add real logic
-        return true;
     }
 
     /**
@@ -260,10 +264,11 @@ public class AerospikeStorage {
      * @param node     Node Device disconnect from
      * @return True if successes
      */
-    public boolean updateDeviceDisconnect(String deviceId, String node) {
+    public boolean setDeviceDisconnect(String deviceId, String node) {
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
         Record r = this.ac.get(null, k, Scheme.BIN_D_CONN);
         // mark as disconnect if node name match
+        // TODO: find a better way to do Check And Set
         if (r != null && node.equals(r.getString(Scheme.BIN_D_CONN))) {
             WritePolicy p = new WritePolicy();
             p.recordExistsAction = RecordExistsAction.UPDATE;
@@ -303,6 +308,7 @@ public class AerospikeStorage {
     /**
      * Create or Update device attribute
      * Make sure device exist before invoking this method!
+     * Make sure attribute contains timestamp before invoking this method!
      *
      * @param deviceId        Device Id
      * @param attr            Device Attribute
@@ -312,7 +318,8 @@ public class AerospikeStorage {
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES_ATTR, deviceId);
-        if (!isTimestampValid((Long) attr.get(Scheme.BIN_D_A_UPDATE_TIME))) {
+        // still, fault tolerance
+        if (!attr.containsKey(Scheme.BIN_D_A_UPDATE_TIME)) {
             attr.put(Scheme.BIN_D_A_UPDATE_TIME, System.currentTimeMillis());
         }
         if (checkUpdateTime) {
@@ -328,6 +335,7 @@ public class AerospikeStorage {
     /**
      * Create or Replace device attribute
      * Make sure device exist before invoking this method!
+     * Make sure attribute contains timestamp before invoking this method!
      *
      * @param deviceId        Device Id
      * @param attr            Device Attribute
@@ -337,7 +345,8 @@ public class AerospikeStorage {
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.REPLACE;
         Key k = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES_ATTR, deviceId);
-        if (!isTimestampValid((Long) attr.get(Scheme.BIN_D_A_UPDATE_TIME))) {
+        // still, fault tolerance
+        if (!attr.containsKey(Scheme.BIN_D_A_UPDATE_TIME)) {
             attr.put(Scheme.BIN_D_A_UPDATE_TIME, System.currentTimeMillis());
         }
         if (checkUpdateTime) {
@@ -371,7 +380,7 @@ public class AerospikeStorage {
      * @param permission Ownership Permission
      */
     @SuppressWarnings("unchecked")
-    public void updateUserOwnDevice(String userId, String deviceId, int permission) {
+    public void addUserOwnDevice(String userId, String deviceId, int permission) {
         Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record ru = this.ac.get(null, ku, Scheme.BIN_U_OWN);
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
@@ -380,10 +389,12 @@ public class AerospikeStorage {
         if (ru != null && rd != null) {
             WritePolicy p = new WritePolicy();
             p.recordExistsAction = RecordExistsAction.UPDATE;
+
             List<Map<String, Object>> ou = (List<Map<String, Object>>) ru.getValue(Scheme.BIN_U_OWN);
             if (!hasOwn(ou, userId, deviceId, permission, permission)) {
                 this.ac.put(p, ku, new Bin(Scheme.BIN_U_OWN, Value.get(updateOwn(ou, userId, deviceId, permission))));
             }
+
             List<Map<String, Object>> od = (List<Map<String, Object>>) rd.getValue(Scheme.BIN_D_OWN);
             if (!hasOwn(od, userId, deviceId, permission, permission)) {
                 this.ac.put(p, kd, new Bin(Scheme.BIN_D_OWN, Value.get(updateOwn(od, userId, deviceId, permission))));
@@ -403,6 +414,7 @@ public class AerospikeStorage {
         Record ru = this.ac.get(null, ku, Scheme.BIN_U_OWN);
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
         Record rd = this.ac.get(null, kd, Scheme.BIN_D_OWN);
+
         WritePolicy p = new WritePolicy();
         p.recordExistsAction = RecordExistsAction.UPDATE;
 
@@ -455,7 +467,6 @@ public class AerospikeStorage {
         Record r = this.ac.get(null, k, Scheme.BIN_U_OWN, Scheme.BIN_U_CTRL);
         if (r != null) {
             List<Map<String, Object>> o = (List<Map<String, Object>>) r.getValue(Scheme.BIN_D_OWN);
-            // if (o == null) o = new ArrayList<>();
             List<String> c = (List<String>) r.getValue(Scheme.BIN_U_CTRL);
             if (c != null) {
                 for (String d : c) {
@@ -481,7 +492,6 @@ public class AerospikeStorage {
         Record r = this.ac.get(null, k, Scheme.BIN_D_OWN, Scheme.BIN_D_CTRL);
         if (r != null) {
             List<Map<String, Object>> o = (List<Map<String, Object>>) r.getValue(Scheme.BIN_D_OWN);
-            // if (o == null) o = new ArrayList<>();
             String c = r.getString(Scheme.BIN_D_CTRL);
             if (c != null) o = updateOwn(o, c, deviceId, Permission.OWNER);
             return filterOwn(o, min, Permission.OWNER);
@@ -498,7 +508,7 @@ public class AerospikeStorage {
      * @param deviceId Device Id
      */
     @SuppressWarnings("unchecked")
-    public void updateUserControlDevice(String userId, String deviceId) {
+    public void addUserControlDevice(String userId, String deviceId) {
         Key ku = new Key(Scheme.NS_EVO, Scheme.SET_USERS, userId);
         Record ru = this.ac.get(null, ku, Scheme.BIN_U_CTRL);
         Key kd = new Key(Scheme.NS_EVO, Scheme.SET_DEVICES, deviceId);
@@ -520,8 +530,6 @@ public class AerospikeStorage {
             if (cd != null && !cd.equals(userId)) removeUserControlDevice(cd, deviceId);
             // update new control relation
             if (cd == null || !cd.equals(userId)) this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, userId));
-            // // always update because of ctrlToken
-            // this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, userId), new Bin(Scheme.BIN_D_CTRL_TOKEN, ctrlToken));
         }
     }
 
@@ -549,7 +557,6 @@ public class AerospikeStorage {
         }
 
         if (rd != null && userId.equals(rd.getString(Scheme.BIN_D_CTRL))) {
-            // this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, Value.getAsNull()), new Bin(Scheme.BIN_D_CTRL_TOKEN, Value.getAsNull()));
             this.ac.put(p, kd, new Bin(Scheme.BIN_D_CTRL, Value.getAsNull()));
         }
     }
@@ -620,13 +627,6 @@ public class AerospikeStorage {
         if (c != null) set.add(c);
 
         return set;
-    }
-
-    /**
-     * Is timestamp valid
-     */
-    protected boolean isTimestampValid(Long timestamp) {
-        return timestamp != null && timestamp > 0;
     }
 
     /**

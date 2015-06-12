@@ -17,7 +17,6 @@ public class Device {
     protected String connected;                   // connected node
     protected List<Map<String, Object>> own;      // own relations
     protected String ctrl;                        // control relation
-    // protected String ctrlToken;                   // control user's token
 
     protected Device() {
     }
@@ -85,12 +84,4 @@ public class Device {
     public void setCtrl(String ctrl) {
         this.ctrl = ctrl;
     }
-
-    //    public String getCtrlToken() {
-    //        return ctrlToken;
-    //    }
-    //
-    //    public void setCtrlToken(String ctrlToken) {
-    //        this.ctrlToken = ctrlToken;
-    //    }
 }

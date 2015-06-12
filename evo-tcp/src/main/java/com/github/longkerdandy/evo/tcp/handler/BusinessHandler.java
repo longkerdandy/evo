@@ -158,7 +158,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
             // update user device control relationship
             if (DeviceType.isController(deviceType) && !this.storage.isUserControlDevice(userId, deviceId)) {
-                this.storage.updateUserControlDevice(userId, deviceId);
+                this.storage.addUserControlDevice(userId, deviceId);
             }
 
             // push to mq
@@ -305,7 +305,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         if (this.repository.removeConn(deviceId, ctx)) {
             // try to mark device disconnect
             // may fails because device already re-connected to another node
-            if (this.storage.updateDeviceDisconnect(deviceId, TCPNode.id())) {
+            if (this.storage.setDeviceDisconnect(deviceId, TCPNode.id())) {
                 Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, null, Triggers.OFFLINE, disconnect.getPolicy(), disconnect.getAttributes());
                 offline.setDescId(d.getDescId());
 
@@ -360,7 +360,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         this.authDevices.keySet().stream().filter(deviceId -> this.repository.removeConn(deviceId, ctx)).forEach(deviceId -> {
             // try to mark device disconnect
             // may fails because device already re-connected to another node
-            if (this.storage.updateDeviceDisconnect(deviceId, TCPNode.id())) {
+            if (this.storage.setDeviceDisconnect(deviceId, TCPNode.id())) {
                 Device d = this.authDevices.get(deviceId);
                 Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, null, Triggers.OFFLINE, OverridePolicy.IGNORE, null);
                 offline.setDescId(d.getDescId());

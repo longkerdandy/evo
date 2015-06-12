@@ -16,12 +16,15 @@ import java.security.spec.InvalidKeySpecException;
  */
 public class EncryptionUtils {
 
-    protected static final String SALT = "4e11750fa75d9b9cb6bc310c0926cf56a1fa66b7e1b0a12d2c569bad5ff4fd483d827dba2abbfee814b9eac5e8dee3bdcbfe129817a0f3e8d2d5e601c25afd8f";
-    protected static final int ITERATIONS = 1024;
-    protected static final int LENGTH = 128;
+    private static final String SALT = "4e11750fa75d9b9cb6bc310c0926cf56a1fa66b7e1b0a12d2c569bad5ff4fd483d827dba2abbfee814b9eac5e8dee3bdcbfe129817a0f3e8d2d5e601c25afd8f";
+    private static final int ITERATIONS = 1024;
+    private static final int LENGTH = 128;
 
+    // Logger
     private static final Logger logger = LoggerFactory.getLogger(EncryptionUtils.class);
-    protected static byte[] SALT_HEX;
+
+    // Salt string to hex
+    private static byte[] SALT_HEX;
 
     static {
         try {
@@ -42,12 +45,12 @@ public class EncryptionUtils {
      */
     public static String encryptPassword(String password) {
         try {
-            final PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), SALT_HEX, ITERATIONS, LENGTH);
-            final SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-            final byte[] hash = skf.generateSecret(spec).getEncoded();
+            PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), SALT_HEX, ITERATIONS, LENGTH);
+            SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+            byte[] hash = skf.generateSecret(spec).getEncoded();
             return hexToString(hash);
         } catch (NoSuchAlgorithmException e) {
-            // Not gonna happen
+            // Never gonna happen
         } catch (InvalidKeySpecException e) {
             logger.error("Encrypt user's password with error: ", ExceptionUtils.getMessage(e));
         }

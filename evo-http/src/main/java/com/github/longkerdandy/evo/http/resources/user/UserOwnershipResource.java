@@ -77,7 +77,7 @@ public class UserOwnershipResource extends AbstractResource {
             return new ResultEntity<>(false);
         } else {
             // update as device owner
-            this.storage.updateUserOwnDevice(userId, deviceId, Permission.OWNER);
+            this.storage.addUserOwnDevice(userId, deviceId, Permission.OWNER);
 
             return new ResultEntity<>(true);
         }

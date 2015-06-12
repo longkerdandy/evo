@@ -43,7 +43,6 @@ public class Scheme {
     public static final String BIN_D_CONN = "conn";
     public static final String BIN_D_OWN = "own";
     public static final String BIN_D_CTRL = "ctrl";
-    // public static final String BIN_D_CTRL_TOKEN = "ctrlToken";
 
     // set - devices attribute
     public static final String SET_DEVICES_ATTR = "devices.attr";

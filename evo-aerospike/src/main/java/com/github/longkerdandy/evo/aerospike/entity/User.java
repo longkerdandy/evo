@@ -13,7 +13,7 @@ public class User {
     protected String alias;                       // nick name
     protected String email;                       // email
     protected String mobile;                      // mobile phone
-    protected String password;                    // password (encoded before saving to db)
+    protected String password;                    // password (encoded before saving to database)
     protected List<Map<String, Object>> own;      // own relations
     protected List<String> ctrl;                  // control relations
 

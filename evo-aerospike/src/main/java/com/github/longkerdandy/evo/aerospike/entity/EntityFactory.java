@@ -3,7 +3,6 @@ package com.github.longkerdandy.evo.aerospike.entity;
 /**
  * Entity Factory
  */
-@SuppressWarnings("unused")
 public class EntityFactory {
 
     private EntityFactory() {

@@ -25,8 +25,6 @@ import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * User register related resource
@@ -103,7 +101,7 @@ public class UserRegisterResource extends AbstractResource {
 
         // create mobile verify code
         String code = RandomStringUtils.randomNumeric(MOBILE_VERIFY_CODE_LENGTH);
-        this.storage.updateVerify(mobile.get(), code, MOBILE_VERIFY_CODE_TTL);
+        this.storage.replaceVerify(mobile.get(), code, MOBILE_VERIFY_CODE_TTL);
         logger.trace("Created a verify code for mobile {}", mobile.get());
 
         // send to message queue
@@ -153,7 +151,7 @@ public class UserRegisterResource extends AbstractResource {
 
         // create user token
         String t = TokenUtils.newToken(uid);
-        this.storage.updateUserToken(uid, t);
+        this.storage.replaceUserToken(uid, t);
         logger.trace("Create token for user {}", uid);
 
         // result
@@ -196,7 +194,7 @@ public class UserRegisterResource extends AbstractResource {
 
         // update token
         String t = TokenUtils.newToken(u.getId());
-        this.storage.updateUserToken(u.getId(), t);
+        this.storage.replaceUserToken(u.getId(), t);
         logger.trace("Update token for user {}", u.getId());
 
         return new ResultEntity<>(t);
