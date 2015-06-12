@@ -22,14 +22,14 @@ public class HTTPApplication extends Application<HTTPConfiguration> {
 
     @Override
     public void run(HTTPConfiguration configuration, Environment environment) throws Exception {
-        // init storage
+        // create storage
         AerospikeStorage storage = configuration.getAerospikeStorage().build(environment);
 
-        // init mq
+        // create message queue producer
         Producer producer = configuration.getKafkaProducer().build(environment);
 
-        // OAuth2
-        environment.jersey().register(AuthFactory.binder(new OAuthFactory<>(new OAuthAuthenticator(storage), "SUPER SECRET STUFF", String.class)));
+        // register OAuth2
+        environment.jersey().register(AuthFactory.binder(new OAuthFactory<>(new OAuthAuthenticator(storage), "https://github.com/longkerdandy", String.class)));
 
         // register resources
         environment.jersey().register(new UserRegisterResource(storage, producer));

@@ -53,7 +53,7 @@ public class ProducerFactory {
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.hosts);
         configs.put(ProducerConfig.ACKS_CONFIG, this.acks);
         configs.put(ProducerConfig.BLOCK_ON_BUFFER_FULL_CONFIG, this.blockOnBufferFull);
-        final Producer producer = new Producer(configs);
+        Producer producer = new Producer(configs);
         environment.lifecycle().manage(new Managed() {
             @Override
             public void start() {

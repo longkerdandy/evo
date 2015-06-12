@@ -7,7 +7,6 @@ import com.github.longkerdandy.evo.api.mq.Producer;
 import com.github.longkerdandy.evo.api.sms.SmsMessage;
 import com.github.longkerdandy.evo.api.sms.SmsVerifyCode;
 import com.github.longkerdandy.evo.api.util.UuidUtils;
-import com.github.longkerdandy.evo.http.entity.Converter;
 import com.github.longkerdandy.evo.http.entity.ErrorCode;
 import com.github.longkerdandy.evo.http.entity.ErrorEntity;
 import com.github.longkerdandy.evo.http.entity.ResultEntity;
@@ -77,7 +76,7 @@ public class UserRegisterResource extends AbstractResource {
      * Create a new verify code in storage, and send to user's mobile
      *
      * @param mobile User mobile
-     * @return Verify code id
+     * @return Result
      */
     @Path("/verify")
     @POST
@@ -104,7 +103,7 @@ public class UserRegisterResource extends AbstractResource {
         this.storage.replaceVerify(mobile.get(), code, MOBILE_VERIFY_CODE_TTL);
         logger.trace("Created a verify code for mobile {}", mobile.get());
 
-        // send to message queue
+        // push to message queue
         this.producer.sendSmsMessage(new SmsMessage<>(mobile.get(), SmsMessage.TYPE_VERIFY_CODE, new SmsVerifyCode(code)));
 
         return new ResultEntity<>("successful");
@@ -143,18 +142,16 @@ public class UserRegisterResource extends AbstractResource {
 
         // create new user
         String uid = UuidUtils.shortUuid(); // generate random user id
-        User u = Converter.toUser(userEntity);
-        u.setId(uid);
-        u.setPassword(EncryptionUtils.encryptPassword(u.getPassword())); // encode password
-        this.storage.updateUser(u, true);
-        logger.trace("Created a new user {} {}", uid, u.getAlias());
+        userEntity.setId(uid);
+        userEntity.setPassword(EncryptionUtils.encryptPassword(userEntity.getPassword())); // encode password
+        this.storage.updateUser(userEntity, true);
+        logger.trace("Created a new user {} {}", uid, userEntity.getAlias());
 
         // create user token
         String t = TokenUtils.newToken(uid);
         this.storage.replaceUserToken(uid, t);
         logger.trace("Create token for user {}", uid);
 
-        // result
         return new ResultEntity<>(t);
     }
 
@@ -178,24 +175,25 @@ public class UserRegisterResource extends AbstractResource {
         userEntity.validateIdOrMobile(lang);
         userEntity.validatePassword(lang);
 
-        User u;
+        String uid;
         if (StringUtils.isBlank(userEntity.getId())) {
-            // get user record by mobile
-            u = this.storage.getUserByMobile(userEntity.getMobile());
+            // get user id by mobile
+            User u = this.storage.getUserByMobile(userEntity.getMobile());
             if (u == null) throw new AuthorizeException(new ErrorEntity(ErrorCode.UNAUTHORIZED, lang));
+            uid = u.getId();
         } else {
-            u = Converter.toUser(userEntity);
+            uid = userEntity.getId();
         }
 
         // is user password correct
-        if (!this.storage.isUserPasswordCorrect(u.getId(), EncryptionUtils.encryptPassword(userEntity.getPassword()))) {
+        if (!this.storage.isUserPasswordCorrect(uid, EncryptionUtils.encryptPassword(userEntity.getPassword()))) {
             throw new AuthorizeException(new ErrorEntity(ErrorCode.UNAUTHORIZED, lang));
         }
 
-        // update token
-        String t = TokenUtils.newToken(u.getId());
-        this.storage.replaceUserToken(u.getId(), t);
-        logger.trace("Update token for user {}", u.getId());
+        // new token
+        String t = TokenUtils.newToken(uid);
+        this.storage.replaceUserToken(uid, t);
+        logger.trace("Replace token for user {}", uid);
 
         return new ResultEntity<>(t);
     }

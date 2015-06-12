@@ -6,6 +6,7 @@ import com.github.longkerdandy.evo.api.sms.SmsMessage;
 import com.github.longkerdandy.evo.api.util.JsonUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
@@ -32,6 +33,9 @@ public class Producer {
      * @param configs Producer Configs; see http://kafka.apache.org/documentation.html#producerconfigs
      */
     public Producer(Map<String, Object> configs) {
+        // add serializer configs
+        configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+        configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
         this.producer = new KafkaProducer<>(configs, new StringSerializer(), new StringSerializer());
     }
 

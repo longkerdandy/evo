@@ -55,31 +55,28 @@ public class UserOwnershipResource extends AbstractResource {
      * @param userId     User Id
      * @param deviceId   Device Id
      * @param permission Optional ownership permission (default to OWNER)
-     * @return True if ownership required, otherwise request has sent to the owner
+     * @return Result
      */
     @Path("/require")
     @POST
-    public ResultEntity<Boolean> require(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
-                                         @Auth String userId, @QueryParam("deviceId") String deviceId, @QueryParam("permission") Optional<Integer> permission) {
+    public ResultEntity<String> require(@HeaderParam("Accept-Language") @DefaultValue("zh") String lang,
+                                        @Auth String userId, @QueryParam("deviceId") String deviceId, @QueryParam("permission") Optional<Integer> permission) {
         logger.debug("Process require request with params: userId {} deviceId {} permission {}", userId, deviceId, permission.or(Permission.OWNER));
 
         // already has permission?
         if (this.storage.isUserOwnDevice(userId, deviceId, permission.or(Permission.OWNER))) {
-            return new ResultEntity<>(true);
+            return new ResultEntity<>("successful");
         }
 
         // device has owner?
         List<Map<String, Object>> o = this.storage.getDeviceOwner(deviceId, Permission.OWNER);
         if (o != null && o.size() > 0) {
-            // require permission from owner
-            // push notify message to message queue
-
-            return new ResultEntity<>(false);
+            return new ResultEntity<>("failed");
         } else {
             // update as device owner
             this.storage.addUserOwnDevice(userId, deviceId, Permission.OWNER);
 
-            return new ResultEntity<>(true);
+            return new ResultEntity<>("successful");
         }
     }
 

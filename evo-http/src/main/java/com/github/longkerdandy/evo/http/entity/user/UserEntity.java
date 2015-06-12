@@ -26,6 +26,9 @@ public class UserEntity extends User {
         this.verifyCode = verifyCode;
     }
 
+    /**
+     * Is user id or mobile number valid
+     */
     public void validateIdOrMobile(String lang) {
         boolean valid = false;
         if (StringUtils.isBlank(this.id) && StringUtils.isBlank(this.mobile)) {

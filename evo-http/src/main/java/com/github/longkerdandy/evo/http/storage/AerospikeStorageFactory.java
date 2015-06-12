@@ -34,7 +34,7 @@ public class AerospikeStorageFactory {
         for (String h : this.hosts.split(",")) {
             hostList.add(new Host(h.split(":")[0], Integer.valueOf(h.split(":")[1])));
         }
-        final AerospikeStorage storage = new AerospikeStorage(policy, hostList.toArray(new Host[hostList.size()]));
+        AerospikeStorage storage = new AerospikeStorage(policy, hostList.toArray(new Host[hostList.size()]));
         // add to dropwizard life cycle
         environment.lifecycle().manage(new Managed() {
             @Override
