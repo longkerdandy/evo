@@ -27,12 +27,12 @@ public class YunPianClient {
     // Logger
     private static final Logger logger = LoggerFactory.getLogger(YunPianClient.class);
 
-    private static String API_KEY = "e54e48cee2d10f87a248e927787d59d5";
-    private static String BASE_URI = "http://yunpian.com";
-    private static String VERSION = "v1";
-    private static String ENCODING = "UTF-8";
-    private static String URI_GET_USER_INFO = BASE_URI + "/" + VERSION + "/user/get.json" + "?apikey=" + API_KEY;
-    private static String URI_SEND_SMS = BASE_URI + "/" + VERSION + "/sms/send.json";
+    private static final String API_KEY = "e54e48cee2d10f87a248e927787d59d5";
+    private static final String BASE_URI = "http://yunpian.com";
+    private static final String VERSION = "v1";
+    private static final String ENCODING = "UTF-8";
+    private static final String URI_GET_USER_INFO = BASE_URI + "/" + VERSION + "/user/get.json" + "?apikey=" + API_KEY;
+    private static final String URI_SEND_SMS = BASE_URI + "/" + VERSION + "/sms/send.json";
 
     private YunPianClient() {
     }
@@ -49,9 +49,10 @@ public class YunPianClient {
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode != 200) {
                     logger.warn("Http error when getting user information from YunPian, status code:{}", statusCode);
+                } else {
+                    HttpEntity entity = response.getEntity();
+                    return EntityUtils.toString(entity, ENCODING);
                 }
-                HttpEntity entity = response.getEntity();
-                return EntityUtils.toString(entity, ENCODING);
             }
         } catch (IOException e) {
             logger.error("Http error when getting user information from YunPian: {}", ExceptionUtils.getMessage(e));
@@ -78,11 +79,12 @@ public class YunPianClient {
                 int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode != 200) {
                     logger.warn("Http error when getting user information from YunPian, status code:{}", statusCode);
+                    return;
                 }
                 HttpEntity entity = response.getEntity();
                 YunPianResult result = JsonUtils.ObjectMapper.readValue(EntityUtils.toString(entity, ENCODING), YunPianResult.class);
                 if ("0".equals(result.getCode())) {
-                    logger.trace("Successful send sms {} to mobile {}", text, mobile);
+                    logger.debug("Successful send sms {} to mobile {}", text, mobile);
                 } else {
                     logger.debug("Failed to send sms {} to mobile {}, error: {} {}", text, mobile, result.getCode(), result.getMsg());
                 }

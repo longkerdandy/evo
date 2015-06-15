@@ -11,7 +11,7 @@ public class Template {
     /**
      * Verify code template
      */
-    public static String forgeVerifyCode(String verifyCode) {
+    public static String verifyCode(String verifyCode) {
         return "【及时云】您的验证码是" + verifyCode;
     }
 }

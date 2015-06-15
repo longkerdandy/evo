@@ -18,8 +18,7 @@ public class SmsApplication {
         String f = args.length >= 1 ? args[0] : "config/sms.properties";
         PropertiesConfiguration config = new PropertiesConfiguration(f);
 
-        // message queue
-        // create consumer
+        // create message queue consumer
         SmsConsumerWorkerFactory factory = new SmsConsumerWorkerFactory();
         Properties props = new Properties();
         props.put("zookeeper.connect", config.getString("mq.zk.hosts"));

@@ -5,7 +5,8 @@ import com.github.longkerdandy.evo.aerospike.entity.User;
 import com.github.longkerdandy.evo.aerospike.util.EncryptionUtils;
 import com.github.longkerdandy.evo.api.mq.Producer;
 import com.github.longkerdandy.evo.api.sms.SmsMessage;
-import com.github.longkerdandy.evo.api.sms.SmsVerifyCode;
+import com.github.longkerdandy.evo.api.sms.SmsMessageFactory;
+import com.github.longkerdandy.evo.api.sms.VerifyCode;
 import com.github.longkerdandy.evo.api.util.UuidUtils;
 import com.github.longkerdandy.evo.http.entity.ErrorCode;
 import com.github.longkerdandy.evo.http.entity.ErrorEntity;
@@ -104,7 +105,7 @@ public class UserRegisterResource extends AbstractResource {
         logger.trace("Created a verify code for mobile {}", mobile.get());
 
         // push to message queue
-        this.producer.sendSmsMessage(new SmsMessage<>(mobile.get(), SmsMessage.TYPE_VERIFY_CODE, new SmsVerifyCode(code)));
+        this.producer.sendSmsMessage(SmsMessageFactory.newVerifyCodeMessage(mobile.get(), code));
 
         return new ResultEntity<>("successful");
     }

@@ -3,6 +3,7 @@ package com.github.longkerdandy.evo.service.sms.gateway;
 /**
  * Json result from YunPian
  */
+@SuppressWarnings("unused")
 public class YunPianResult {
 
     private String code;
