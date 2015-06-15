@@ -42,7 +42,7 @@ public class TCPConsumerWorker extends LegacyConsumerWorker {
                 this.repository.sendMessage(deviceId, msg);
             }
         } catch (IOException e) {
-            logger.warn("Error when parsing message: {}", ExceptionUtils.getMessage(e));
+            logger.error("Error when parsing message: {}", ExceptionUtils.getMessage(e));
         }
     }
 }

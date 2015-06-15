@@ -1,6 +1,7 @@
 package com.github.longkerdandy.evo.tcp.handler;
 
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
+import com.github.longkerdandy.evo.aerospike.Scheme;
 import com.github.longkerdandy.evo.aerospike.entity.Device;
 import com.github.longkerdandy.evo.aerospike.entity.EntityFactory;
 import com.github.longkerdandy.evo.aerospike.entity.User;
@@ -83,22 +84,12 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         int deviceType = msg.getDeviceType();
         String deviceId = msg.getFrom();
         String descId = msg.getDescId();
-        String userId = msg.getUserId();
+        String userId = null;
         String token = connect.getToken();
 
-        int returnCode;
-        // protocol version
-        if (!isProtocolVersionAcceptable(protocol)) {
-            logger.trace("Protocol version {} unacceptable", protocol);
-            returnCode = ConnAck.PROTOCOL_VERSION_UNACCEPTABLE;
-        }
-        // description
-        else if (!this.storage.isDescriptionExist(descId)) {
-            logger.trace("Description {} not registered", descId);
-            returnCode = ConnAck.DESCRIPTION_NOT_REGISTERED;
-        }
+        int returnCode = 0;
         // auth as device
-        else if (DeviceType.isSimpleDevice(deviceType)) {
+        if (DeviceType.isSimpleDevice(deviceType)) {
             returnCode = ConnAck.RECEIVED;
         }
         // auth as gateway
@@ -107,24 +98,15 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         }
         // auth as controller
         else if (DeviceType.isController(deviceType)) {
-            // empty user or token
-            if (StringUtils.isBlank(userId) || StringUtils.isBlank(token)) {
-                logger.trace("Empty user id or token");
-                returnCode = ConnAck.EMPTY_USER_OR_TOKEN;
-            }
-            // user token incorrect
-            else if (!userId.equals(this.storage.getUserIdByToken(token))) {
-                logger.trace("User id & token incorrect");
+            // user token correct?
+            userId = this.storage.getUserIdByToken(token);
+            msg.setUserId(userId);
+            if (userId == null) {
+                logger.trace("Token incorrect");
                 returnCode = ConnAck.USER_TOKEN_INCORRECT;
-            }
-            // mark as auth
-            else {
+            } else {
                 returnCode = ConnAck.RECEIVED;
             }
-        }
-        // wrong device type
-        else {
-            returnCode = ConnAck.DEVICE_TYPE_UNACCEPTABLE;
         }
 
         if (returnCode == ConnAck.RECEIVED) {
@@ -161,7 +143,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                 this.storage.addUserControlDevice(userId, deviceId);
             }
 
-            // push to mq
+            // push to message queue
             this.producer.sendMessage(Topics.TCP_IN, online);
         }
 
@@ -191,7 +173,6 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         msg.setDeviceType(d.getType());
         msg.setDescId(d.getDescId());
-        // msg.setProtocol(d.getProtocol());
 
         // notify users
         if (Evolution.ID.equals(msg.getTo())) {
@@ -199,6 +180,9 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         }
 
         // update device
+        if (!trigger.getAttributes().containsKey(Scheme.BIN_D_A_UPDATE_TIME)) {
+            trigger.getAttributes().put(Scheme.BIN_D_A_UPDATE_TIME, msg.getTimestamp());
+        }
         updateDeviceAttr(deviceId, trigger.getAttributes(), trigger.getPolicy());
 
         // send trigack
@@ -207,7 +191,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             this.repository.sendMessage(ctx, trigAck);
         }
 
-        // push to mq
+        // push to message queue
         this.producer.sendMessage(Topics.TCP_IN, msg);
     }
 
@@ -244,12 +228,12 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         msg.setDeviceType(d.getType());
         msg.setDescId(d.getDescId());
-        // msg.setProtocol(d.getProtocol());
         msg.setUserId(u.getId());
 
         int returnCode;
         if (this.storage.isUserOwnDevice(u.getId(), deviceId, Permission.READ_WRITE)) {
             returnCode = ActAck.RECEIVED;
+            // notify device
             notifyDevice(deviceId, msg);
         } else {
             returnCode = ActAck.PERMISSION_INSUFFICIENT;
@@ -294,7 +278,6 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
         msg.setDeviceType(d.getType());
         msg.setDescId(d.getDescId());
-        // msg.setProtocol(d.getProtocol());
 
         // remove from session
         this.authDevices.remove(deviceId);
@@ -313,7 +296,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                 // at the moment, we don't notify users device offline
                 // notifyUsers(deviceId, Permission.READ, Permission.OWNER, offline);
 
-                // push to mq
+                // push to message queue
                 this.producer.sendMessage(Topics.TCP_IN, offline);
             }
         }
@@ -369,7 +352,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                 // at the moment, we don't notify users device offline
                 // notifyUsers(deviceId, Permission.READ, Permission.OWNER, offline);
 
-                // push to mq
+                // push to message queue
                 this.producer.sendMessage(Topics.TCP_IN, offline);
             }
         });
@@ -384,15 +367,6 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
     protected String getRemoteAddress(ChannelHandlerContext ctx) {
         InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress();
         return address != null ? address.toString() : "<unknown>";
-    }
-
-    /**
-     * Is protocol version acceptable?
-     *
-     * @param pv Protocol Version
-     */
-    protected boolean isProtocolVersionAcceptable(int pv) {
-        return pv == ProtocolType.TCP_1_0;
     }
 
     /**
@@ -451,10 +425,8 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
                 if (TCPNode.id().equals(d.getConnected())) {
                     this.repository.sendMessage(deviceId, msg); // send msg directly
                 } else {
-                    this.producer.sendMessage(Topics.TCP_OUT(TCPNode.id()), msg); // push to mq
+                    this.producer.sendMessage(Topics.TCP_OUT(TCPNode.id()), msg); // push to message queue
                 }
-            } else {
-                // cache the msg
             }
         } else {
             logger.trace("Device {} not exist, msg {} {} not send", deviceId, msg.getMsgType(), msg.getMsgId());

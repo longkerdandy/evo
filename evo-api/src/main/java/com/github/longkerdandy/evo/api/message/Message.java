@@ -168,6 +168,9 @@ public class Message<T> implements Validatable {
             if (StringUtils.isBlank(this.descId)) {
                 throw new IllegalStateException("Invalid descriptor id");
             }
+            if (DeviceType.isController(deviceType) && StringUtils.isBlank(((Connect) this.getPayload()).getToken())) {
+                throw new IllegalStateException("Invalid token");
+            }
         }
 
         if (this.payload != null && this.payload instanceof Validatable) {

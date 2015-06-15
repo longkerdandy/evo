@@ -74,7 +74,6 @@ public class TCPServer {
         LegacyConsumer<TCPConsumerWorker> consumer = new LegacyConsumer<>(factory, topic, props, config.getInt("mq.topic.tcpout.workerThreads"));
 
         // configure the server
-
         InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup(THREADS);
@@ -92,8 +91,7 @@ public class TCPServer {
                             p.addLast(new Encoder());
                             p.addLast(new Decoder());
                             // Business Handler, in separate ExecutorGroup
-                            p.addLast(new DefaultEventExecutorGroup(THREADS),
-                                    new BusinessHandler(storage, repository, producer));
+                            p.addLast(new DefaultEventExecutorGroup(THREADS), new BusinessHandler(storage, repository, producer));
                         }
                     });
 

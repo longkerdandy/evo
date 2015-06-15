@@ -65,7 +65,7 @@ public class ChannelRepository {
         if (ctx != null) {
             sendMessage(ctx, msg);
         } else {
-            logger.trace("Message {} {} has not been sent because device {} is not connected",
+            logger.debug("Message {} {} has not been sent because device {} is not connected",
                     msg.getMsgType(),
                     msg.getMsgId(),
                     deviceId);
@@ -84,7 +84,7 @@ public class ChannelRepository {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
-                    logger.trace("Message {} {} has been sent to device {} successfully",
+                    logger.debug("Message {} {} has been sent to device {} successfully",
                             msg.getMsgType(),
                             msg.getMsgId(),
                             StringUtils.defaultIfBlank(msg.getTo(), "<default>"));
