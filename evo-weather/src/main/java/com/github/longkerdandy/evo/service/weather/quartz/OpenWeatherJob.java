@@ -4,6 +4,7 @@ import com.github.longkerdandy.evo.api.message.Message;
 import com.github.longkerdandy.evo.api.message.MessageFactory;
 import com.github.longkerdandy.evo.api.message.Trigger;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
+import com.github.longkerdandy.evo.api.protocol.Evolution;
 import com.github.longkerdandy.evo.api.protocol.OverridePolicy;
 import com.github.longkerdandy.evo.api.protocol.ProtocolType;
 import com.github.longkerdandy.evo.api.util.JsonUtils;
@@ -101,7 +102,7 @@ public class OpenWeatherJob implements Job {
                     Map<String, Object> attr = forgeAttributes(forecast);
                     Message<Trigger> trigger = MessageFactory.newTriggerMessage(
                             ProtocolType.TCP_1_0, DeviceType.DEVICE,
-                            IdUtils.getWeatherDeviceId(areaId), null,
+                            IdUtils.getWeatherDeviceId(areaId), Evolution.IGNORE,
                             Description.TRIGGER_FORECAST, OverridePolicy.UPDATE_IF_NEWER, attr);
                     TCPClientHandler.getInstance().sendMessage(trigger);
                 }
