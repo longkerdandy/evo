@@ -1,9 +1,16 @@
+apply plugin: 'application'
+
 // Project Version
 version = '1.0.0'
+
+mainClassName = "com.github.longkerdandy.evo.service.weather.WeatherService"
 
 dependencies {
     // Evo
     compile project(':evo-api')
+
+    // Commons Configuration
+    compile 'commons-configuration:commons-configuration:1.10'
 
     // Apache Poi
     compile 'org.apache.poi:poi:3.11'

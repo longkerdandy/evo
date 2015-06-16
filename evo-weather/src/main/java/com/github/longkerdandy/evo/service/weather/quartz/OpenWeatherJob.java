@@ -93,14 +93,16 @@ public class OpenWeatherJob implements Job {
                 HttpEntity entity = response.getEntity();
                 String content = EntityUtils.toString(entity, "UTF-8");
                 if (content.equals("data error")) {
-                    // TODO: handle error
+                    logger.warn("Data error when getting weather information from OpenWeather");
                 } else {
                     // parse json
                     ForecastResult forecast = JsonUtils.ObjectMapper.readValue(content, ForecastResult.class);
                     // send trigger message
                     Map<String, Object> attr = forgeAttributes(forecast);
                     Message<Trigger> trigger = MessageFactory.newTriggerMessage(
-                            ProtocolType.TCP_1_0, DeviceType.DEVICE, IdUtils.getWeatherDeviceId(areaId), null, Description.TRIGGER_FORECAST, OverridePolicy.UPDATE_IF_NEWER, attr);
+                            ProtocolType.TCP_1_0, DeviceType.DEVICE,
+                            IdUtils.getWeatherDeviceId(areaId), null,
+                            Description.TRIGGER_FORECAST, OverridePolicy.UPDATE_IF_NEWER, attr);
                     TCPClientHandler.getInstance().sendMessage(trigger);
                 }
             } catch (ClientProtocolException e) {
@@ -177,8 +179,8 @@ public class OpenWeatherJob implements Job {
                 case 1:
                     attr.put(Description.ATTR_DAY_1_DAY_WEATHER, f.getDayWeather());
                     attr.put(Description.ATTR_DAY_1_NIGHT_WEATHER, f.getNightWeather());
-                    attr.put(Description.ATTR_DAY_1_DAY_TEMPRATURE, f.getDayTemp());
-                    attr.put(Description.ATTR_DAY_1_NIGHT_TEMPRATURE, f.getNightTemp());
+                    attr.put(Description.ATTR_DAY_1_DAY_TEMPERATURE, f.getDayTemp());
+                    attr.put(Description.ATTR_DAY_1_NIGHT_TEMPERATURE, f.getNightTemp());
                     attr.put(Description.ATTR_DAY_1_DAY_WIND_DIRECTION, f.getDayWindDirection());
                     attr.put(Description.ATTR_DAY_1_NIGHT_WIND_DIRECTION, f.getNightWindDirection());
                     attr.put(Description.ATTR_DAY_1_DAY_WIND_FORCE, f.getDayWindForce());
@@ -188,8 +190,8 @@ public class OpenWeatherJob implements Job {
                 case 2:
                     attr.put(Description.ATTR_DAY_2_DAY_WEATHER, f.getDayWeather());
                     attr.put(Description.ATTR_DAY_2_NIGHT_WEATHER, f.getNightWeather());
-                    attr.put(Description.ATTR_DAY_2_DAY_TEMPRATURE, f.getDayTemp());
-                    attr.put(Description.ATTR_DAY_2_NIGHT_TEMPRATURE, f.getNightTemp());
+                    attr.put(Description.ATTR_DAY_2_DAY_TEMPERATURE, f.getDayTemp());
+                    attr.put(Description.ATTR_DAY_2_NIGHT_TEMPERATURE, f.getNightTemp());
                     attr.put(Description.ATTR_DAY_2_DAY_WIND_DIRECTION, f.getDayWindDirection());
                     attr.put(Description.ATTR_DAY_2_NIGHT_WIND_DIRECTION, f.getNightWindDirection());
                     attr.put(Description.ATTR_DAY_2_DAY_WIND_FORCE, f.getDayWindForce());
@@ -199,8 +201,8 @@ public class OpenWeatherJob implements Job {
                 case 3:
                     attr.put(Description.ATTR_DAY_3_DAY_WEATHER, f.getDayWeather());
                     attr.put(Description.ATTR_DAY_3_NIGHT_WEATHER, f.getNightWeather());
-                    attr.put(Description.ATTR_DAY_3_DAY_TEMPRATURE, f.getDayTemp());
-                    attr.put(Description.ATTR_DAY_3_NIGHT_TEMPRATURE, f.getNightTemp());
+                    attr.put(Description.ATTR_DAY_3_DAY_TEMPERATURE, f.getDayTemp());
+                    attr.put(Description.ATTR_DAY_3_NIGHT_TEMPERATURE, f.getNightTemp());
                     attr.put(Description.ATTR_DAY_3_DAY_WIND_DIRECTION, f.getDayWindDirection());
                     attr.put(Description.ATTR_DAY_3_NIGHT_WIND_DIRECTION, f.getNightWindDirection());
                     attr.put(Description.ATTR_DAY_3_DAY_WIND_FORCE, f.getDayWindForce());

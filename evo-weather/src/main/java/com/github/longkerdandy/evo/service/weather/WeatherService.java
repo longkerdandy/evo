@@ -3,6 +3,7 @@ package com.github.longkerdandy.evo.service.weather;
 import com.github.longkerdandy.evo.service.weather.quartz.OpenWeatherJob;
 import com.github.longkerdandy.evo.service.weather.tcp.TCPClient;
 import com.github.longkerdandy.evo.service.weather.util.ExcelUtils;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
@@ -24,11 +25,15 @@ public class WeatherService {
     private static final Logger logger = LoggerFactory.getLogger(OpenWeatherJob.class);
 
     public static void main(String args[]) throws Exception {
+        // load config
+        String f = args.length >= 1 ? args[0] : "config/tcp.properties";
+        PropertiesConfiguration config = new PropertiesConfiguration(f);
+
         // load area ids
         Set<String> areaIds = ExcelUtils.loadAreaIds();
 
         // start tcp client
-        TCPClient tcp = new TCPClient("localhost", 1883, areaIds);
+        TCPClient tcp = new TCPClient(config.getString("tcp.host"), config.getInt("tcp.port"), areaIds);
         Thread thread = new Thread(tcp);
         thread.start();
 
@@ -38,7 +43,7 @@ public class WeatherService {
             for (String areaId : areaIds) {
                 Trigger trigger = newTrigger()
                         .withIdentity(areaId, "evo.service.weather")
-                        .withSchedule(cronSchedule("0 15 11 * * ?"))
+                        .withSchedule(cronSchedule(config.getString("scheduler.cron")))
                         .build();
                 JobDetail job = newJob(OpenWeatherJob.class)
                         .withIdentity(areaId, "evo.service.weather")
