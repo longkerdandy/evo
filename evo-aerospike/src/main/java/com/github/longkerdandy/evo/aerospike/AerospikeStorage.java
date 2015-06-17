@@ -65,6 +65,15 @@ public class AerospikeStorage {
     }
 
     /**
+     * Determine if we are ready to talk to the database server cluster
+     *
+     * @return True if cluster is ready
+     */
+    public final boolean isConnected() {
+        return this.ac.isConnected();
+    }
+
+    /**
      * Create or Replace verify code
      * Validate before invoking this method!
      *

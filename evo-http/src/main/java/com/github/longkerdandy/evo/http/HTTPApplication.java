@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.longkerdandy.evo.aerospike.AerospikeStorage;
 import com.github.longkerdandy.evo.api.mq.Producer;
 import com.github.longkerdandy.evo.http.auth.OAuthAuthenticator;
+import com.github.longkerdandy.evo.http.resources.StorageHealthCheck;
 import com.github.longkerdandy.evo.http.resources.device.DeviceControlResource;
 import com.github.longkerdandy.evo.http.resources.user.UserOwnershipResource;
 import com.github.longkerdandy.evo.http.resources.user.UserRegisterResource;
@@ -35,6 +36,9 @@ public class HTTPApplication extends Application<HTTPConfiguration> {
         environment.jersey().register(new UserRegisterResource(storage, producer));
         environment.jersey().register(new UserOwnershipResource(storage, producer));
         environment.jersey().register(new DeviceControlResource(storage, producer));
+
+        // register health check
+        environment.healthChecks().register("storage", new StorageHealthCheck(storage));
 
         // config jackson
         environment.getObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
