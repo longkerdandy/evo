@@ -312,20 +312,18 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         logger.debug("Received channel in-active event from remote peer {}", getRemoteAddress(ctx));
 
+        // handle connect lost
         handleConnLost(ctx);
 
+        // seems no need
         // ctx.close();
+
         ctx.fireChannelInactive();
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         logger.debug("Received exception caught event from remote peer {}: {}", getRemoteAddress(ctx), ExceptionUtils.getMessage(cause));
-
-        handleConnLost(ctx);
-
-        // ctx.close();
-        ctx.fireExceptionCaught(cause);
     }
 
     /**
