@@ -5,6 +5,10 @@ logging:
 
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
   level: INFO
+  appenders:
+      - type: console
+        timeZone: GMT+8
+        target: stdout
 
 # Aerospike Storage
 aerospikeStorage:
