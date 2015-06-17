@@ -34,9 +34,13 @@ public class Producer {
      */
     public Producer(Map<String, Object> configs) {
         // add serializer configs
-        configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
-        configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
-        this.producer = new KafkaProducer<>(configs, new StringSerializer(), new StringSerializer());
+        configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+        // create producer
+        this.producer = new KafkaProducer<>(configs);
+        // this will cause warning when producer start, I don't know why
+        // this.producer = new KafkaProducer<>(configs, new StringSerializer(), new StringSerializer());
     }
 
     /**
