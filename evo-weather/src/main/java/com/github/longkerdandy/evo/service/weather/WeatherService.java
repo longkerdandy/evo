@@ -5,7 +5,10 @@ import com.github.longkerdandy.evo.service.weather.tcp.TCPClient;
 import com.github.longkerdandy.evo.service.weather.util.ExcelUtils;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.quartz.*;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +37,7 @@ public class WeatherService {
 
         // start tcp client
         TCPClient tcp = new TCPClient(config.getString("tcp.host"), config.getInt("tcp.port"), areaIds);
+        TCPClient.setInstance(tcp);
         Thread thread = new Thread(tcp);
         thread.start();
 

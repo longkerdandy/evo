@@ -10,13 +10,16 @@ import java.net.URISyntaxException;
  */
 public class IdUtils {
 
+    private IdUtils() {
+    }
+
     /**
      * Generate Device Id based on Area Id
      *
      * @param areaId Area Id
      * @return Device Id
      */
-    public static String getWeatherDeviceId(String areaId){
+    public static String getWeatherDeviceId(String areaId) {
         try {
             String url = "https://github.com/longkerdandy/evo/weather?areaId=" + areaId;
             URI uri = new URI(url);
@@ -25,8 +28,5 @@ public class IdUtils {
             // never happens
             return null;
         }
-    }
-
-    private IdUtils() {
     }
 }

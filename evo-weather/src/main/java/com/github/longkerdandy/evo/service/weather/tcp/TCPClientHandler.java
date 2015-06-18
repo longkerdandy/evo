@@ -4,6 +4,7 @@ import com.github.longkerdandy.evo.api.message.Connect;
 import com.github.longkerdandy.evo.api.message.Message;
 import com.github.longkerdandy.evo.api.message.MessageFactory;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
+import com.github.longkerdandy.evo.api.protocol.Evolution;
 import com.github.longkerdandy.evo.api.protocol.OverridePolicy;
 import com.github.longkerdandy.evo.api.protocol.ProtocolType;
 import com.github.longkerdandy.evo.service.weather.desc.Description;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Handler
@@ -28,21 +30,17 @@ public class TCPClientHandler extends SimpleChannelInboundHandler<Message> {
 
     // Logger
     private static final Logger logger = LoggerFactory.getLogger(TCPClientHandler.class);
-    // Single instance created upon class loading.
-    private static final TCPClientHandler handler = new TCPClientHandler();
 
-    private Set<String> areaIds;        // AreaIds
-    private ChannelHandlerContext ctx;  // Channel
+    // AreaIds
+    private final Set<String> areaIds;
+    // TCP Client
+    private final TCPClient client;
 
-    private TCPClientHandler() {
-    }
+    private ChannelHandlerContext ctx;  // Channel Context
 
-    public static TCPClientHandler getInstance() {
-        return handler;
-    }
-
-    public void setAreaIds(Set<String> areaIds) {
+    public TCPClientHandler(Set<String> areaIds, TCPClient client) {
         this.areaIds = areaIds;
+        this.client = client;
     }
 
     @Override
@@ -56,7 +54,8 @@ public class TCPClientHandler extends SimpleChannelInboundHandler<Message> {
             Map<String, Object> attr = new HashMap<>();
             attr.put(Description.ATTR_AREA_ID, areaId);
             Message<Connect> connect = MessageFactory.newConnectMessage(
-                    ProtocolType.TCP_1_0, DeviceType.DEVICE, deviceId, null, Description.ID, null, null, OverridePolicy.UPDATE_IF_NEWER, attr);
+                    ProtocolType.TCP_1_0, DeviceType.DEVICE, deviceId, Evolution.IGNORE,
+                    Description.ID, null, null, OverridePolicy.UPDATE_IF_NEWER, attr);
             sendMessage(connect);
         }
 
@@ -68,6 +67,9 @@ public class TCPClientHandler extends SimpleChannelInboundHandler<Message> {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         // unset context
         this.ctx = null;
+
+        // reconnect
+        ctx.channel().eventLoop().schedule(() -> this.client.connect(ctx.channel().eventLoop()), 15, TimeUnit.SECONDS);
 
         // pass event
         ctx.fireChannelInactive();
@@ -94,15 +96,17 @@ public class TCPClientHandler extends SimpleChannelInboundHandler<Message> {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
-                    logger.debug("Message {} {} has been sent to device {} successfully",
+                    logger.debug("Message {} {} has been sent from {} to {} successfully",
                             msg.getMsgType(),
                             msg.getMsgId(),
-                            StringUtils.defaultIfBlank(msg.getTo(), "<default>"));
+                            msg.getFrom(),
+                            StringUtils.defaultIfBlank(msg.getTo(), "<null>"));
                 } else {
-                    logger.debug("Message {} {} failed to send to device {}: {}",
+                    logger.debug("Message {} {} failed to send from {} to {}: {}",
                             msg.getMsgType(),
                             msg.getMsgId(),
-                            StringUtils.defaultIfBlank(msg.getTo(), "<default>"),
+                            msg.getFrom(),
+                            StringUtils.defaultIfBlank(msg.getTo(), "<null>"),
                             ExceptionUtils.getMessage(future.cause()));
                 }
             }

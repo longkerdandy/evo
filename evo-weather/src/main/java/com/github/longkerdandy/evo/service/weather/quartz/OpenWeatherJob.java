@@ -12,7 +12,7 @@ import com.github.longkerdandy.evo.service.weather.desc.Description;
 import com.github.longkerdandy.evo.service.weather.entity.Area;
 import com.github.longkerdandy.evo.service.weather.entity.Forecast;
 import com.github.longkerdandy.evo.service.weather.entity.ForecastResult;
-import com.github.longkerdandy.evo.service.weather.tcp.TCPClientHandler;
+import com.github.longkerdandy.evo.service.weather.tcp.TCPClient;
 import com.github.longkerdandy.evo.service.weather.util.IdUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
@@ -104,7 +104,7 @@ public class OpenWeatherJob implements Job {
                             ProtocolType.TCP_1_0, DeviceType.DEVICE,
                             IdUtils.getWeatherDeviceId(areaId), Evolution.IGNORE,
                             Description.TRIGGER_FORECAST, OverridePolicy.UPDATE_IF_NEWER, attr);
-                    TCPClientHandler.getInstance().sendMessage(trigger);
+                    TCPClient.getInstance().getHandler().sendMessage(trigger);
                 }
             } catch (ClientProtocolException e) {
                 logger.error("Http error when getting weather information from OpenWeather: {}", ExceptionUtils.getMessage(e));

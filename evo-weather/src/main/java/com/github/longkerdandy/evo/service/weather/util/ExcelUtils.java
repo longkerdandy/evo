@@ -16,6 +16,9 @@ import java.util.Set;
  */
 public class ExcelUtils {
 
+    private ExcelUtils() {
+    }
+
     /**
      * Load Area Ids from excel file in resources
      *
@@ -56,8 +59,5 @@ public class ExcelUtils {
             }
             return set;
         }
-    }
-
-    private ExcelUtils() {
     }
 }

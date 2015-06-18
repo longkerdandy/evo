@@ -25,7 +25,7 @@ dependencies {
     // Quartz
     compile "org.quartz-scheduler:quartz:2.2.1"
     compile "org.quartz-scheduler:quartz-jobs:2.2.1"
-    
+
     // Netty
     compile 'io.netty:netty-all:4.0.26.Final'
 }
