@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
+
 /**
  * SMS Gateway client for YunPian (http://www.yunpian.com)
  */
@@ -82,7 +84,7 @@ public class YunPianClient {
                     return;
                 }
                 HttpEntity entity = response.getEntity();
-                YunPianResult result = JsonUtils.ObjectMapper.readValue(EntityUtils.toString(entity, ENCODING), YunPianResult.class);
+                YunPianResult result = ObjectMapper.readValue(EntityUtils.toString(entity, ENCODING), YunPianResult.class);
                 if ("0".equals(result.getCode())) {
                     logger.debug("Successful send sms {} to mobile {}", text, mobile);
                 } else {

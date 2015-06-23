@@ -44,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
+
 /**
  * OpenWeather Client
  * Fetch weather data from http://openweather.weather.com.cn
@@ -97,7 +99,7 @@ public class OpenWeatherJob implements Job {
                     logger.warn("Data error when getting weather information from OpenWeather");
                 } else {
                     // parse json
-                    ForecastResult forecast = JsonUtils.ObjectMapper.readValue(content, ForecastResult.class);
+                    ForecastResult forecast = ObjectMapper.readValue(content, ForecastResult.class);
                     // send trigger message
                     Map<String, Object> attr = forgeAttributes(forecast);
                     Message<Trigger> trigger = MessageFactory.newTriggerMessage(
