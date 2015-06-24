@@ -1,10 +1,7 @@
 package com.github.longkerdandy.evo.service.sms.mq;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.github.longkerdandy.evo.api.mq.LegacyConsumerWorker;
 import com.github.longkerdandy.evo.api.sms.SmsMessage;
-import com.github.longkerdandy.evo.api.sms.SmsMessageFactory;
 import com.github.longkerdandy.evo.api.sms.VerifyCode;
 import com.github.longkerdandy.evo.service.sms.gateway.Template;
 import com.github.longkerdandy.evo.service.sms.gateway.YunPianClient;
@@ -14,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
-import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
 
 /**
  * Message Queue Legacy Consumer Worker for SMS Topic
@@ -32,18 +27,14 @@ public class SmsConsumerWorker extends LegacyConsumerWorker {
     @Override
     public void handleMessage(String message) {
         try {
-            // two step parse json
-            JavaType type = ObjectMapper.getTypeFactory().constructParametrizedType(SmsMessage.class, SmsMessage.class, JsonNode.class);
-            SmsMessage<JsonNode> s = ObjectMapper.readValue(message, type);
+            // parse json
+            SmsMessage sms = SmsMessage.parseMessage(message);
+            // validate
+            sms.validate();
             // verify code
-            if (s.getType() == SmsMessage.TYPE_VERIFY_CODE) {
-                SmsMessage<VerifyCode> sms = SmsMessageFactory.newMessage(s, ObjectMapper.treeToValue(s.getPayload(), VerifyCode.class));
-                // validate
-                sms.validate();
+            if (sms.getType() == SmsMessage.TYPE_VERIFY_CODE) {
                 // send http request
-                YunPianClient.sendSms(getCNMobile(sms.getMobile()), Template.verifyCode(sms.getPayload().getCode()));
-            } else {
-                logger.error("Unsupported sms message type {}", s.getType());
+                YunPianClient.sendSms(getCNMobile(sms.getMobile()), Template.verifyCode(((VerifyCode) sms.getPayload()).getCode()));
             }
         } catch (IOException | IllegalStateException e) {
             logger.error("Parse sms message with error: {}", ExceptionUtils.getMessage(e));
