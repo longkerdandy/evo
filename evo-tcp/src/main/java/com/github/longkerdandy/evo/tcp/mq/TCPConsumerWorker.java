@@ -1,6 +1,5 @@
 package com.github.longkerdandy.evo.tcp.mq;
 
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.longkerdandy.evo.api.message.Message;
 import com.github.longkerdandy.evo.api.mq.LegacyConsumerWorker;
@@ -12,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
-import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
 
 /**
  * Message Queue Legacy Consumer Worker for TCP Output Topic
@@ -34,8 +31,7 @@ public class TCPConsumerWorker extends LegacyConsumerWorker {
     public void handleMessage(String message) {
         try {
             // parse json
-            JavaType type = ObjectMapper.getTypeFactory().constructParametrizedType(Message.class, Message.class, JsonNode.class);
-            Message<JsonNode> msg = ObjectMapper.readValue(message, type);
+            Message<JsonNode> msg = Message.parseMessageNode(message);
             // send message
             String deviceId = msg.getTo();
             if (StringUtils.isNotBlank(deviceId)) {

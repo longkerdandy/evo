@@ -3,7 +3,6 @@ package com.github.longkerdandy.evo.api.mq;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.longkerdandy.evo.api.message.Message;
 import com.github.longkerdandy.evo.api.sms.SmsMessage;
-import com.github.longkerdandy.evo.api.util.JsonUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;

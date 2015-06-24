@@ -1,10 +1,17 @@
 package com.github.longkerdandy.evo.api.message;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.protocol.MessageType;
 import com.github.longkerdandy.evo.api.protocol.ProtocolType;
 import com.github.longkerdandy.evo.api.protocol.QoS;
 import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
 
 /**
  * Message
@@ -28,6 +35,94 @@ public class Message<T> implements Validatable {
     protected String userId;          // User ID
     protected long timestamp;         // Timestamp (when message is send)
     protected T payload;              // Payload (sub-message)
+
+    /**
+     * Parse InputStream to Message<JsonNode>
+     *
+     * @param is InputStream
+     * @return Message<JsonNode>
+     * @throws IOException Json Exception
+     */
+    public static Message<JsonNode> parseMessageNode(InputStream is) throws IOException {
+        JavaType type = ObjectMapper.getTypeFactory().constructParametrizedType(Message.class, Message.class, JsonNode.class);
+        return ObjectMapper.readValue(is, type);
+    }
+
+    /**
+     * Parse String to Message<JsonNode>
+     *
+     * @param json Json String
+     * @return Message<JsonNode>
+     * @throws IOException Json Exception
+     */
+    public static Message<JsonNode> parseMessageNode(String json) throws IOException {
+        JavaType type = ObjectMapper.getTypeFactory().constructParametrizedType(Message.class, Message.class, JsonNode.class);
+        return ObjectMapper.readValue(json, type);
+    }
+
+    /**
+     * Parse InputStream to Message
+     *
+     * @param is InputStream
+     * @return Message
+     * @throws IOException Json Exception
+     */
+    public static Message parseMessage(InputStream is) throws IOException {
+        Message<JsonNode> msg = parseMessageNode(is);
+        return parseMessage(msg);
+    }
+
+    /**
+     * Parse String to Message
+     *
+     * @param json Json String
+     * @return Message
+     * @throws IOException Json Exception
+     */
+    public static Message parseMessage(String json) throws IOException {
+        Message<JsonNode> msg = parseMessageNode(json);
+        return parseMessage(msg);
+    }
+
+    /**
+     * Parse Message<JsonNode> to Message
+     *
+     * @param msg Message<JsonNode>
+     * @return Message
+     * @throws IOException Unexpected message type
+     */
+    protected static Message parseMessage(Message<JsonNode> msg) throws IOException {
+        Message m;
+        switch (msg.getMsgType()) {
+            case MessageType.CONNECT:
+                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), Connect.class));
+                break;
+            case MessageType.CONNACK:
+                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), ConnAck.class));
+                break;
+            case MessageType.DISCONNECT:
+                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), Disconnect.class));
+                break;
+            case MessageType.DISCONNACK:
+                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), DisconnAck.class));
+                break;
+            case MessageType.TRIGGER:
+                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), Trigger.class));
+                break;
+            case MessageType.TRIGACK:
+                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), TrigAck.class));
+                break;
+            case MessageType.ACTION:
+                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), Action.class));
+                break;
+            case MessageType.ACTACK:
+                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), ActAck.class));
+                break;
+            default:
+                throw new IOException("Unexpected message type: " + msg.getMsgType());
+        }
+        return m;
+    }
 
     public int getProtocol() {
         return protocol;

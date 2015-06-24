@@ -1,6 +1,5 @@
 package com.github.longkerdandy.evo.api.message;
 
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.longkerdandy.evo.api.protocol.DeviceType;
 import com.github.longkerdandy.evo.api.protocol.MessageType;
@@ -10,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import static com.github.longkerdandy.evo.api.util.JsonUtils.ObjectMapper;
 
@@ -35,8 +33,7 @@ public class MessageTest {
         String json = ObjectMapper.writeValueAsString(out);
 
         // deserialization (raw message)
-        JavaType type = ObjectMapper.getTypeFactory().constructParametrizedType(Message.class, Message.class, JsonNode.class);
-        Message<Object> in = ObjectMapper.readValue(json, type);
+        Message<JsonNode> in = Message.parseMessageNode(json);
 
         // validate
         in.validate();
@@ -50,11 +47,11 @@ public class MessageTest {
         assert in.getPayload() != null;
 
         // deserialization (connect message)
-        Connect connect = ObjectMapper.treeToValue((JsonNode) in.getPayload(), Connect.class);
+        Connect connect = (Connect) Message.parseMessage(in).getPayload();
         assert connect.getToken().equals("Token A");
 
         // validate
-        in.setPayload(connect);
-        in.validate();
+        Message<Connect> msg = MessageFactory.newMessage(in, connect);
+        msg.validate();
     }
 }
