@@ -18,21 +18,49 @@ public class MessageFactory {
     }
 
     /**
-     * Create a new message based on a exist message and replace the payload
+     * Clone the given message
+     * Payload will reference to the same instance
      *
-     * @param msg     Exist Message, fields will be copied
-     * @param payload Payload will be replaced
-     * @param <T>     Payload Message Class
-     * @return Message with replaced Payload
+     * @param msg   Exist message, fields will be cloned
+     * @param msgId New message's id
+     * @param <T>   Payload type
+     * @return A new message instance
      */
-    public static <T> Message<T> newMessage(Message msg, T payload) {
+    public static <T> Message<T> clone(Message<T> msg, String msgId) {
         Message<T> m = new Message<>();
         m.setProtocol(msg.getProtocol());
         m.setMsgType(msg.getMsgType());
         m.setQos(msg.getQos());
         m.setDuplicate(msg.isDuplicate());
         m.setDeviceType(msg.getDeviceType());
-        m.setMsgId(msg.getMsgId());
+        m.setMsgId(msgId);
+        m.setFrom(msg.getFrom());
+        m.setTo(msg.getTo());
+        m.setDescId(msg.getDescId());
+        m.setUserId(msg.getUserId());
+        m.setTimestamp(msg.getTimestamp());
+        m.setPayload(msg.getPayload());
+        return m;
+    }
+
+    /**
+     * Clone the given message
+     * Payload will be replaced
+     *
+     * @param msg     Exist message, fields will be cloned
+     * @param msgId   New message's id
+     * @param payload Payload will be replaced
+     * @param <T>     Payload type
+     * @return A new message instance
+     */
+    public static <T> Message<T> clone(Message msg, String msgId, T payload) {
+        Message<T> m = new Message<>();
+        m.setProtocol(msg.getProtocol());
+        m.setMsgType(msg.getMsgType());
+        m.setQos(msg.getQos());
+        m.setDuplicate(msg.isDuplicate());
+        m.setDeviceType(msg.getDeviceType());
+        m.setMsgId(msgId);
         m.setFrom(msg.getFrom());
         m.setTo(msg.getTo());
         m.setDescId(msg.getDescId());

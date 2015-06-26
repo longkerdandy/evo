@@ -95,28 +95,28 @@ public class Message<T> implements Validatable {
         Message m;
         switch (msg.getMsgType()) {
             case MessageType.CONNECT:
-                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), Connect.class));
+                m = MessageFactory.clone(msg, msg.getMsgId(), ObjectMapper.treeToValue(msg.getPayload(), Connect.class));
                 break;
             case MessageType.CONNACK:
-                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), ConnAck.class));
+                m = MessageFactory.clone(msg, msg.getMsgId(), ObjectMapper.treeToValue(msg.getPayload(), ConnAck.class));
                 break;
             case MessageType.DISCONNECT:
-                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), Disconnect.class));
+                m = MessageFactory.clone(msg, msg.getMsgId(), ObjectMapper.treeToValue(msg.getPayload(), Disconnect.class));
                 break;
             case MessageType.DISCONNACK:
-                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), DisconnAck.class));
+                m = MessageFactory.clone(msg, msg.getMsgId(), ObjectMapper.treeToValue(msg.getPayload(), DisconnAck.class));
                 break;
             case MessageType.TRIGGER:
-                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), Trigger.class));
+                m = MessageFactory.clone(msg, msg.getMsgId(), ObjectMapper.treeToValue(msg.getPayload(), Trigger.class));
                 break;
             case MessageType.TRIGACK:
-                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), TrigAck.class));
+                m = MessageFactory.clone(msg, msg.getMsgId(), ObjectMapper.treeToValue(msg.getPayload(), TrigAck.class));
                 break;
             case MessageType.ACTION:
-                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), Action.class));
+                m = MessageFactory.clone(msg, msg.getMsgId(), ObjectMapper.treeToValue(msg.getPayload(), Action.class));
                 break;
             case MessageType.ACTACK:
-                m = MessageFactory.newMessage(msg, ObjectMapper.treeToValue(msg.getPayload(), ActAck.class));
+                m = MessageFactory.clone(msg, msg.getMsgId(), ObjectMapper.treeToValue(msg.getPayload(), ActAck.class));
                 break;
             default:
                 throw new IOException("Unexpected message type: " + msg.getMsgType());

@@ -4,7 +4,6 @@ import com.github.longkerdandy.evo.api.message.Message;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.GenericFutureListener;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,18 +56,18 @@ public class ChannelRepository {
     /**
      * Send message to specific device
      *
-     * @param deviceId Device Id
      * @param msg      Message to be sent
      */
-    public void sendMessage(String deviceId, Message msg) {
-        ChannelHandlerContext ctx = this.getConn(deviceId);
+    public void sendMessage(Message msg) {
+        ChannelHandlerContext ctx = this.getConn(msg.getTo());
         if (ctx != null) {
             sendMessage(ctx, msg);
         } else {
-            logger.debug("Message {} {} has not been sent because device {} is not connected",
+            logger.debug("Message {} {} has not been sent from {} to {} because device is not connected",
                     msg.getMsgType(),
                     msg.getMsgId(),
-                    deviceId);
+                    msg.getFrom(),
+                    msg.getTo());
         }
     }
 
@@ -84,15 +83,17 @@ public class ChannelRepository {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
-                    logger.debug("Message {} {} has been sent to device {} successfully",
+                    logger.debug("Message {} {} has been sent from {} to {} successfully",
                             msg.getMsgType(),
                             msg.getMsgId(),
-                            StringUtils.defaultIfBlank(msg.getTo(), "<default>"));
+                            msg.getFrom(),
+                            msg.getTo());
                 } else {
-                    logger.debug("Message {} {} failed to send to device {}: {}",
+                    logger.debug("Message {} {} failed to send from {} to {}: {}",
                             msg.getMsgType(),
                             msg.getMsgId(),
-                            StringUtils.defaultIfBlank(msg.getTo(), "<default>"),
+                            msg.getFrom(),
+                            msg.getTo(),
                             ExceptionUtils.getMessage(future.cause()));
                 }
             }

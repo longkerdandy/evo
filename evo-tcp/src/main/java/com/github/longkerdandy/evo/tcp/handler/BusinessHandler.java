@@ -9,6 +9,7 @@ import com.github.longkerdandy.evo.api.message.*;
 import com.github.longkerdandy.evo.api.mq.Producer;
 import com.github.longkerdandy.evo.api.mq.Topics;
 import com.github.longkerdandy.evo.api.protocol.*;
+import com.github.longkerdandy.evo.api.util.UuidUtils;
 import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
 import com.github.longkerdandy.evo.tcp.util.TCPNode;
 import io.netty.channel.ChannelHandlerContext;
@@ -26,6 +27,7 @@ import java.util.Set;
 /**
  * Business Handler
  */
+@SuppressWarnings("unused")
 public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
 
     // Logger
@@ -122,7 +124,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             }
             this.repository.saveConn(deviceId, ctx);
 
-            Message<Trigger> online = MessageFactory.newTriggerMessage(protocol, deviceType, deviceId, null, Triggers.ONLINE, connect.getPolicy(), connect.getAttributes());
+            Message<Trigger> online = MessageFactory.newTriggerMessage(protocol, deviceType, deviceId, msg.getTo(), Triggers.ONLINE, connect.getPolicy(), connect.getAttributes());
 
             // notify users
             if (Evolution.ID.equals(msg.getTo())) {
@@ -233,8 +235,10 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         int returnCode;
         if (this.storage.isUserOwnDevice(u.getId(), deviceId, Permission.READ_WRITE)) {
             returnCode = ActAck.RECEIVED;
+            // create a new message for each receiver
+            Message<Action> m = MessageFactory.clone(msg, UuidUtils.shortUuid());
             // notify device
-            notifyDevice(deviceId, msg);
+            notifyDevice(m);
         } else {
             returnCode = ActAck.PERMISSION_INSUFFICIENT;
         }
@@ -289,7 +293,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             // try to mark device disconnect
             // may fails because device already re-connected to another node
             if (this.storage.setDeviceDisconnect(deviceId, TCPNode.id())) {
-                Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, null, Triggers.OFFLINE, disconnect.getPolicy(), disconnect.getAttributes());
+                Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, msg.getTo(), Triggers.OFFLINE, disconnect.getPolicy(), disconnect.getAttributes());
                 offline.setDescId(d.getDescId());
 
                 // notify users
@@ -343,7 +347,7 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
             // may fails because device already re-connected to another node
             if (this.storage.setDeviceDisconnect(deviceId, TCPNode.id())) {
                 Device d = this.authDevices.get(deviceId);
-                Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, null, Triggers.OFFLINE, OverridePolicy.IGNORE, null);
+                Message<Trigger> offline = MessageFactory.newTriggerMessage(d.getProtocol(), d.getType(), deviceId, Evolution.IGNORE, Triggers.OFFLINE, OverridePolicy.IGNORE, null);
                 offline.setDescId(d.getDescId());
 
                 // notify users
@@ -405,7 +409,11 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
         Set<String> controllers = this.storage.getDeviceOwnerControllee(deviceId, min, max);
         if (controllers != null) {
             for (String controller : controllers) {
-                notifyDevice(controller, msg);
+                // create a new message for each receiver
+                Message m = MessageFactory.clone(msg, UuidUtils.shortUuid());
+                m.setTo(controller);
+                // send to device
+                notifyDevice(msg);
             }
         }
     }
@@ -413,17 +421,19 @@ public class BusinessHandler extends SimpleChannelInboundHandler<Message> {
     /**
      * Notify Device
      *
-     * @param deviceId Device Id
-     * @param msg      Message to be sent
+     * @param msg Message to be sent
      */
-    protected void notifyDevice(String deviceId, Message msg) {
+    protected void notifyDevice(Message msg) {
+        String deviceId = msg.getTo();
         Device d = this.storage.getDeviceById(deviceId);
         if (d != null) {
             if (StringUtils.isNotBlank(d.getConnected())) {
                 if (TCPNode.id().equals(d.getConnected())) {
-                    this.repository.sendMessage(deviceId, msg); // send msg directly
+                    // send msg directly
+                    this.repository.sendMessage(msg);
                 } else {
-                    this.producer.sendMessage(Topics.TCP_OUT(TCPNode.id()), msg); // push to message queue
+                    // push to message queue, let other tcp node handle
+                    this.producer.sendMessage(Topics.TCP_OUT(TCPNode.id()), msg);
                 }
             }
         } else {

@@ -51,7 +51,7 @@ public class MessageTest {
         assert connect.getToken().equals("Token A");
 
         // validate
-        Message<Connect> msg = MessageFactory.newMessage(in, connect);
+        Message<Connect> msg = MessageFactory.clone(in, in.getMsgId(), connect);
         msg.validate();
     }
 }

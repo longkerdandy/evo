@@ -5,7 +5,6 @@ import com.github.longkerdandy.evo.api.message.Message;
 import com.github.longkerdandy.evo.api.mq.LegacyConsumerWorker;
 import com.github.longkerdandy.evo.tcp.repo.ChannelRepository;
 import kafka.consumer.KafkaStream;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +32,7 @@ public class TCPConsumerWorker extends LegacyConsumerWorker {
             // parse json
             Message<JsonNode> msg = Message.parseMessageNode(message);
             // send message
-            String deviceId = msg.getTo();
-            if (StringUtils.isNotBlank(deviceId)) {
-                this.repository.sendMessage(deviceId, msg);
-            }
+            this.repository.sendMessage(msg);
         } catch (IOException e) {
             logger.error("Error when parsing message: {}", ExceptionUtils.getMessage(e));
         }
